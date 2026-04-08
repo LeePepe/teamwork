@@ -49,24 +49,31 @@ Run setup only for the plugins you installed:
 
 ## Install This Skill
 
+```
+/plugin marketplace add LeePepe/planning-team-skill
+/plugin install planning-team-skill@LeePepe
+```
+
+Then run setup (global by default, or pass `--repo` for project-local):
+
+```
+/planning-team-skill:setup
+/planning-team-skill:setup --repo
+```
+
+Check status at any time:
+
+```
+/planning-team-skill:setup --check
+```
+
+### Manual install (without the plugin system)
+
 ```bash
 git clone https://github.com/LeePepe/planning-team-skill.git
 cd planning-team-skill
-
-# Global install (agents + skill → ~/.claude/)
-bash scripts/setup.sh --global
-
-# Or project-local install (agents + skill → .claude/ in current repo)
-bash scripts/setup.sh --repo
+bash scripts/setup.sh --global   # or --repo for project-local
 ```
-
-Check status before or after install:
-
-```bash
-bash scripts/setup.sh --check
-```
-
-The script installs agent definitions, the skill file, and registers plugin marketplaces in `~/.claude/settings.json`. In `--repo` mode it also creates a `.claude/team.md` template for per-repo customization.
 
 ## Usage
 

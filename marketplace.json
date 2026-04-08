@@ -1,0 +1,16 @@
+{
+  "name": "planning-team-skill",
+  "owner": {
+    "name": "LeePepe"
+  },
+  "plugins": [
+    {
+      "name": "planning-team-skill",
+      "description": "Plan → review → execute pipeline with team-lead, planner, plan-reviewer, codex-coder, and copilot agents.",
+      "source": {
+        "source": "github",
+        "repo": "LeePepe/planning-team-skill"
+      }
+    }
+  ]
+}
