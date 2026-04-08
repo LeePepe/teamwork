@@ -4,8 +4,8 @@
 # Usage:
 #   ./scripts/setup.sh [--global] [--repo] [--check]
 #
-#   --global   Install agents and skill to ~/.claude/ (default)
-#   --repo     Install agents and skill to .claude/ in current git repo
+#   --global   Install agents and skill to ~/.claude/
+#   --repo     Install agents and skill to .claude/ in current git repo (default)
 #   --check    Only check status, don't install anything
 
 set -euo pipefail
@@ -22,7 +22,7 @@ fail() { echo -e "${RED}✗${NC} $*"; }
 info() { echo -e "  $*"; }
 
 # ── Args ─────────────────────────────────────────────────────────────────────
-MODE="global"
+MODE="repo"
 CHECK_ONLY=false
 for arg in "$@"; do
   case $arg in
@@ -36,7 +36,7 @@ done
 if [ "$MODE" = "repo" ]; then
   REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
   if [ -z "$REPO_ROOT" ]; then
-    fail "--repo requires running inside a git repository."
+    fail "--repo requires running inside a git repository. Use --global outside a repo."
     exit 1
   fi
   AGENTS_DIR="$REPO_ROOT/.claude/agents"

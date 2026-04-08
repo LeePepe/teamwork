@@ -55,11 +55,11 @@ Run setup only for the plugins you installed:
 /reload-plugins
 ```
 
-Then run setup (global by default, or pass `--repo` for project-local):
+Then run setup (`--repo` by default, or pass `--global` for global install):
 
 ```
 /planning-team-skill:setup
-/planning-team-skill:setup --repo
+/planning-team-skill:setup --global
 ```
 
 Check status at any time:
@@ -73,7 +73,8 @@ Check status at any time:
 ```bash
 git clone https://github.com/LeePepe/planning-team-skill.git
 cd planning-team-skill
-bash scripts/setup.sh --global   # or --repo for project-local
+bash scripts/setup.sh            # defaults to --repo (project-local)
+bash scripts/setup.sh --global   # install globally to ~/.claude
 ```
 
 ## Usage
