@@ -35,13 +35,74 @@ Install with:
 ## Trigger
 
 ```
-/planning-team <description of what to build or fix>
+/planning-team setup [--global|--repo]   # install everything
+/planning-team <description>              # run the pipeline
 ```
 
 Or natural language:
 ```
 Use the planning team to implement <feature>
 ```
+
+## Setup
+
+When the user invokes `/planning-team setup` (or asks to set up the planning team):
+
+### Step 1 — Find the skill directory
+
+```bash
+SKILL_DIR=$(find ~/.claude/skills ~/Development -name "planning-team-skill" -maxdepth 4 -type d 2>/dev/null | head -1)
+if [ -z "$SKILL_DIR" ]; then
+  # Clone from GitHub
+  git clone https://github.com/LeePepe/planning-team-skill.git /tmp/planning-team-skill
+  SKILL_DIR="/tmp/planning-team-skill"
+fi
+```
+
+### Step 2 — Run the setup script
+
+```bash
+bash "$SKILL_DIR/scripts/setup.sh" --check
+```
+
+Parse the output to identify what's missing: agents, skill file, plugins.
+
+Then run the installer with the appropriate mode:
+- If the user said `--repo` or is inside a git repo and wants project-local setup → `--repo`
+- Otherwise → `--global` (default)
+
+```bash
+bash "$SKILL_DIR/scripts/setup.sh" [--global|--repo]
+```
+
+### Step 3 — Install missing plugins
+
+If the setup script reports plugins as not installed, invoke the plugin commands:
+
+For codex plugin (if missing):
+```
+/plugin install codex@openai-codex
+```
+
+For copilot plugin (if missing):
+```
+/plugin install copilot@copilot-local
+```
+
+If any plugin was installed:
+```
+/reload-plugins
+```
+
+### Step 4 — Verify
+
+```bash
+bash "$SKILL_DIR/scripts/setup.sh" --check
+node $(find ~/.claude/plugins -name "codex-companion.mjs" | head -1) setup --json 2>/dev/null
+node $(find ~/.claude/plugins -name "copilot-companion.mjs" | head -1) setup --json 2>/dev/null
+```
+
+Report the final status clearly: what's installed, what (if anything) still needs attention.
 
 ## What It Does
 
