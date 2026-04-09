@@ -67,15 +67,15 @@ check_plugin "copilot" "copilot-local" && COPILOT_OK=true || true
 if $CHECK_ONLY; then
   echo "=== Teamwork Skill — Status ==="
   echo ""
-  echo "Plugins (at least one required):"
+  echo "Plugins (optional, Claude fallback works without plugins):"
   $CODEX_OK   && ok "  codex plugin installed"   || warn "  codex plugin not installed (optional)"
   $COPILOT_OK && ok "  copilot plugin installed" || warn "  copilot plugin not installed (optional)"
   if ! $CODEX_OK && ! $COPILOT_OK; then
-    fail "  Neither plugin is installed — at least one is required."
+    warn "  Neither plugin is installed — pipeline will fallback to Claude-native execution/review."
   fi
   echo ""
   echo "Agents ($AGENTS_DIR):"
-  for agent in team-lead planner plan-reviewer codex-coder copilot verifier final-reviewer; do
+  for agent in team-lead researcher planner plan-reviewer codex-coder copilot claude-coder verifier final-reviewer git-monitor; do
     [ -f "$AGENTS_DIR/$agent.md" ] \
       && ok "  $agent.md" \
       || fail "  $agent.md missing"
@@ -157,7 +157,7 @@ PYEOF
 fi
 
 # ── Plugin install instructions ───────────────────────────────────────────────
-# At least one plugin is required; having both is recommended.
+# Plugins are optional; having both gives best routing flexibility.
 echo ""
 NEEDS_RELOAD=false
 
@@ -179,10 +179,9 @@ fi
 
 if ! $CODEX_OK && ! $COPILOT_OK; then
   echo ""
-  fail "Neither plugin is installed. At least one is required to use this skill."
+  warn "Neither plugin is installed. Teamwork will use Claude-native fallback."
   info "Install codex:  /plugin install codex@openai-codex"
   info "Install copilot: /plugin install copilot@copilot-local"
-  NEEDS_RELOAD=true
 fi
 
 if $NEEDS_RELOAD; then

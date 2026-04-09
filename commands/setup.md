@@ -1,5 +1,5 @@
 ---
-description: Install teamwork agents and skill file into your repo or global ~/.claude/. Pass --global for a global install or --check to inspect current status (including verifier/final-reviewer agents).
+description: Install teamwork agents and skill file into your repo or global ~/.claude/. Pass --global for a global install or --check to inspect current status (including researcher/claude-coder/verifier/final-reviewer agents).
 argument-hint: "[--global|--repo|--check]"
 allowed-tools: Bash
 ---

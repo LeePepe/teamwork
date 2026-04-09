@@ -4,7 +4,7 @@
 This repository ships a Claude Code skill plus agent definitions.
 
 - `SKILL.md`: core teamwork skill behavior and workflow.
-- `agents/`: role-specific agent prompts (`team-lead.md`, `planner.md`, `plan-reviewer.md`, `codex-coder.md`, `copilot.md`, `verifier.md`, `final-reviewer.md`).
+- `agents/`: role-specific agent prompts (`team-lead.md`, `researcher.md`, `planner.md`, `plan-reviewer.md`, `codex-coder.md`, `copilot.md`, `claude-coder.md`, `verifier.md`, `final-reviewer.md`, `git-monitor.md`).
 - `scripts/setup.sh`: installer/checker for global (`~/.claude`) or repo-local (`.claude`) setup.
 - `templates/team.md`: template for per-repo routing, review, and verification preferences.
 - `README.md`: usage, installation, and dependency docs.

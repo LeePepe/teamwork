@@ -1,4 +1,4 @@
 interface:
   display_name: "Teamwork"
   short_description: "Plan, review, execute, verify, and final-review complex implementation work"
-  default_prompt: "Use $teamwork to break this request into a reviewed plan, execute it with Codex/Copilot routing, run verification, then run final Codex review before completion."
+  default_prompt: "Use $teamwork to split research, apply fallback routing (no Copilot -> Codex, no Codex+Copilot -> Claude model chosen by lead), create a reviewed plan, execute, verify, and run final review before completion."

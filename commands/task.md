@@ -1,5 +1,5 @@
 ---
-description: Run a task through the full plan → review → execute → verify → final-review pipeline. Pass your task description as the argument.
+description: Run a task through the full research → plan → review → execute → verify → final-review pipeline. Pass your task description as the argument.
 argument-hint: "<task description>"
 allowed-tools: Bash, Agent
 ---
@@ -21,12 +21,7 @@ COPILOT_OK=false
 echo "codex=$CODEX_OK copilot=$COPILOT_OK"
 ```
 
-If both are false, stop and tell the user to install at least one plugin:
-```
-/plugin install codex@openai-codex
-/plugin install copilot@copilot-local
-/reload-plugins
-```
+Do not stop when both are false; `team-lead` will use Claude-native fallback.
 
 ## Step 2 — Read team config
 
@@ -40,8 +35,9 @@ REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 From the output of Step 1, read the actual `codex=true/false` and `copilot=true/false` values.
 Derive the executor constraint:
 - Both true → route per plan annotation (default behavior)
-- Only codex true → all tasks go to `codex-coder`, ignore `executor: copilot` annotations
-- Only copilot true → all tasks go to `copilot`, ignore `executor: codex` annotations
+- Copilot false + Codex true → all tasks go to `codex-coder` (including research/review fallback where applicable)
+- Codex false + Copilot true → all tasks go to `copilot` (plan/final review may fallback to Claude-native)
+- Both false → all tasks go to `claude-coder`; lead selects Claude model
 
 Spawn the `team-lead` agent with:
 
@@ -51,11 +47,14 @@ Routing preferences: <contents of .claude/team.md, or "use defaults">
 Plugin availability: codex=<actual value from Step 1> copilot=<actual value from Step 1>
 Executor constraint: <derived from above>
 Verification preferences: <commands from .claude/team.md ## Verification, or "use plan task verification">
+Claude fallback model policy: lead selects `haiku|sonnet|opus` when both plugins are unavailable
 ```
 
 ## Step 4 — Report outcome
 
 Return:
+- Research split strategy and consolidated result summary (or `research_unavailable`)
+- Fallback strategy and selected model (when Claude fallback is used)
 - Plan file path
 - Modified files grouped by executor
 - Failed or skipped tasks

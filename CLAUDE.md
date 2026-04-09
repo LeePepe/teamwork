@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-A Claude Code skill (`SKILL.md`) plus agent definitions (`agents/`) that implement a structured **plan → review → execute → verify → final-review** pipeline. There is no compiled output — the "artifacts" are Markdown prompt files that get copied to `~/.claude/` or `.claude/`.
+A Claude Code skill (`SKILL.md`) plus agent definitions (`agents/`) that implement a structured **research → plan → review → execute → verify → final-review** pipeline. There is no compiled output — the "artifacts" are Markdown prompt files that get copied to `~/.claude/` or `.claude/`.
 
 ## Commands
 
@@ -29,7 +29,7 @@ Always run `--check` before and after modifying setup logic to confirm idempoten
 ### Pipeline Flow
 
 ```
-SKILL.md  →  team-lead  →  planner  →  plan-reviewer  →  codex-coder / copilot  →  verifier  →  final-reviewer
+SKILL.md  →  team-lead  →  researcher (1..N, parallel when independent)  →  planner  →  plan-reviewer  →  codex-coder / copilot / claude-coder  →  verifier  →  final-reviewer  →  git-monitor (optional)
 ```
 
 `SKILL.md` is the skill entry point: it validates plugin availability, reads repo routing config (`.claude/team.md`), then delegates entirely to `team-lead`. The team-lead orchestrates the rest — it **must not modify files directly**.
@@ -39,16 +39,19 @@ SKILL.md  →  team-lead  →  planner  →  plan-reviewer  →  codex-coder / c
 | Agent | Role | May modify project files? |
 |-------|------|--------------------------|
 | `team-lead` | Orchestrates pipeline, routes tasks | No |
+| `researcher` | Single-scope worker using Copilot; lead may run multiple in parallel and merge | No |
 | `planner` | Writes plan files in `.claude/plan/` | Plan files only |
-| `plan-reviewer` | Codex-powered plan review/iteration | Plan files only |
+| `plan-reviewer` | Plan review/iteration (Codex when available, Claude fallback otherwise) | Plan files only |
 | `codex-coder` | Executes strict/formal tasks (TS/JS, APIs, tests) | Yes |
 | `copilot` | Executes all other tasks (Swift, scripts, UI) | Yes |
+| `claude-coder` | Claude-native executor fallback when plugins are unavailable | Yes |
 | `verifier` | Runs post-execution verification commands | No |
-| `final-reviewer` | Runs final `/codex:review` gate on working tree | No |
+| `final-reviewer` | Runs final review on working tree (Codex when available, Claude fallback otherwise) | No |
+| `git-monitor` | Stages commits, creates PRs, monitors CI and PR comments (optional, post-final-review) | No |
 
 ### Hard Pipeline Rule
 
-`team-lead` has `tools: Read, Glob, Agent` — no write access. Any direct file change from the lead is a pipeline violation. File changes flow exclusively through `codex-coder` or `copilot`.
+`team-lead` has `tools: Read, Glob, Agent` — no write access. Any direct file change from the lead is a pipeline violation. File changes flow through executor agents (`codex-coder`, `copilot`, `claude-coder`).
 
 ### Executor Routing
 
@@ -59,7 +62,12 @@ Routing is determined by task weight/rigor (not file type) and can be overridden
 
 ### Plugin Dependency
 
-Executors delegate to plugins: `codex-coder` uses `codex-companion.mjs`, `copilot` uses `copilot-companion.mjs`. At least one plugin must be installed; if only one is present, all tasks route to that executor regardless of the plan annotation.
+Executors delegate to plugins when available: `codex-coder` uses `codex-companion.mjs`, `copilot` uses `copilot-companion.mjs`. `researcher` can use either plugin and falls back to Claude-native research when needed. `team-lead` decides whether to run one or multiple researcher scopes and can parallelize independent scopes.
+
+Fallback policy:
+- `copilot=false` and `codex=true`: route all plugin-backed work to Codex
+- `codex=false` and `copilot=true`: route research/execution to Copilot, use Claude-native review fallback
+- `codex=false` and `copilot=false`: route all execution to `claude-coder`, and let lead choose Claude model
 
 ### Plan File Format
 
