@@ -100,6 +100,10 @@ Setup now uses a lightweight default:
 Research policy:
 - code read/search tasks are routed to `researcher`
 - researcher outputs scoped navigation maps (`areas`, `entry points`, key paths) and must split oversized areas to keep context small
+- when both plugins are available:
+  - code investigation scopes default to Codex (stability/accuracy first)
+  - web/external research scopes default to Copilot Claude path (open-ended synthesis first)
+  - mixed scopes should be split into independent code/web scopes before dispatch
 
 Verification policy:
 - verifier uses cache keyed by repo state + verification command set

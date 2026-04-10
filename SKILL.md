@@ -53,7 +53,8 @@ team-lead
   │     guide A: research stage  → load researcher only
   │     guide B: plan stage      → load planner + plan-reviewer only
   │     guide C: execution stage → load executors/gates only when needed
-  ├── researcher(s)  → lead-decided split, parallel when independent, backend: copilot|codex|claude
+  ├── researcher(s)  → lead-decided split, parallel when independent
+  │                    default focus: code investigation -> codex, web research -> copilot (Claude path)
   │                    outputs are merged into one brief for planner
   ├── planner        → writes .claude/plan/<slug>.md with executor annotations
   ├── plan-reviewer  → reviews plan (review or adversarial-review)
@@ -120,6 +121,8 @@ Let `team-lead` run:
 3. if full Claude fallback is selected, `team-lead` chooses model (`haiku|sonnet|opus`)
 4. one or more `researcher` agents run scoped research with selected backend (parallel when independent)
    - code read/search tasks are owned by `researcher`
+   - when both plugins are available: code scopes default to Codex; web scopes default to Copilot Claude path
+   - mixed scopes should be split before researcher dispatch
    - each scope returns a minimal navigation map; oversized areas must be split
 5. `team-lead` consolidates research outputs (`ok|partial|research_unavailable`) into one brief
 6. `planner` creates the plan using the consolidated brief

@@ -61,7 +61,7 @@ SKILL.md  →  team-lead  →  researcher (1..N, parallel when independent)  →
 | Agent | Role | May modify project files? |
 |-------|------|--------------------------|
 | `team-lead` | Orchestrates pipeline, routes tasks | No |
-| `researcher` | Single-scope worker using Copilot; lead may run multiple in parallel and merge | No |
+| `researcher` | Single-scope worker; code investigation defaults to Codex, web research defaults to Copilot Claude path | No |
 | `planner` | Writes plan files in `.claude/plan/` | Plan files only |
 | `plan-reviewer` | Plan review/iteration (Codex when available, Claude fallback otherwise) | Plan files only |
 | `codex-coder` | Executes strict/formal tasks (TS/JS, APIs, tests) | Yes |
@@ -95,6 +95,10 @@ Fallback policy:
 
 - Code read/search requests should be routed to `researcher` first.
 - `researcher` should output scoped area maps and split oversized areas into smaller sub-areas to reduce context.
+- Model focus for research when both plugins are available:
+  - `research_kind=code` -> `codex` (stable/accurate investigation)
+  - `research_kind=web` -> `copilot` (Claude model path for open-ended synthesis)
+  - mixed scope should be split into separate code/web scopes before dispatch
 - `verifier` may reuse cached verification only when cache key exactly matches current repo state + command set.
 
 ### Plan File Format

@@ -90,6 +90,8 @@ Executor constraint: <derived from above>
 Verification preferences: <commands from .claude/team.md ## Verification, or "use plan task verification">
 Claude fallback model policy: lead selects `haiku|sonnet|opus` when both plugins are unavailable
 Research policy: all code read/search tasks go through `researcher`; require scoped navigation maps and split oversized areas
+Research backend policy (when both plugins are available): `research_kind=code` -> `codex`; `research_kind=web` -> `copilot` (Claude model path); mixed scope must be split
+Model focus policy: prefer Codex for stable/accurate/constraint-heavy tasks; prefer Claude-style reasoning for open-ended/creative exploration
 Verification cache policy: verifier should reuse cached result only when repo+commands key matches exactly
 ```
 

@@ -21,6 +21,15 @@ You can use superpowers.
 - `final-reviewer`: runs final code review gate (Codex when available, Claude fallback otherwise)
 - `git-monitor`: stages commits, creates PRs, monitors CI and PR comments (optional, post-final-review)
 
+## Model Focus Policy
+
+- `codex`: stable, precise, high-correctness tasks (deterministic reasoning, code-grounded investigation, strict constraints)
+- `claude`: open-ended, exploratory, creative tasks (idea expansion, broad web synthesis, ambiguous problem framing)
+- `researcher` backend default when both plugins are available:
+  - code investigation/read/search -> `codex`
+  - web/external research/search/synthesis -> `copilot` (Claude model path)
+  - mixed scope -> split into separate `code` and `web` scopes before running researchers
+
 ## Workflow
 
 0. Progressive loading policy:
@@ -71,7 +80,7 @@ done
 - if `copilot=false` and `codex=true`: force all plugin-backed work to Codex (`research`, `execution`, `review`/`final-review` where possible)
 - if `codex=false` and `copilot=true`: use Copilot for `research`/`execution`; use Claude-native review fallback for plan/final review
 - if `codex=false` and `copilot=false`: force all work to Claude-native agents
-- if both true: use default routing behavior
+- if both true: use default routing behavior + model focus policy above
 3. When entering Claude-native fallback (`codex=false` and `copilot=false`), choose `claude_model` by task complexity:
 - `small`/straightforward -> `haiku`
 - `medium`/general -> `sonnet`
@@ -81,8 +90,14 @@ done
 - small/simple task: run one `researcher`
 - medium/large or multi-domain task: split into independent research scopes and run multiple `researcher` agents in parallel
 - each scope must be non-overlapping and planning-relevant
+ - classify each scope as `research_kind: code|web`
+ - if a scope is mixed (`code` + `web`), split it into at least two scopes before dispatch
 6. Spawn one or more `researcher` agents.
-- Pass scope id/title, research question, selected backend (`copilot|codex|claude`), and `claude_model` when backend is `claude`.
+- For each scope, choose backend with this priority:
+  - `research_kind=code`: `codex` when available; else fallback by plugin availability
+  - `research_kind=web`: `copilot` when available (Claude model path); else fallback by plugin availability
+  - if both plugins unavailable: use `claude` and pass `claude_model`
+- Pass scope id/title, `research_kind`, research question, selected backend (`copilot|codex|claude`), and `claude_model` when backend is `claude`.
 - Require each researcher output to include scoped navigation map + minimal sub-areas for its scope.
 - If a researcher returns `research_unavailable`, continue with explicit assumptions.
 7. Merge researcher outputs into one consolidated brief for `planner`:
