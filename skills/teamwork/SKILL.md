@@ -14,19 +14,50 @@ Use this skill when the user asks to install, update, verify, or troubleshoot th
 
 This skill manages the Claude-side teamwork package from Codex by running the local setup script and reporting state.
 
+## Resolve Teamwork Root
+
+Always resolve `TEAMWORK_ROOT` before running setup commands (so execution does not depend on current working directory):
+
+```bash
+resolve_teamwork_root() {
+  if [ -f "scripts/setup.sh" ]; then
+    pwd -P
+    return 0
+  fi
+
+  for base in "$HOME/.agents/skills/teamwork" "$HOME/.claude/skills/teamwork"; do
+    [ -d "$base" ] || continue
+    skill_dir="$(cd "$base" && pwd -P)"
+    for candidate in "$skill_dir/../.." "$skill_dir"; do
+      if [ -f "$candidate/scripts/setup.sh" ]; then
+        (cd "$candidate" && pwd -P)
+        return 0
+      fi
+    done
+  done
+
+  return 1
+}
+
+TEAMWORK_ROOT="$(resolve_teamwork_root)" || {
+  echo "Unable to locate teamwork root (missing scripts/setup.sh)." >&2
+  exit 1
+}
+```
+
 ## Standard workflow
 
 1. Run status check first:
 
 ```bash
-bash scripts/setup.sh --check
+bash "$TEAMWORK_ROOT/scripts/setup.sh" --check
 ```
 
 2. If install/update is requested, run one of:
 
 ```bash
-bash scripts/setup.sh --repo
-bash scripts/setup.sh --global
+bash "$TEAMWORK_ROOT/scripts/setup.sh" --repo
+bash "$TEAMWORK_ROOT/scripts/setup.sh" --global
 ```
 
 3. Re-run check and report:
@@ -58,7 +89,7 @@ echo "codex=$([ -n "$CODEX_SCRIPT" ] && echo true || echo false) copilot=$([ -n 
 
 If user reports `529 overloaded_error` after setup:
 
-1. Re-run `bash scripts/setup.sh --check`
+1. Re-run `bash "$TEAMWORK_ROOT/scripts/setup.sh" --check`
 2. Detect recursive cache paths:
 
 ```bash
