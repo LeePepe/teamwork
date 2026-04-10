@@ -122,3 +122,17 @@ Similarly, `SKILL.md` (source) installs to `.claude/skills/teamwork/SKILL.md`, a
 - `scripts/setup.sh` must keep `set -euo pipefail` and quote all variable expansions
 - Conventional Commits format: `type: short imperative summary`
 - When modifying agent behavior, update `agents/<name>.md` (source), then re-run `bash scripts/setup.sh --repo` to sync the installed `.claude/agents/` copies
+
+## Versioning Policy
+
+Format: `MAJOR.MINOR.PATCH`
+
+| Segment | Who decides | When to bump |
+|---------|-------------|--------------|
+| MAJOR | User only | Breaking changes or major milestones decided by user |
+| MINOR | Automatic | Any time a new agent is added to `agents/` |
+| PATCH | Automatic | Every other change (bug fix, behavior tweak, prompt update, etc.) |
+
+Version is stored in **two places** — both must be updated together:
+1. `skills/teamwork/SKILL.md` — `metadata.version` field
+2. `.claude-plugin/plugin.json` — `version` field

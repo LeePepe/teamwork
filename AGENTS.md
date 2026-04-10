@@ -43,6 +43,20 @@ Operational smoke test:
 
 For setup script changes, verify idempotency (running install twice stays valid).
 
+## Versioning Policy
+
+Format: `MAJOR.MINOR.PATCH`
+
+| Segment | Who decides | When to bump |
+|---------|-------------|--------------|
+| MAJOR | User only | Breaking changes or major milestones decided by user |
+| MINOR | Automatic | Any time a new agent is added to `agents/` |
+| PATCH | Automatic | Every other change (bug fix, behavior tweak, prompt update, etc.) |
+
+Version is stored in **two places** — both must be updated together:
+1. `skills/teamwork/SKILL.md` — `metadata.version` field
+2. `.claude-plugin/plugin.json` — `version` field
+
 ## Commit/Push Rule
 Every time code is modified in this repo, finish both steps in the same task:
 1. Create a commit (Conventional Commits style).
