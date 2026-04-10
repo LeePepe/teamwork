@@ -1,0 +1,42 @@
+{
+  "name": "teamwork",
+  "version": "0.1.0",
+  "description": "Install and maintain the teamwork multi-agent pipeline for Claude repositories from Codex.",
+  "author": {
+    "name": "LeePepe",
+    "url": "https://github.com/LeePepe"
+  },
+  "homepage": "https://github.com/LeePepe/teamwork",
+  "repository": "https://github.com/LeePepe/teamwork",
+  "license": "MIT",
+  "keywords": [
+    "teamwork",
+    "claude",
+    "agents",
+    "planning",
+    "verification"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Teamwork",
+    "shortDescription": "Install and maintain the teamwork agent pipeline in your repo",
+    "longDescription": "Use Teamwork to install, check, and update the staged research-plan-execute-verify workflow for Claude repositories, and troubleshoot setup or overload issues.",
+    "developerName": "LeePepe",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/LeePepe/teamwork",
+    "privacyPolicyURL": "https://github.com/LeePepe/teamwork/blob/main/README.md",
+    "termsOfServiceURL": "https://github.com/LeePepe/teamwork/blob/main/README.md",
+    "defaultPrompt": [
+      "Install or update teamwork in this repo and run setup checks",
+      "Diagnose teamwork setup and plugin readiness issues",
+      "Apply teamwork staged loading optimizations in this repository"
+    ],
+    "brandColor": "#1F6FEB",
+    "screenshots": []
+  }
+}

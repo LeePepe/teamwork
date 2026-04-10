@@ -74,6 +74,22 @@ Then run setup (`--repo` by default, or pass `--global` for global install):
 /teamwork:setup --global
 ```
 
+### Codex support
+
+This repository now includes Codex plugin metadata and skill entrypoints:
+- `.codex-plugin/plugin.json`
+- `skills/teamwork/SKILL.md`
+
+Install for Codex via native skill discovery:
+
+```bash
+git clone https://github.com/LeePepe/teamwork.git ~/.codex/teamwork
+mkdir -p ~/.agents/skills
+ln -sfn ~/.codex/teamwork/skills ~/.agents/skills/teamwork
+```
+
+Then restart Codex.
+
 Setup now uses a lightweight default:
 - Preloads only `team-lead` into `.claude/agents`
 - Stores all other teamwork agents in `.claude/skills/teamwork/agents` and loads them progressively by stage:

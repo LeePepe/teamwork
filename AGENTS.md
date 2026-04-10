@@ -4,6 +4,8 @@
 This repository ships a Claude Code skill plus agent definitions.
 
 - `SKILL.md`: core teamwork skill behavior and workflow.
+- `.codex-plugin/plugin.json`: Codex plugin metadata for this repo.
+- `skills/teamwork/SKILL.md`: Codex skill entry for setup/check/troubleshooting flows.
 - `agents/`: role-specific agent prompts (`team-lead.md`, `researcher.md`, `planner.md`, `plan-reviewer.md`, `codex-coder.md`, `copilot.md`, `claude-coder.md`, `verifier.md`, `final-reviewer.md`, `git-monitor.md`).
 - `scripts/setup.sh`: installer/checker for global (`~/.claude`) or repo-local (`.claude`) setup.
 - `templates/team.md`: template for per-repo routing, review, and verification preferences.
@@ -14,6 +16,8 @@ Keep new role prompts in `agents/` and reusable config defaults in `templates/`.
 ## Basic Navigation Map
 
 - `SKILL.md`: skill entry, stage orchestration contract.
+- `.codex-plugin/plugin.json`: Codex plugin manifest.
+- `skills/teamwork/SKILL.md`: Codex discoverable skill payload.
 - `commands/task.md`: runtime task entry; passes routing/research/verification policy into `team-lead`.
 - `commands/setup.md`: user-facing setup command contract.
 - `agents/team-lead.md`: stage-by-stage loading guides and orchestration policy.
