@@ -11,6 +11,17 @@ This repository ships a Claude Code skill plus agent definitions.
 
 Keep new role prompts in `agents/` and reusable config defaults in `templates/`.
 
+## Basic Navigation Map
+
+- `SKILL.md`: skill entry, stage orchestration contract.
+- `commands/task.md`: runtime task entry; passes routing/research/verification policy into `team-lead`.
+- `commands/setup.md`: user-facing setup command contract.
+- `agents/team-lead.md`: stage-by-stage loading guides and orchestration policy.
+- `agents/researcher.md`: code read/search owner; scoped area map outputs.
+- `agents/planner.md`: converts research maps into minimal-scope execution plans.
+- `agents/verifier.md`: verification gate with cache-aware behavior.
+- `scripts/setup.sh`: install/check behavior for global/repo skill layout.
+
 ## Build, Test, and Development Commands
 There is no compile/build step; validation is script-driven.
 
@@ -38,6 +49,10 @@ When changing setup logic, verify idempotency (running install twice should not 
 
 ## Commit & Pull Request Guidelines
 Git history uses Conventional Commits (`feat: ...`). Continue with `type: short imperative summary` (e.g., `fix: handle missing repo root in --repo mode`).
+
+Every time code is modified, complete the cycle in the same task:
+1. Create a commit.
+2. Push to remote (`origin/<current-branch>`), unless the user explicitly asks not to push.
 
 For PRs, include:
 

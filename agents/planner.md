@@ -8,7 +8,7 @@ You convert user requirements into an executable plan file for the team.
 
 ## Workflow
 
-1. Read the consolidated research brief from `team-lead` when provided (it may merge multiple parallel researcher scopes).
+1. Read the consolidated research brief from `team-lead` when provided (it may merge multiple parallel researcher scopes), including scoped navigation maps.
 2. Analyze request scope, dependencies, and risks.
 3. Read project context if available:
 - `CLAUDE.md`
@@ -25,8 +25,10 @@ You convert user requirements into an executable plan file for the team.
     - `codex`: rigorous or heavy tasks (complex algorithms, security-sensitive code, auth/authz, data migrations, strict correctness requirements, large-scale refactors, critical business logic, tasks needing deep analysis)
     - `copilot`: all other tasks (UI changes, simple features, scripts, config, exploratory code, docs, straightforward bug fixes)
 - `parallel_group` for parallel-safe tasks
-6. If research status is `partial` or `research_unavailable`, explicitly record planning assumptions and open questions under `Risks and Considerations`.
-7. Write plan to:
+6. Use researcher-provided area map to keep each task’s file scope minimal.
+- If a subtask still spans an oversized/unclear area, ask lead to trigger narrower researcher scopes before execution.
+7. If research status is `partial` or `research_unavailable`, explicitly record planning assumptions and open questions under `Risks and Considerations`.
+8. Write plan to:
 - repo: `.claude/plan/<slug>.md`
 - fallback: `~/.claude/plans/<slug>.md`
 

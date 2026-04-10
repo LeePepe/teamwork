@@ -34,6 +34,28 @@ SKILL.md  →  team-lead  →  researcher (1..N, parallel when independent)  →
 
 `SKILL.md` is the skill entry point: it validates plugin availability, reads repo routing config (`.claude/team.md`), then delegates entirely to `team-lead`. The team-lead orchestrates the rest — it **must not modify files directly**.
 
+### Basic Navigation Map
+
+- Entry and orchestration:
+  - `SKILL.md`
+  - `commands/task.md`
+  - `agents/team-lead.md`
+- Research and planning:
+  - `agents/researcher.md`
+  - `agents/planner.md`
+  - `agents/plan-reviewer.md`
+- Execution and quality gates:
+  - `agents/codex-coder.md`
+  - `agents/copilot.md`
+  - `agents/claude-coder.md`
+  - `agents/verifier.md`
+  - `agents/final-reviewer.md`
+  - `agents/git-monitor.md`
+- Install/runtime layout:
+  - `scripts/setup.sh`
+  - `.claude/skills/teamwork/SKILL.md` (installed copy)
+  - `.claude/skills/teamwork/agents/*` (lazy-load source)
+
 ### Agent Responsibilities
 
 | Agent | Role | May modify project files? |
@@ -68,6 +90,12 @@ Fallback policy:
 - `copilot=false` and `codex=true`: route all plugin-backed work to Codex
 - `codex=false` and `copilot=true`: route research/execution to Copilot, use Claude-native review fallback
 - `codex=false` and `copilot=false`: route all execution to `claude-coder`, and let lead choose Claude model
+
+### Research and Verification Policies
+
+- Code read/search requests should be routed to `researcher` first.
+- `researcher` should output scoped area maps and split oversized areas into smaller sub-areas to reduce context.
+- `verifier` may reuse cached verification only when cache key exactly matches current repo state + command set.
 
 ### Plan File Format
 

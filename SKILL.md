@@ -41,6 +41,7 @@ Use teamwork to implement <feature>
 Activation safety:
 - Only activate this skill for explicit teamwork intent (`/teamwork:task ...` or clear request to "use teamwork").
 - Do not activate for casual chat, greetings, or unrelated prompts.
+- If the user does not explicitly trigger teamwork, normal Claude execution may run directly without `team-lead`/subagents.
 
 > To install or check status, use `/teamwork:setup` (available after installing this plugin).
 
@@ -99,6 +100,11 @@ If `.claude/team.md` exists, read:
 
 ### 3) Delegate orchestration to `team-lead`
 
+Hard requirement:
+- Skill entry does orchestration only.
+- Do not implement user code directly in the skill entry.
+- Delegate execution to `team-lead` first, then report `team-lead` pipeline results.
+
 Pass:
 
 ```text
@@ -113,11 +119,14 @@ Let `team-lead` run:
 2. `team-lead` chooses fallback strategy from plugin availability
 3. if full Claude fallback is selected, `team-lead` chooses model (`haiku|sonnet|opus`)
 4. one or more `researcher` agents run scoped research with selected backend (parallel when independent)
+   - code read/search tasks are owned by `researcher`
+   - each scope returns a minimal navigation map; oversized areas must be split
 5. `team-lead` consolidates research outputs (`ok|partial|research_unavailable`) into one brief
 6. `planner` creates the plan using the consolidated brief
 7. `plan-reviewer` reviews and iterates plan quality (Codex or Claude-native fallback)
 8. executors implement approved tasks (Codex/Copilot/Claude fallback)
 9. `verifier` runs required checks before completion
+   - verifier may reuse cached verification only on exact repo+command key match
 10. `final-reviewer` runs final review (Codex or Claude-native fallback)
 11. `git-monitor` (optional) commits changes, creates PR, monitors CI and PR comments
 

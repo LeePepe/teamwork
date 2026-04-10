@@ -81,6 +81,14 @@ Setup now uses a lightweight default:
   - plan stage: `planner`, `plan-reviewer`
   - execution stage: executor/gate roles only when needed (`codex-coder`/`copilot`/`claude-coder`, `verifier`, `final-reviewer`, optional `git-monitor`)
 
+Research policy:
+- code read/search tasks are routed to `researcher`
+- researcher outputs scoped navigation maps (`areas`, `entry points`, key paths) and must split oversized areas to keep context small
+
+Verification policy:
+- verifier uses cache keyed by repo state + verification command set
+- exact cache hit may be reused; cache miss runs commands and writes result back
+
 If you prefer legacy behavior (preload all runtime agents), use:
 
 ```bash
@@ -113,6 +121,21 @@ bash scripts/setup.sh --global   # install globally to ~/.claude
 ```
 
 ## Troubleshooting
+
+### Looks like teamwork/subagents were not used
+
+If you see direct `Bash/Write/Edit` implementation in the main session, usually one of these happened:
+
+1. The task was not started with `/teamwork:task ...` (or an explicit "use teamwork" request), so the teamwork skill never activated.
+2. `team-lead` could not be loaded; run:
+   ```bash
+   bash scripts/setup.sh --check
+   ```
+   and ensure `.claude/agents/team-lead.md` and `.claude/skills/teamwork/agents/team-lead.md` exist.
+3. The command was run before setup in that repo; run:
+   ```bash
+   bash scripts/setup.sh --repo
+   ```
 
 ### `529 overloaded_error` on simple prompts (for example `hi`)
 

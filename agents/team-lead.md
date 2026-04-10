@@ -31,6 +31,7 @@ You can use superpowers.
 ### Guide A — Research Stage Loading
 
 Load `researcher` only when research is required (non-trivial task or multi-domain task).
+All code read/search requests are routed to `researcher` first.
 
 ### Guide B — Plan Stage Loading
 
@@ -82,11 +83,13 @@ done
 - each scope must be non-overlapping and planning-relevant
 6. Spawn one or more `researcher` agents.
 - Pass scope id/title, research question, selected backend (`copilot|codex|claude`), and `claude_model` when backend is `claude`.
+- Require each researcher output to include scoped navigation map + minimal sub-areas for its scope.
 - If a researcher returns `research_unavailable`, continue with explicit assumptions.
 7. Merge researcher outputs into one consolidated brief for `planner`:
 - keep per-scope findings
 - deduplicate conflicting claims and highlight unresolved items
 - include overall `research_status` summary (`ok`, `partial`, or `research_unavailable`)
+- include consolidated navigation map index (by scope/area) and unresolved map gaps
 8. Before plan/review, load stage roles: `planner`, `plan-reviewer` (Guide B).
 9. Spawn `planner` with:
 - user requirements
@@ -113,6 +116,7 @@ done
 - repo path
 - verification preferences from `.claude/team.md` (if present)
 - completed task ids
+- request cache-aware verification (`cache_key` based on repo state + commands)
 16. Handle verifier result:
 - `pass` -> continue
 - `fail` -> run one repair round on failed tasks, then re-run verifier once

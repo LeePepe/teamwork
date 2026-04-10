@@ -62,6 +62,15 @@ echo "team_lead=ok path=$TEAM_LEAD_PATH temp=$TEAM_LEAD_TEMP"
 
 If this step prints `team_lead=missing`, stop and tell the user to run `/teamwork:setup` first.
 
+## Mandatory delegation gate
+
+From this point onward, this command handler must only orchestrate and summarize.
+
+- Do not implement `${ARGUMENTS}` directly in the main agent.
+- Do not run repo-mutating commands for feature work in this command handler.
+- The only allowed direct repo mutation after Step 2.5 is temporary `team-lead.md` cleanup from Step 4.
+- If `Agent` delegation fails, stop and report delegation failure instead of continuing locally.
+
 ## Step 3 — Delegate to team-lead
 
 From the output of Step 1, read the actual `codex=true/false` and `copilot=true/false` values.
@@ -80,7 +89,12 @@ Plugin availability: codex=<actual value from Step 1> copilot=<actual value from
 Executor constraint: <derived from above>
 Verification preferences: <commands from .claude/team.md ## Verification, or "use plan task verification">
 Claude fallback model policy: lead selects `haiku|sonnet|opus` when both plugins are unavailable
+Research policy: all code read/search tasks go through `researcher`; require scoped navigation maps and split oversized areas
+Verification cache policy: verifier should reuse cached result only when repo+commands key matches exactly
 ```
+
+Wait for `team-lead` completion and use its output as the only execution result source for Step 4.
+Do not run independent implementation steps in this command handler.
 
 ## Step 4 — Report outcome
 
