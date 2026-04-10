@@ -11,8 +11,8 @@ Run a structured multi-agent pipeline: team-lead delegates research orchestratio
 
 Plugins are optional but recommended:
 
-- **[codex-plugin-cc](https://github.com/openai/codex-plugin-cc)** for Codex rescue/review integration
-- **[copilot-plugin-cc](https://github.com/LeePepe/copilot-plugin-cc)** for local Copilot rescue integration
+- **[codex-plugin-cc](https://github.com/openai/codex-plugin-cc)** for Codex task/review integration
+- **[copilot-plugin-cc](https://github.com/LeePepe/copilot-plugin-cc)** for local Copilot task integration
 
 Use these commands:
 
@@ -128,13 +128,14 @@ Let `team-lead` run:
      - web scopes -> Copilot Claude path
    - each scope returns a minimal navigation map; oversized areas must be split
 5. `research-lead` consolidates outputs (`ok|partial|research_unavailable`) into one brief
-6. `planner` creates the plan using the consolidated brief
-7. `plan-reviewer` reviews and iterates plan quality (Codex or Claude-native fallback)
-8. executors implement approved tasks (Codex/Copilot/Claude fallback)
-9. `verifier` runs required checks before completion
+6. optional readiness loop: `research-lead` can call `planner` in `mode: probe`; if info is insufficient, dispatch targeted `researcher` supplement scopes
+7. `planner` creates the plan using the consolidated brief
+8. `plan-reviewer` reviews and iterates plan quality (Codex or Claude-native fallback)
+9. executors implement approved tasks (Codex/Copilot/Claude fallback)
+10. `verifier` runs required checks before completion
    - verifier may reuse cached verification only on exact repo+command key match
-10. `final-reviewer` runs final review (Codex or Claude-native fallback)
-11. `git-monitor` (optional) commits changes, creates PR, monitors CI and PR comments
+11. `final-reviewer` runs final review (Codex or Claude-native fallback)
+12. `git-monitor` (optional) commits changes, creates PR, monitors CI and PR comments
 
 ### 4) Report outcome
 

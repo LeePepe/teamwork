@@ -14,6 +14,7 @@ Copilot/Codex/Claude can all participate via fallback routing: if Copilot is una
         ├── research-lead → splits scopes, routes backends, dispatches/merges researchers
         │    └── researcher(s) → run in parallel when scopes are independent
         │                         backend: copilot|codex|claude per scope policy
+        │    └── planner (probe mode, optional) → checks research sufficiency; triggers focused supplemental research
         ├── planner      → creates .claude/plan/<slug>.md
         │                   each task annotated: executor: codex | copilot
         ├── plan-reviewer
@@ -101,6 +102,7 @@ Setup now uses a lightweight default:
 Research policy:
 - code read/search tasks are routed through `research-lead` and executed by `researcher`
 - researcher outputs scoped navigation maps (`areas`, `entry points`, key paths) and must split oversized areas to keep context small
+- research-lead may call planner in `mode: probe` to detect missing information, then dispatch targeted supplementary researcher scopes
 - when both plugins are available:
   - code investigation scopes default to Codex (stability/accuracy first)
   - web/external research scopes default to Copilot Claude path (open-ended synthesis first)

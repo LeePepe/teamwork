@@ -1,6 +1,6 @@
 ---
 name: copilot
-description: Agent that implements code changes by delegating to the local Copilot CLI via /copilot:rescue. Use for any coding task that Claude assigns — no file type or language restrictions.
+description: Agent that implements code changes by delegating to the local Copilot CLI via copilot-companion `task`. Use for any coding task that Claude assigns — no file type or language restrictions.
 tools: Bash, Read, Glob, Grep
 ---
 

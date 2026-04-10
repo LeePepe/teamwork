@@ -93,11 +93,13 @@ done
 - plugin availability (`codex`, `copilot`)
 - fallback/model policy (`claude_model` rules when both plugins are unavailable)
 - requirement: code/web scopes must be split and routed by model focus policy
+- permission: `research-lead` may call `planner` in `mode: probe` and request supplemental researcher scopes if research is insufficient
 6. Receive `research-lead` output:
 - `research_split_strategy`
 - scope plan (scope list, `research_kind`, backend per scope)
 - consolidated research brief
 - overall `research_status` summary (`ok`, `partial`, or `research_unavailable`)
+- optional `planning_readiness` and `remaining_gaps`
 7. If `research-lead` returns `research_unavailable`, continue with explicit assumptions.
 8. Before plan/review, load stage roles: `planner`, `plan-reviewer` (Guide B).
 9. Spawn `planner` with:
