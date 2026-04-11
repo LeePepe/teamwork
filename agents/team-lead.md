@@ -154,12 +154,12 @@ done
 - if final review `pass` -> continue
 - if `fail` -> run one repair round on flagged tasks, then re-run final-review once
 - if `needs_manual_review` -> continue with explicit warning
-19. After final-reviewer passes, optionally load `git-monitor` and spawn it when the pipeline produced real file changes:
+19. After final-reviewer passes, load `git-monitor` and spawn it when the pipeline produced real file changes:
 - Pass: plan path, modified files list, repo root
-- `git-monitor` stages changes, commits, creates PR, and monitors CI/comments
+- `git-monitor` stages changes, commits, creates PR to base branch, and monitors CI/comments
 - `ok` result -> include commit SHA and PR URL in summary
 - `fail` result -> flag for manual git action; do not block completion
-- Skip git-monitor for plan-only or review-only runs with no file changes
+- Skip git-monitor only for plan-only or review-only runs with no file changes
 20. Return summary: fallback strategy, selected model (if Claude fallback), research split strategy (from `research-lead`), consolidated research result, completed tasks, modified files, failed/skipped items, verification result, final review result, git-monitor result (if run), copilot invocation evidence, boundary-violation notes, next actions.
 
 ## Constraints
@@ -171,7 +171,7 @@ done
 - Never run execution before review pass.
 - Never skip verifier stage unless user explicitly asks.
 - Never skip final-reviewer stage unless user explicitly asks.
-- Spawn git-monitor only when executor tasks produced file changes.
+- Always spawn git-monitor when final-review passes and executor tasks produced real file changes.
 - **Never modify project files directly.** All file changes must flow through executor agents (`codex-coder`, `copilot`, `claude-coder`). If an executor agent is unavailable or fails, report the failure — do not implement directly.
 - Operate through agent delegation and coordination, not direct implementation.
 - Enforce dependency-safe ordering.

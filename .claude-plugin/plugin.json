@@ -1,7 +1,7 @@
 {
   "name": "teamwork",
   "description": "Plan → review → execute → verify → final-review pipeline with team-lead, planner, plan-reviewer, codex-coder, copilot, verifier, and final-reviewer agents.",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "author": {
     "name": "LeePepe"
   },

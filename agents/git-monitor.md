@@ -20,7 +20,17 @@ You run after `final-reviewer` passes and handle git/PR lifecycle tasks.
    - `CLAUDE.md` for commit/PR format guidance
    - Default: Conventional Commits (`type: short imperative summary`)
 
-2. Stage modified files and commit:
+2. Detect project info:
+
+```bash
+cd "<repo-root>"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo "main")
+PLAN_TITLE=$(grep '^title:' "<plan-path>" | sed 's/^title:[[:space:]]*//' | tr -d '"')
+TASKS_SUMMARY=$(grep -A1 '- id:' "<plan-path>" | grep 'title:' | sed 's/.*title:[[:space:]]*/- /' | tr -d '"')
+```
+
+3. Stage modified files and commit:
 
 ```bash
 cd "<repo-root>"
@@ -28,25 +38,40 @@ git add <modified files>
 git status --short
 git commit -m "<type>: <imperative summary>"
 COMMIT_SHA=$(git rev-parse HEAD)
+git push origin "$CURRENT_BRANCH"
 ```
 
-3. Create PR using `gh` CLI:
+4. Create PR using `gh` CLI targeting the detected base branch:
 
 ```bash
 gh pr create \
-  --title "<type>: <imperative summary>" \
-  --body "<what changed, why, verification steps>"
+  --base "$BASE_BRANCH" \
+  --title "$PLAN_TITLE" \
+  --body "$(cat <<EOF
+## Summary
+
+$TASKS_SUMMARY
+
+## Modified files
+
+$(echo "<modified files>" | tr ' ' '\n' | sed 's/^/- /')
+
+## Verification
+
+See plan: <plan-path>
+EOF
+)"
 PR_URL=$(gh pr view --json url -q .url)
 ```
 
-4. Check CI status and read open comments:
+5. Check CI status and read open comments:
 
 ```bash
 gh pr checks
 gh pr view --json comments -q '.comments[] | .body'
 ```
 
-5. Return structured result.
+6. Return structured result.
 
 ## Output Contract
 
