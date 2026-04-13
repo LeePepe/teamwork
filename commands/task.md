@@ -86,6 +86,7 @@ Executor constraint: <derived above>
 Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
 Claude fallback model policy: choose `haiku|sonnet|opus` when both plugins are unavailable
 Design-first policy: for design-heavy tasks call `designer` first, output design plan, then execute
+Model config: <from .claude/team.md ## Model Config, or "no model overrides">
 ```
 
 Wait for `team-lead` completion. Do not run independent implementation in this command.
@@ -106,3 +107,4 @@ Return:
 - copilot evidence (`invoked`, tasks, agent ids, or reason)
 - boundary violations (if any)
 - suggested follow-up actions
+- model config applied (role → model mappings used, or "no overrides")

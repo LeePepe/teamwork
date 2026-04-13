@@ -95,6 +95,10 @@ Fallback policy:
 - `codex=false` and `copilot=true`: route research/execution to Copilot, use Claude-native review fallback
 - `codex=false` and `copilot=false`: route all execution to `claude-coder`, and let lead choose Claude model
 
+### Model Config
+
+`.claude/team.md` optionally contains a `## Model Config` section with `role: model-id` lines. When present, `team-lead` passes the `model` parameter to `task()` for each spawned agent. Resolution: role-specific key → `default` key → omit (no override). `research-lead` propagates model config to `researcher` dispatches.
+
 ### Research and Verification Policies
 
 - Code read/search requests should be routed to `research-lead` first, then dispatched to `researcher`.

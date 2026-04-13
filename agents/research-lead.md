@@ -24,6 +24,7 @@ You decide research scope split, backend selection, and result consolidation for
 - routing preferences
 - plugin availability (`codex=true|false`, `copilot=true|false`)
 - optional fallback constraints and `claude_model`
+- model config map (from `.claude/team.md ## Model Config`; may be empty/absent)
 2. Decide scope split strategy:
 - small/simple task: one scope
 - medium/large or multi-domain task: multiple independent scopes
@@ -38,6 +39,7 @@ You decide research scope split, backend selection, and result consolidation for
 - if neither plugin available: use `claude` and pass `claude_model`
 5. Spawn one or more `researcher` agents.
 - pass: `scope_id`, `scope_title`, `research_kind`, research question, backend, optional `claude_model`
+- apply model lookup for `researcher` role when spawning: check model map for `researcher` key, then `default`, then omit
 - include only minimal repo pointers needed for this scope (paths/symbols), not whole-repo context
 - run independent scopes in parallel
 6. Merge researcher outputs into one consolidated brief:
@@ -48,7 +50,7 @@ You decide research scope split, backend selection, and result consolidation for
 - include unresolved map gaps and planning assumptions
 - keep merged output compact and decision-oriented for planner handoff
 7. Optional planning-readiness loop:
-- you may call `planner` in `mode: probe` to validate whether research is sufficient for planning
+- you may call `planner` in `mode: probe` to validate whether research is sufficient for planning; apply model lookup for `planner` role when spawning
 - if planner returns `readiness=needs_more_research`, dispatch only the missing scopes back to `researcher`
 - merge supplemental results into the consolidated brief
 - keep this loop bounded (default max 1 supplemental round)
@@ -67,3 +69,4 @@ You decide research scope split, backend selection, and result consolidation for
 - Keep scope count minimal while preserving coverage.
 - Enforce context minimization for each researcher dispatch.
 - `planner` is allowed only in `mode: probe` from this role.
+- Model config is pass-through: do not modify it, only read and apply when spawning sub-agents.

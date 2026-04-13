@@ -32,6 +32,27 @@ Examples:
 - go test ./...
 -->
 
+## Model Config
+
+<!-- Per-agent model override. When set, team-lead passes the `model` parameter to task() when spawning each agent. -->
+<!-- Format: role: model-id (one per line). Use `default` as fallback for unlisted roles. -->
+<!-- Omit this section or leave it empty to use default model selection (no override). -->
+<!--
+Examples:
+default: claude-sonnet-4
+research-lead: claude-haiku-4.5
+researcher: claude-haiku-4.5
+planner: claude-sonnet-4
+plan-reviewer: claude-sonnet-4
+designer: claude-sonnet-4
+codex-coder: claude-sonnet-4
+copilot: claude-sonnet-4
+claude-coder: claude-sonnet-4
+verifier: claude-haiku-4.5
+final-reviewer: claude-sonnet-4
+git-monitor: claude-haiku-4.5
+-->
+
 ## Notes
 
 <!-- Context for the planner and team-lead about this repo -->

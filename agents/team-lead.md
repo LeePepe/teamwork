@@ -32,6 +32,17 @@ Execution fallback:
 - `codex=false copilot=true` -> force `copilot`
 - `codex=false copilot=false` -> force `claude-coder`; choose `claude_model` by complexity: `haiku|sonnet|opus`
 
+### Model Config
+
+When `.claude/team.md` contains a `## Model Config` section, parse `role: model-id` lines (ignoring comments and blank lines) into a model map.
+
+Resolution order when spawning any agent via `task()`:
+1. Look up the agent's role name in the model map (e.g., `researcher`, `planner`, `verifier`)
+2. If not found, check for a `default` key
+3. If neither exists, omit `model` parameter (current behavior — no override)
+
+When a model is resolved, pass it as the `model` parameter to the `task()` call for that agent.
+
 ## Hard Rules
 
 - Do not narrate planned actions; perform Agent calls directly.
@@ -67,30 +78,31 @@ done
 
 ## Workflow
 
-1. Read `.claude/team.md` (if present) and plugin flags (`codex`, `copilot`).
+1. Read `.claude/team.md` (if present): plugin flags (`codex`, `copilot`), executor routing, and model config (`## Model Config` → model map; empty if section absent).
 2. Select fallback strategy and optional `claude_model`.
-3. Load `research-lead`; call it with task, routing prefs, plugin flags, fallback policy.
+3. Load `research-lead`; call it with task, routing prefs, plugin flags, fallback policy, model config map. Apply model lookup for `research-lead` role when spawning.
    - Permit one `planner mode: probe` loop if research is insufficient.
 4. Receive research outputs: `research_split_strategy`, `scope_plan`, `consolidated_brief`, `research_status`, optional readiness/gaps.
 5. Load `planner` + `plan-reviewer`.
-6. Call `planner` with requirements + consolidated brief; get plan path.
+6. Call `planner` with requirements + consolidated brief; get plan path. Apply model lookup for `planner` role when spawning.
 7. Choose review mode (`.claude/team.md` default; else `adversarial-review` for large/architectural, otherwise `review`).
-8. Call `plan-reviewer`; continue only when approved.
-9. If task requires design-first output, load and call `designer` with requirements + brief + approved plan.
+8. Call `plan-reviewer`; continue only when approved. Apply model lookup for `plan-reviewer` role when spawning.
+9. If task requires design-first output, load and call `designer` with requirements + brief + approved plan. Apply model lookup for `designer` role when spawning.
    - Continue only when `design_status=ready`; otherwise stop with clarification questions.
 10. Load execution roles: selected executor backend + `verifier` + `final-reviewer`.
 11. Dispatch executor tasks by dependency order:
    - same `parallel_group` -> parallel
    - dependent groups -> sequential
    - pass `design_plan_path` and `executor_handoff` when design stage was used
+   - apply model lookup for executor role (`codex-coder`, `copilot`, or `claude-coder`) when spawning
 12. Enforce copilot evidence:
    - if `copilot=true` and pending `executor: copilot` tasks exist, dispatch at least one to `copilot`
    - record `task_id -> agent_id -> status`
-13. Call `verifier` with plan path, repo path, preferred verification commands, completed task ids.
+13. Call `verifier` with plan path, repo path, preferred verification commands, completed task ids. Apply model lookup for `verifier` role when spawning.
 14. If verifier fails, do one repair round then re-run verifier once.
-15. Call `final-reviewer`.
+15. Call `final-reviewer`. Apply model lookup for `final-reviewer` role when spawning.
 16. If final review fails, do one repair round then re-run final-review once.
-17. If final-review passes and code changed, call `git-monitor`.
+17. If final-review passes and code changed, call `git-monitor`. Apply model lookup for `git-monitor` role when spawning.
 18. Return final summary with:
    - fallback strategy + selected `claude_model` (if used)
    - research summary and status
@@ -101,6 +113,7 @@ done
    - git-monitor result
    - copilot invocation evidence
    - boundary violations and next actions
+   - model config applied: `true|false`, with role → model mappings used
 
 ## Constraints
 

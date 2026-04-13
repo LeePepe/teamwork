@@ -115,6 +115,7 @@ If `.claude/team.md` exists, read:
 - Executor routing overrides
 - Preferred review mode (`review` or `adversarial-review`)
 - Preferred verification commands (`## Verification`)
+- Model config (`## Model Config`) — per-agent model overrides
 
 ### 3) Delegate orchestration to `team-lead`
 
@@ -131,6 +132,7 @@ Pass:
 Agent: team-lead
 Prompt: <user's description>
         Routing preferences: <from .claude/team.md, or "use defaults">
+        Model config: <from .claude/team.md ## Model Config, or "no model overrides">
 ```
 
 Let `team-lead` run:
@@ -170,6 +172,7 @@ Return:
 - copilot invocation evidence (`invoked: true|false`, tasks, agent ids)
 - boundary-violation notes (if any)
 - follow-up actions
+- model config applied (role → model mappings used, or "no overrides")
 
 ## Per-Repo Customization
 
@@ -187,6 +190,12 @@ default: adversarial-review
 ## Verification
 - npm run lint
 - npm test
+
+## Model Config
+default: claude-sonnet-4
+researcher: claude-haiku-4.5
+verifier: claude-haiku-4.5
+final-reviewer: claude-opus-4.6
 ```
 
 Optionally provide project-specific agent prompts in `.claude/agents/`:
