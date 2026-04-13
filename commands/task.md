@@ -1,13 +1,13 @@
 ---
-description: Run a task through the full research → plan → review → design (when needed) → execute → verify → final-review pipeline. Pass your task description as the argument.
+description: Run a task through research -> plan -> review -> design(optional) -> execute -> verify -> final-review. Pass your task as the argument.
 argument-hint: "<task description>"
 allowed-tools: Bash, Agent
 ---
 
-If `${ARGUMENTS}` is empty, stop and tell the user:
+If `${ARGUMENTS}` is empty, stop and return:
 > Please provide a task description. Example: `/teamwork:task implement JWT auth middleware`
 
-## Step 1 — Validate plugins
+## Step 1 — Plugin Check
 
 ```bash
 CODEX_SCRIPT=$(find ~/.claude/plugins -name "codex-companion.mjs" 2>/dev/null | head -1)
@@ -21,18 +21,16 @@ COPILOT_OK=false
 echo "codex=$CODEX_OK copilot=$COPILOT_OK"
 ```
 
-Do not stop when both are false; `team-lead` will use Claude-native fallback.
+Do not stop when both are false; team-lead will use Claude fallback.
 
-## Step 2 — Read team config
+## Step 2 — Read Team Config
 
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 [ -n "$REPO_ROOT" ] && cat "$REPO_ROOT/.claude/team.md" 2>/dev/null || echo "(no team.md)"
 ```
 
-## Step 2.5 — Ensure `team-lead` is available
-
-Run:
+## Step 2.5 — Ensure `team-lead` Exists
 
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
@@ -60,59 +58,51 @@ fi
 echo "team_lead=ok path=$TEAM_LEAD_PATH temp=$TEAM_LEAD_TEMP"
 ```
 
-If this step prints `team_lead=missing`, stop and tell the user to run `/teamwork:setup` first.
+If `team_lead=missing`, stop and ask user to run `/teamwork:setup`.
 
-## Mandatory delegation gate — HARD STOP
+## Delegation Gate (Mandatory)
 
-From this point onward, this command handler must only orchestrate and summarize.
+From this point, only orchestrate + summarize.
+- Next action must be spawning `team-lead`.
+- Do not implement `${ARGUMENTS}` locally.
+- Do not use file-mutating tools in this handler.
+- If delegation fails, stop and report the failure.
 
-- **Immediately spawn `team-lead` via `Agent` in Step 3. This is the only valid next action.**
-- Do not implement `${ARGUMENTS}` directly in the main agent — not before, during, or after team-lead runs.
-- Do not use `Write`, `Edit`, `MultiEdit`, or any file-mutating tool in this command handler.
-- Do not read file contents for implementation purposes; Step 2.5 exists only to ensure team-lead is available.
-- The only allowed direct repo mutation after Step 2.5 is temporary `team-lead.md` cleanup in Step 4.
-- If `Agent` delegation fails, stop and report the failure — never fall back to local implementation.
-- After `team-lead` returns, go directly to Step 4 (report). Do not interpret team-lead's plan output as a directive to implement anything yourself.
+## Step 3 — Delegate to `team-lead`
 
-## Step 3 — Delegate to team-lead
+Determine executor constraint from Step 1:
+- both true -> plan annotations
+- codex=true copilot=false -> force `codex-coder`
+- codex=false copilot=true -> force `copilot`
+- both false -> force `claude-coder` and select `haiku|sonnet|opus`
 
-From the output of Step 1, read the actual `codex=true/false` and `copilot=true/false` values.
-Derive the executor constraint:
-- Both true → route per plan annotation (default behavior)
-- Copilot false + Codex true → all tasks go to `codex-coder` (including research/review fallback where applicable)
-- Codex false + Copilot true → all tasks go to `copilot` (plan/final review may fallback to Claude-native)
-- Both false → all tasks go to `claude-coder`; lead selects Claude model
-
-Spawn the `team-lead` agent with:
+Spawn `team-lead` with:
 
 ```
 Task: ${ARGUMENTS}
-Routing preferences: <contents of .claude/team.md, or "use defaults">
-Plugin availability: codex=<actual value from Step 1> copilot=<actual value from Step 1>
-Executor constraint: <derived from above>
-Verification preferences: <commands from .claude/team.md ## Verification, or "use plan task verification">
-Claude fallback model policy: lead selects `haiku|sonnet|opus` when both plugins are unavailable
-Design-first policy: when task requires design output, delegate to `designer` first, generate a design plan, then execute
+Routing preferences: <.claude/team.md or "use defaults">
+Plugin availability: codex=<step1> copilot=<step1>
+Executor constraint: <derived above>
+Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
+Claude fallback model policy: choose `haiku|sonnet|opus` when both plugins are unavailable
+Design-first policy: for design-heavy tasks call `designer` first, output design plan, then execute
 ```
 
-Wait for `team-lead` completion and use its output as the only execution result source for Step 4.
-Do not run independent implementation steps in this command handler.
+Wait for `team-lead` completion. Do not run independent implementation in this command.
 
-## Step 4 — Report outcome
+## Step 4 — Report
 
-Before returning the summary:
-- read `path=<...> temp=<true|false>` from Step 2.5 output
-- if `temp=true`, run `rm -f "<path>"` to restore baseline
+Before return: if Step 2.5 had `temp=true`, run `rm -f "<path>"`.
 
 Return:
-- Research split strategy and consolidated result summary (or `research_unavailable`)
-- Fallback strategy and selected model (when Claude fallback is used)
-- Plan file path
-- Design-stage result (`used|skipped`) and design plan path (if used)
-- Modified files grouped by executor
-- Failed or skipped tasks
-- Verification result and command evidence
-- Final review result and key findings
-- Copilot invocation evidence (`invoked: true|false`, tasks, agent ids, or reason not used)
-- Boundary/constraint violations observed during run (if any)
-- Suggested follow-up actions
+- research split strategy + consolidated summary (or `research_unavailable`)
+- fallback strategy + selected model (if Claude fallback)
+- plan path
+- design-stage result and design plan path (if used)
+- modified files by executor
+- failed/skipped tasks
+- verifier result + command evidence
+- final review result + key findings
+- copilot evidence (`invoked`, tasks, agent ids, or reason)
+- boundary violations (if any)
+- suggested follow-up actions

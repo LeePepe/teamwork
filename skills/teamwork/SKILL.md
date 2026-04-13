@@ -1,22 +1,18 @@
 ---
 name: teamwork
-description: Install, check, and maintain the Teamwork Claude pipeline in a repository, including plugin readiness and overload diagnostics.
+description: Install, check, and maintain the Teamwork Claude pipeline in a repository.
 metadata:
   author: LeePepe
-  version: "0.6.0"
+  version: "0.6.1"
 ---
 
 # Teamwork
 
-Use this skill when the user asks to install, update, verify, or troubleshoot this repository's teamwork setup.
-
-## Scope
-
-This skill manages the Claude-side teamwork package from Codex by running the local setup script and reporting state.
+Use this skill for setup/check/maintenance of this teamwork repository from Codex.
 
 ## Resolve Teamwork Root
 
-Always resolve `TEAMWORK_ROOT` before running setup commands (so execution does not depend on current working directory):
+Always resolve `TEAMWORK_ROOT` before any setup command:
 
 ```bash
 resolve_teamwork_root() {
@@ -45,15 +41,15 @@ TEAMWORK_ROOT="$(resolve_teamwork_root)" || {
 }
 ```
 
-## Standard workflow
+## Standard Workflow
 
-1. Run status check first:
+1. Run check first:
 
 ```bash
 bash "$TEAMWORK_ROOT/scripts/setup.sh" --check
 ```
 
-2. If install/update is requested, run one of:
+2. If install/update is requested:
 
 ```bash
 bash "$TEAMWORK_ROOT/scripts/setup.sh" --repo
@@ -62,14 +58,14 @@ bash "$TEAMWORK_ROOT/scripts/setup.sh" --global
 
 3. Re-run check and report:
 - plugin availability (`codex` / `copilot`)
-- whether fallback mode is active
-- next command if user still has missing dependencies
+- fallback mode status
+- next command if dependency is missing
 
-## Team-Lead planning from Codex
+## Team-Lead Planning from Codex
 
-When the user asks to "start team-lead" or plan fallback/routing behavior:
+When user asks to start team-lead or decide fallback/routing:
 
-1. Preflight plugin availability using companion scripts (same logic as `commands/task.md`):
+1. Preflight plugin availability:
 
 ```bash
 CODEX_SCRIPT=$(find ~/.claude/plugins -name "codex-companion.mjs" 2>/dev/null | head -1)
@@ -77,39 +73,44 @@ COPILOT_SCRIPT=$(find ~/.claude/plugins -name "copilot-companion.mjs" 2>/dev/nul
 echo "codex=$([ -n "$CODEX_SCRIPT" ] && echo true || echo false) copilot=$([ -n "$COPILOT_SCRIPT" ] && echo true || echo false)"
 ```
 
-2. Ensure `team-lead` is present using the loader snippet in `commands/task.md` (Step 2.5).
-3. Derive executor constraint and planning path:
-- both true -> route by plan task annotation (`executor: codex|copilot`)
-- codex=true, copilot=false -> force `codex-coder`
-- codex=false, copilot=true -> force `copilot`
-- both false -> force `claude-coder` and choose `haiku|sonnet|opus` by complexity
-4. Enforce runtime guardrails before implementation:
-- keep active delegated agents bounded; close completed agents before spawning new ones
-- if `spawn_agent` fails due thread limit/resource errors, close stale agents and retry once
-- track automatic repair count and stop at one repair cycle
-- after any code-changing repair, re-run verifier/final-review on fresh evidence
-5. Enforce design-first routing for design-heavy tasks:
-- when task requires design output, ensure `team-lead` dispatches `designer` first
-- require `design_plan_path` handoff before executor execution starts
-6. Return a concrete execution plan before implementation, including:
-- expected copilot usage (`invoked true|false` conditions)
+2. Ensure `team-lead` is present (use `commands/task.md` Step 2.5 snippet).
+3. Derive executor constraint:
+- both true -> use plan annotations (`codex|copilot`)
+- codex=true copilot=false -> force `codex-coder`
+- codex=false copilot=true -> force `copilot`
+- both false -> force `claude-coder` and choose `haiku|sonnet|opus`
+4. Enforce guardrails:
+- bound active delegated agents
+- retry spawn once after closing stale agents
+- one automatic repair cycle max
+- re-run verifier/final-review after any code-changing repair
+5. Enforce design-first for design-heavy tasks:
+- call `designer` first
+- require `design_plan_path` before execution
+6. Return execution plan with:
+- expected copilot usage
 - final reporting fields (copilot evidence + boundary violations)
 
-## Overload diagnostics
+## Overload Diagnostics
 
-If user reports `529 overloaded_error` after setup:
+If user reports `529 overloaded_error`:
 
-1. Re-run `bash "$TEAMWORK_ROOT/scripts/setup.sh" --check`
-2. Detect recursive cache paths:
+1. Re-run check:
+
+```bash
+bash "$TEAMWORK_ROOT/scripts/setup.sh" --check
+```
+
+2. Detect recursive cache:
 
 ```bash
 find ~/.claude/plugins/cache/teamwork -type d -path "*/teamwork/*/teamwork/*" | head
 ```
 
-3. If recursion exists, clean cache and ask user to reload plugins:
+3. If recursion exists:
 
 ```bash
 rm -rf ~/.claude/plugins/cache/teamwork
 ```
 
-Then tell user to run `/reload-plugins` in Claude Code.
+Then ask user to run `/reload-plugins` in Claude Code.
