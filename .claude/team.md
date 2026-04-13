@@ -50,7 +50,7 @@ fullstack-engineer: claude-sonnet-4.6
 verifier: claude-haiku-4.5
 final-reviewer: gpt-5.4
 git-monitor: gpt-5.1
-pm: claude-sonnet-4.6
+pm: gpt-5.4
 security-reviewer: gpt-5.4
 devil-advocate: claude-sonnet-4.6
 a11y-reviewer: gpt-5.4
