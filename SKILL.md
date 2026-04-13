@@ -1,12 +1,12 @@
 ---
 name: teamwork
-description: Multi-agent pipeline for complex tasks — research, plan, review, execute, verify, and ship. Supports Codex/Copilot/Claude fallback routing.
+description: Multi-agent pipeline for complex tasks — research, plan, review, design (when needed), execute, verify, and ship. Supports Codex/Copilot/Claude fallback routing.
 allowed-tools: Bash, Agent
 ---
 
 # Teamwork Skill
 
-Run a structured multi-agent pipeline: team-lead delegates research orchestration to research-lead, researcher workers gather scoped context, planner writes a plan, plan-reviewer gates quality, executors implement approved tasks, verifier confirms checks, and final-reviewer performs final code review.
+Run a structured multi-agent pipeline: team-lead delegates research orchestration to research-lead, researcher workers gather scoped context, planner writes a plan, plan-reviewer gates quality, designer produces design plans for design-heavy tasks, executors implement approved tasks, verifier confirms checks, and final-reviewer performs final code review.
 
 ## Dependencies
 
@@ -57,13 +57,15 @@ team-lead
   ├── progressive load guides
   │     guide A: research stage  → load research-lead only
   │     guide B: plan stage      → load planner + plan-reviewer only
-  │     guide C: execution stage → load executors/gates only when needed
+  │     guide C: design stage    → load designer only when design work is required
+  │     guide D: execution stage → load executors/gates only when needed
   ├── research-lead  → split scopes, route backends, dispatch/merge researcher workers
   │     └── researcher(s)  → parallel by independent scope
   │                          default focus: code investigation -> codex, web research -> copilot (Claude path)
   │                          outputs are merged by research-lead for planner
   ├── planner        → writes .claude/plan/<slug>.md with executor annotations
   ├── plan-reviewer  → reviews plan (review or adversarial-review)
+  ├── designer       → creates implementation-ready design plan for design-heavy tasks
   ├── executors (parallel where possible):
   │     executor: codex   → codex-coder
   │     executor: copilot → copilot
@@ -147,11 +149,12 @@ Let `team-lead` run:
 6. optional readiness loop: `research-lead` can call `planner` in `mode: probe`; if info is insufficient, dispatch targeted `researcher` supplement scopes
 7. `planner` creates the plan using the consolidated brief
 8. `plan-reviewer` reviews and iterates plan quality (Codex or Claude-native fallback)
-9. executors implement approved tasks (Codex/Copilot/Claude fallback)
-10. `verifier` runs required checks before completion
+9. when design is explicitly required, `designer` creates a design plan before coding
+10. executors implement approved tasks (Codex/Copilot/Claude fallback)
+11. `verifier` runs required checks before completion
    - verifier may reuse cached verification only on exact repo+command key match
-11. `final-reviewer` runs final review (Codex or Claude-native fallback)
-12. `git-monitor` (optional) commits changes, creates PR, monitors CI and PR comments
+12. `final-reviewer` runs final review (Codex or Claude-native fallback)
+13. `git-monitor` (optional) commits changes, creates PR, monitors CI and PR comments
 
 ### 4) Report outcome
 
@@ -190,6 +193,7 @@ Optionally provide project-specific agent prompts in `.claude/agents/`:
 
 - `.claude/agents/researcher.md`
 - `.claude/agents/research-lead.md`
+- `.claude/agents/designer.md`
 - `.claude/agents/codex-coder.md`
 - `.claude/agents/copilot.md`
 - `.claude/agents/claude-coder.md`
@@ -214,9 +218,10 @@ Route by task weight and rigor requirement, not by language or file type:
 - Research splitting and parallelization are decided by `team-lead`, not by researcher/planner.
 - Runtime fallback may override plan executor annotation based on plugin availability.
 - Require review pass before any execution phase.
+- Require designer stage for tasks that explicitly require design output before execution.
 - Require verification pass (or explicit `needs_manual_verification`) before claiming completion.
 - Require final review pass (or explicit `needs_manual_review`) before claiming completion.
-- Keep planner and reviewer scoped to plan files; avoid direct project-code edits there.
+- Keep planner/reviewer/designer scoped to plan/design files; avoid direct project-code edits there.
 - Keep executor prompts concrete: scope, dependencies, verification.
 - After any code-changing repair, previous verifier/final-review results are invalid and must be refreshed.
 - Keep automatic repair loops bounded to one cycle; escalate instead of silently continuing beyond budget.
@@ -228,6 +233,7 @@ Route by task weight and rigor requirement, not by language or file type:
 - `research-lead.md`
 - `planner.md`
 - `plan-reviewer.md`
+- `designer.md`
 - `codex-coder.md`
 - `copilot.md`
 - `claude-coder.md`

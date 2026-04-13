@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-A Claude Code skill (`SKILL.md`) plus agent definitions (`agents/`) that implement a structured **research → plan → review → execute → verify → final-review** pipeline. There is no compiled output — the "artifacts" are Markdown prompt files that get copied to `~/.claude/` or `.claude/`.
+A Claude Code skill (`SKILL.md`) plus agent definitions (`agents/`) that implement a structured **research → plan → review → design (when needed) → execute → verify → final-review** pipeline. There is no compiled output — the "artifacts" are Markdown prompt files that get copied to `~/.claude/` or `.claude/`.
 
 ## Commands
 
@@ -29,7 +29,7 @@ Always run `--check` before and after modifying setup logic to confirm idempoten
 ### Pipeline Flow
 
 ```
-SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel when independent)  →  planner  →  plan-reviewer  →  codex-coder / copilot / claude-coder  →  verifier  →  final-reviewer  →  git-monitor (optional)
+SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel when independent)  →  planner  →  plan-reviewer  →  designer (when needed)  →  codex-coder / copilot / claude-coder  →  verifier  →  final-reviewer  →  git-monitor (optional)
 ```
 
 `SKILL.md` is the skill entry point: it validates plugin availability, reads repo routing config (`.claude/team.md`), then delegates entirely to `team-lead`. The team-lead orchestrates the rest — it **must not modify files directly**.
@@ -45,6 +45,7 @@ SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel wh
   - `agents/researcher.md`
   - `agents/planner.md`
   - `agents/plan-reviewer.md`
+  - `agents/designer.md`
 - Execution and quality gates:
   - `agents/codex-coder.md`
   - `agents/copilot.md`
@@ -66,6 +67,7 @@ SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel wh
 | `researcher` | Single-scope worker dispatched by research-lead | No |
 | `planner` | Writes plan files in `.claude/plan/` | Plan files only |
 | `plan-reviewer` | Plan review/iteration (Codex when available, Claude fallback otherwise) | Plan files only |
+| `designer` | Creates design plan artifacts for design-heavy tasks before coding | Plan/design files only |
 | `codex-coder` | Executes strict/formal tasks (TS/JS, APIs, tests) | Yes |
 | `copilot` | Executes all other tasks (Swift, scripts, UI) | Yes |
 | `claude-coder` | Claude-native executor fallback when plugins are unavailable | Yes |

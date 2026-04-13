@@ -3,7 +3,7 @@ name: teamwork
 description: Install, check, and maintain the Teamwork Claude pipeline in a repository, including plugin readiness and overload diagnostics.
 metadata:
   author: LeePepe
-  version: "0.5.6"
+  version: "0.6.0"
 ---
 
 # Teamwork
@@ -88,7 +88,10 @@ echo "codex=$([ -n "$CODEX_SCRIPT" ] && echo true || echo false) copilot=$([ -n 
 - if `spawn_agent` fails due thread limit/resource errors, close stale agents and retry once
 - track automatic repair count and stop at one repair cycle
 - after any code-changing repair, re-run verifier/final-review on fresh evidence
-5. Return a concrete execution plan before implementation, including:
+5. Enforce design-first routing for design-heavy tasks:
+- when task requires design output, ensure `team-lead` dispatches `designer` first
+- require `design_plan_path` handoff before executor execution starts
+6. Return a concrete execution plan before implementation, including:
 - expected copilot usage (`invoked true|false` conditions)
 - final reporting fields (copilot evidence + boundary violations)
 

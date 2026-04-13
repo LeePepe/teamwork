@@ -11,6 +11,7 @@ This file is an index of all agents in the teamwork skill. Each agent is defined
 | `researcher` | Research | No | `agents/researcher.md` | Single-scope code/web research worker |
 | `planner` | Planning | Plan files only | `agents/planner.md` | Creates structured plan files from research briefs |
 | `plan-reviewer` | Planning | Plan files only | `agents/plan-reviewer.md` | Reviews and gates plan quality |
+| `designer` | Design | Plan/design files only | `agents/designer.md` | Produces design plans for design-heavy tasks before execution |
 | `codex-coder` | Execution | Yes | `agents/codex-coder.md` | Codex-backed executor for rigorous/heavy tasks |
 | `copilot` | Execution | Yes | `agents/copilot.md` | Copilot-backed executor for all other tasks |
 | `claude-coder` | Execution | Yes | `agents/claude-coder.md` | Claude-native fallback executor when plugins are unavailable |

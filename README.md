@@ -1,6 +1,6 @@
 # Teamwork Skill for Claude Code
 
-A Claude Code skill that orchestrates a full **research → plan → review → execute → verify → final-review** pipeline using a team of agents.
+A Claude Code skill that orchestrates a full **research → plan → review → design (when needed) → execute → verify → final-review** pipeline using a team of agents.
 
 Copilot/Codex/Claude can all participate via fallback routing: if Copilot is unavailable use Codex; if both Codex and Copilot are unavailable, use Claude-native execution with model selection by team-lead.
 
@@ -19,6 +19,8 @@ Copilot/Codex/Claude can all participate via fallback routing: if Copilot is una
         │                   each task annotated: executor: codex | copilot
         ├── plan-reviewer
         │                → reviews or adversarially challenges the plan (Codex or Claude fallback)
+        ├── designer (for design-heavy tasks only)
+        │                → creates implementation-ready design plan before coding
         ├── executors (parallel where possible)
         │     codex-coder  ← rigorous/heavy tasks (algorithms, security, migrations, critical logic)
         │     copilot      ← all other tasks (UI, scripts, config, simple features)
@@ -97,6 +99,7 @@ Setup now uses a lightweight default:
 - Stores all other teamwork agents in `.claude/skills/teamwork/agents` and loads them progressively by stage:
   - research stage: `research-lead` (which dispatches `researcher`)
   - plan stage: `planner`, `plan-reviewer`
+  - design stage (conditional): `designer`
   - execution stage: executor/gate roles only when needed (`codex-coder`/`copilot`/`claude-coder`, `verifier`, `final-reviewer`, optional `git-monitor`)
 
 Research policy:
@@ -107,6 +110,11 @@ Research policy:
   - code investigation scopes default to Codex (stability/accuracy first)
   - web/external research scopes default to Copilot Claude path (open-ended synthesis first)
   - mixed scopes should be split into independent code/web scopes before dispatch
+
+Design policy:
+- when the task explicitly requires design output (UX flow, API/contract design, architecture design, etc.), `team-lead` dispatches `designer` before execution
+- `designer` produces a design plan and executor handoff constraints
+- executors implement against the approved plan + design handoff
 
 Verification policy:
 - verifier uses cache keyed by repo state + verification command set
@@ -224,6 +232,7 @@ Add repo-aware agent definitions to `.claude/agents/` in your repo:
 - `.claude/agents/copilot.md` — knows your xcodebuild commands, project structure, etc.
 - `.claude/agents/research-lead.md` — splits research scopes and consolidates researcher outputs
 - `.claude/agents/researcher.md` — gathers repo/external context and writes planning briefs
+- `.claude/agents/designer.md` — produces design plan artifacts for design-heavy requests
 - `.claude/agents/claude-coder.md` — Claude-native coding fallback when plugins are unavailable
 - `.claude/agents/verifier.md` — enforces repo-specific verification strategy and output style
 - `.claude/agents/final-reviewer.md` — runs final review policy (Codex when available, Claude fallback otherwise)

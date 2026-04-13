@@ -1,5 +1,5 @@
 ---
-description: Run a task through the full research → plan → review → execute → verify → final-review pipeline. Pass your task description as the argument.
+description: Run a task through the full research → plan → review → design (when needed) → execute → verify → final-review pipeline. Pass your task description as the argument.
 argument-hint: "<task description>"
 allowed-tools: Bash, Agent
 ---
@@ -92,6 +92,7 @@ Plugin availability: codex=<actual value from Step 1> copilot=<actual value from
 Executor constraint: <derived from above>
 Verification preferences: <commands from .claude/team.md ## Verification, or "use plan task verification">
 Claude fallback model policy: lead selects `haiku|sonnet|opus` when both plugins are unavailable
+Design-first policy: when task requires design output, delegate to `designer` first, generate a design plan, then execute
 ```
 
 Wait for `team-lead` completion and use its output as the only execution result source for Step 4.
@@ -107,6 +108,7 @@ Return:
 - Research split strategy and consolidated result summary (or `research_unavailable`)
 - Fallback strategy and selected model (when Claude fallback is used)
 - Plan file path
+- Design-stage result (`used|skipped`) and design plan path (if used)
 - Modified files grouped by executor
 - Failed or skipped tasks
 - Verification result and command evidence
