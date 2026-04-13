@@ -41,6 +41,7 @@ Examples:
 ### Primary
 
 default: claude-sonnet-4.6
+team-lead: claude-opus-4.6
 research-lead: claude-opus-4.6
 researcher: gpt-5.4
 planner: claude-opus-4.6
