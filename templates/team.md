@@ -44,7 +44,7 @@ Examples:
 default: tier2/claude
 team-lead: tier1/claude
 research-lead: tier1/claude
-researcher: tier1/openai
+researcher: tier2/openai
 planner: tier1/claude
 plan-reviewer: tier1/openai
 designer: tier2/claude
@@ -64,7 +64,7 @@ user-perspective: tier2/claude
 default: tier2/openai
 team-lead: tier1/openai
 research-lead: tier1/openai
-researcher: tier1/claude
+researcher: tier2/claude
 planner: tier1/openai
 plan-reviewer: tier1/claude
 designer: tier2/openai
