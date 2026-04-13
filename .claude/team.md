@@ -47,7 +47,7 @@ planner: claude-opus-4.6
 plan-reviewer: gpt-5.4
 designer: claude-sonnet-4.6
 fullstack-engineer: claude-sonnet-4.6
-verifier: claude-haiku-4.5
+verifier: gpt-5.1
 final-reviewer: gpt-5.4
 git-monitor: gpt-5.1
 pm: gpt-5.4
