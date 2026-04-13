@@ -3,7 +3,7 @@ name: teamwork
 description: Install, check, and maintain the Teamwork Claude pipeline in a repository, including plugin readiness and overload diagnostics.
 metadata:
   author: LeePepe
-  version: "0.5.5"
+  version: "0.5.6"
 ---
 
 # Teamwork
