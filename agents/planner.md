@@ -44,7 +44,9 @@ Before creating the plan, check for acceptance criteria:
 - file scope
 - dependencies
 - verification (explicit runnable command whenever possible)
-- `executor: fullstack-engineer` (all tasks use the unified executor)
+- `executor: codex|copilot` — route by task weight/rigor, not language:
+    - `codex`: rigorous or heavy tasks (complex algorithms, security-sensitive code, auth/authz, data migrations, strict correctness requirements, large-scale refactors, critical business logic, tasks needing deep analysis)
+    - `copilot`: all other tasks (UI changes, simple features, scripts, config, exploratory code, docs, straightforward bug fixes)
 - `parallel_group` for parallel-safe tasks
 8. Use researcher-provided area map to keep each task's file scope minimal.
 - If a subtask still spans an oversized/unclear area, ask lead to trigger narrower researcher scopes before execution.
@@ -77,7 +79,7 @@ Frontmatter must include:
 - `status: draft`
 - `created`
 - `size: small|medium|large`
-- `tasks` list (`id`, `title`, `size`, `parallel_group`, `executor` (defaults to `fullstack-engineer`), `status: pending`)
+- `tasks` list (`id`, `title`, `size`, `parallel_group`, `executor`, `status: pending`)
 - `acceptance_criteria:` (list of criteria strings)
 - `plan_hash:` (computed after plan is written, 16-hex SHA256 prefix)
 

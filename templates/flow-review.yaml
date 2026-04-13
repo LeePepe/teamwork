@@ -1,0 +1,21 @@
+name: review
+description: Review-only flow for existing code or PRs
+max_pipeline_steps: 8
+max_review_loops: 3
+red_behavior: halt
+nodes:
+  - id: research
+    type: discussion
+    label: "Research"
+  - id: review
+    type: review
+    label: "Code Review"
+    max_cycles: 3
+  - id: verdict
+    type: gate
+    label: "Verdict"
+edges:
+  - from: research
+    to: review
+  - from: review
+    to: verdict

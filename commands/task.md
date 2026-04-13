@@ -70,7 +70,7 @@ From this point, only orchestrate + summarize.
 
 ## Step 3 — Delegate to `team-lead`
 
-Executor: `fullstack-engineer` (auto-selects best available backend based on plugin availability).
+Executor routing: `codex` (rigorous/heavy tasks) or `copilot` (all other tasks). Fallback to `claude-coder` when both plugins unavailable.
 
 Spawn `team-lead` with:
 
@@ -78,7 +78,7 @@ Spawn `team-lead` with:
 Task: ${ARGUMENTS}
 Routing preferences: <.claude/team.md or "use defaults">
 Plugin availability: codex=<step1> copilot=<step1>
-Executor: fullstack-engineer
+Executor routing: codex (rigorous/heavy) or copilot (all other). Fallback: claude-coder.
 Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
 Design-first policy: for design-heavy tasks call `designer` first, output design plan, then execute
 Model config: <from .claude/team.md ## Model Config, or "no model overrides">

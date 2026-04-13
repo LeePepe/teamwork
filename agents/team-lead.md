@@ -11,10 +11,10 @@ You never edit project files directly.
 
 - `research-lead`: split/route research scopes and consolidate brief
 - `researcher`: single-scope research worker (called by research-lead)
-- `planner`: create task plan with executor annotations
+- `planner`: create task plan with `executor: codex|copilot`
 - `plan-reviewer`: review plan quality (`review` or `adversarial-review`)
 - `designer`: produce design plan for design-heavy tasks
-- `fullstack-engineer`: unified executor (Codex → Copilot → Claude-native fallback)
+- `codex-coder` / `copilot` / `claude-coder`: executors
 - `verifier`: run verification commands
 - `final-reviewer`: final quality gate
 - `git-monitor`: commit/PR/CI follow-up when code changed
@@ -165,7 +165,11 @@ Research focus when both plugins are available:
 - `research_kind=web` -> `copilot`
 - mixed scope -> split first
 
-Execution is handled by `fullstack-engineer`, which internally selects the best available backend (Codex plugin → Copilot plugin → Claude-native).
+Execution fallback:
+- `codex=true copilot=true` -> follow plan executor annotations
+- `codex=true copilot=false` -> force `codex-coder`
+- `codex=false copilot=true` -> force `copilot`
+- `codex=false copilot=false` -> force `claude-coder`; choose `claude_model` by complexity: `haiku|sonnet|opus`
 
 ### Model Config
 
@@ -235,13 +239,13 @@ done
 8. Call `plan-reviewer`; continue only when approved. Apply model lookup for `plan-reviewer` role when spawning.
 9. If task requires design-first output, load and call `designer` with requirements + brief + approved plan. Apply model lookup for `designer` role when spawning.
    - Continue only when `design_status=ready`; otherwise stop with clarification questions.
-10. Load execution roles: `fullstack-engineer` + `verifier` + `final-reviewer`.
+10. Load execution roles: selected executor backend + `verifier` + `final-reviewer`.
 10.5. Call `verify_plan_hash()` — halt if tamper detected. Call `detect_oscillation()` — warn if pattern found.
 11. Dispatch executor tasks by dependency order:
    - same `parallel_group` -> parallel
    - dependent groups -> sequential
    - pass `design_plan_path` and `executor_handoff` when design stage was used
-   - apply model lookup for `fullstack-engineer` role when spawning
+   - apply model lookup for executor role (`codex-coder`, `copilot`, or `claude-coder`) when spawning
 11.5. Call `update_stage()` for execution stage.
 12. Call `verifier` with plan path, repo path, preferred verification commands, completed task ids. Apply model lookup for `verifier` role when spawning. Pass `expected_plan_hash` to verifier. After verifier returns, compute gate verdict via `get_gate_verdict()`.
 13. If verifier fails, call `enforce_repair_budget()` — halt if budget exceeded. Otherwise do one repair round then re-run verifier once.

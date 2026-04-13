@@ -5,7 +5,7 @@
 
 ## Executor Routing
 
-<!-- Override default routing. Single executor: fullstack-engineer (auto-selects best backend). -->
+<!-- Override default routing. Only two executors: codex and copilot. -->
 <!--
 Examples:
 - *.swift, *.m, *.xib → copilot
@@ -46,7 +46,8 @@ researcher: claude-haiku-4.5
 planner: claude-sonnet-4
 plan-reviewer: gpt-5.2-codex
 designer: claude-sonnet-4
-fullstack-engineer: claude-sonnet-4
+codex-coder: claude-sonnet-4
+copilot: claude-sonnet-4
 verifier: claude-haiku-4.5
 final-reviewer: gpt-5.2-codex
 git-monitor: claude-haiku-4.5
@@ -55,7 +56,8 @@ git-monitor: claude-haiku-4.5
 
 default: claude-haiku-4.5
 planner: claude-haiku-4.5
-fullstack-engineer: claude-haiku-4.5
+codex-coder: claude-haiku-4.5
+copilot: claude-haiku-4.5
 
 
 ## Definition of Done

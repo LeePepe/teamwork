@@ -2,7 +2,7 @@
 
 A Claude Code skill that orchestrates a full **research → plan → review → design (when needed) → execute → verify → final-review** pipeline using a team of agents.
 
-The `fullstack-engineer` executor auto-selects the best available backend (Codex → Copilot → Claude-native).
+Executors are routed by task weight: `codex-coder` for rigorous/heavy tasks, `copilot` for all other tasks, `claude-coder` as fallback when plugins are unavailable.
 
 ## How It Works
 
@@ -16,13 +16,15 @@ The `fullstack-engineer` executor auto-selects the best available backend (Codex
         │                         backend: copilot|codex|claude per scope policy
         │    └── planner (probe mode, optional) → checks research sufficiency; triggers focused supplemental research
         ├── planner      → creates .claude/plan/<slug>.md
-        │                   each task uses fullstack-engineer executor
+        │                   each task annotated: executor: codex | copilot
         ├── plan-reviewer
         │                → reviews or adversarially challenges the plan (Codex or Claude fallback)
         ├── designer (for design-heavy tasks only)
         │                → creates implementation-ready design plan before coding
-        ├── fullstack-engineer (parallel where possible)
-        │     auto-selects: Codex → Copilot → Claude-native
+        ├── executors (parallel where possible)
+        │     codex-coder  ← rigorous/heavy tasks (algorithms, security, migrations, critical logic)
+        │     copilot      ← all other tasks (UI, scripts, config, simple features)
+        │     claude-coder ← fallback when codex/copilot are both unavailable
         ├── verifier       → runs verification commands before completion
         ├── final-reviewer → runs final review (Codex when available, Claude fallback otherwise)
         └── git-monitor    → (optional) commit, PR creation, CI/comment monitoring
@@ -58,7 +60,7 @@ Run setup only for the plugins you installed:
 Fallback policy:
 - Copilot unavailable + Codex available: all plugin-backed work falls back to Codex
 - Codex unavailable + Copilot available: research/execution use Copilot, review gates use Claude fallback when needed
-- Codex unavailable + Copilot unavailable: full Claude-native fallback via `fullstack-engineer`
+- Codex unavailable + Copilot unavailable: full Claude-native fallback via `claude-coder`
 - Multiple research scopes: `research-lead` decides split and runs `researcher` workers in parallel
 
 ## Install This Skill
@@ -98,7 +100,7 @@ Setup now uses a lightweight default:
   - research stage: `research-lead` (which dispatches `researcher`)
   - plan stage: `planner`, `plan-reviewer`
   - design stage (conditional): `designer`
-  - execution stage: `fullstack-engineer`, `verifier`, `final-reviewer`, optional `git-monitor`
+  - execution stage: executor/gate roles only when needed (`codex-coder`/`copilot`/`claude-coder`, `verifier`, `final-reviewer`, optional `git-monitor`)
 
 Research policy:
 - code read/search tasks are routed through `research-lead` and executed by `researcher`
@@ -211,7 +213,8 @@ Run `bash scripts/setup.sh --repo` inside your repo — it copies a `team.md` te
 
 ```markdown
 ## Routing
-# executor routing is automatic via fullstack-engineer
+- *.swift → copilot
+- *.ts    → codex
 
 ## Review Mode
 default: adversarial-review
@@ -225,7 +228,8 @@ default: adversarial-review
 
 Add repo-aware agent definitions to `.claude/agents/` in your repo:
 
-- `.claude/agents/fullstack-engineer.md` — unified executor, knows your project conventions and test setup
+- `.claude/agents/codex-coder.md` — knows your TS conventions, test setup, etc.
+- `.claude/agents/copilot.md` — knows your xcodebuild commands, project structure, etc.
 - `.claude/agents/research-lead.md` — splits research scopes and consolidates researcher outputs
 - `.claude/agents/researcher.md` — gathers repo/external context and writes planning briefs
 - `.claude/agents/designer.md` — produces design plan artifacts for design-heavy requests
@@ -234,13 +238,14 @@ Add repo-aware agent definitions to `.claude/agents/` in your repo:
 
 Project-level agents automatically override global ones.
 
-## Executor
+## Executor Routing
 
-All execution tasks use `fullstack-engineer`, which auto-selects the best available backend:
+Routing is determined by task weight/rigor, not file type:
 
-1. Codex plugin (when available)
-2. Copilot plugin (when Codex unavailable)
-3. Claude-native (when no plugins available)
+| Executor | Task Types |
+|----------|------------|
+| `codex` | Rigorous or heavy tasks: complex algorithms, security-sensitive code, auth/authz, data migrations, strict correctness, large-scale refactors, critical business logic |
+| `copilot` | All other tasks: UI changes, simple features, scripts, config, exploratory code, docs, straightforward bug fixes |
 
 ## Related
 

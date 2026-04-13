@@ -1,0 +1,61 @@
+name: standard
+description: Full research-plan-review-execute-verify-review pipeline
+max_pipeline_steps: 15
+max_review_loops: 3
+red_behavior: halt
+nodes:
+  - id: research
+    type: discussion
+    label: "Research"
+  - id: plan
+    type: build
+    label: "Plan"
+  - id: plan-review
+    type: review
+    label: "Plan Review"
+    max_cycles: 3
+  - id: design
+    type: build
+    label: "Design"
+    optional: true
+  - id: execute
+    type: execute
+    label: "Execute"
+  - id: verify
+    type: gate
+    label: "Verify"
+  - id: final-review
+    type: review
+    label: "Final Review"
+  - id: ship
+    type: gate
+    label: "Ship"
+edges:
+  - from: research
+    to: plan
+  - from: plan
+    to: plan-review
+  - from: plan-review
+    to: design
+    condition: "design_required"
+  - from: plan-review
+    to: execute
+    condition: "!design_required"
+  - from: design
+    to: execute
+  - from: execute
+    to: verify
+  - from: verify
+    to: final-review
+    condition: "green"
+  - from: verify
+    to: execute
+    condition: "yellow"
+    max_cycles: 1
+  - from: final-review
+    to: ship
+    condition: "green"
+  - from: final-review
+    to: execute
+    condition: "yellow"
+    max_cycles: 1
