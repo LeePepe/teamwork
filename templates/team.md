@@ -61,15 +61,23 @@ user-perspective: tier2/claude
 
 ### Secondary
 
-default: tier4/claude
-planner: tier4/claude
-fullstack-engineer: tier4/claude
-pm: tier4/claude
-security-reviewer: tier4/claude
-devil-advocate: tier4/claude
-a11y-reviewer: tier4/claude
-perf-reviewer: tier4/claude
-user-perspective: tier4/claude
+default: tier2/openai
+team-lead: tier1/openai
+research-lead: tier1/openai
+researcher: tier1/claude
+planner: tier1/openai
+plan-reviewer: tier1/claude
+designer: tier2/openai
+fullstack-engineer: tier2/openai
+verifier: tier4/claude
+final-reviewer: tier1/claude
+git-monitor: tier4/claude
+pm: tier1/claude
+security-reviewer: tier1/claude
+devil-advocate: tier4/openai
+a11y-reviewer: tier1/claude
+perf-reviewer: tier1/claude
+user-perspective: tier2/openai
 
 
 ## Definition of Done
