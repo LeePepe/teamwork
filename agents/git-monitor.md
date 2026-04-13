@@ -41,7 +41,19 @@ COMMIT_SHA=$(git rev-parse HEAD)
 git push origin "$CURRENT_BRANCH"
 ```
 
-4. Create PR using `gh` CLI targeting the detected base branch:
+4. Delete plan file if all tasks are done:
+
+```bash
+PENDING_COUNT=$(grep -c 'status: pending' "<plan-path>" 2>/dev/null || echo "0")
+if [ "$PENDING_COUNT" = "0" ]; then
+  rm "<plan-path>"
+  PLAN_DELETED=true
+else
+  PLAN_DELETED=false
+fi
+```
+
+5. Create PR using `gh` CLI targeting the detected base branch:
 
 ```bash
 gh pr create \
@@ -64,14 +76,14 @@ EOF
 PR_URL=$(gh pr view --json url -q .url)
 ```
 
-5. Check CI status and read open comments:
+6. Check CI status and read open comments:
 
 ```bash
 gh pr checks
 gh pr view --json comments -q '.comments[] | .body'
 ```
 
-6. Return structured result.
+7. Return structured result.
 
 ## Output Contract
 
@@ -82,6 +94,7 @@ Always return:
 - `open_comments[]`
 - `ci_failures[]`
 - `notes`: any warnings or issues encountered
+- `plan_deleted: true|false` — whether the plan file was deleted (only when all tasks are done)
 
 ## Constraints
 
@@ -91,3 +104,4 @@ Always return:
 - If there are no staged changes and nothing new to commit, return `result: ok` with `commit_sha: null`.
 - Never force-push or rewrite history.
 - Read commit/PR conventions from the project; default to Conventional Commits.
+- If plan file deletion fails (e.g. file already removed), log a warning in `notes` but do not set `result: fail`.

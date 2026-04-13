@@ -166,7 +166,7 @@ done
 - if `needs_manual_review` -> continue with explicit warning
 19. After final-reviewer passes and real file changes exist: **→ Call Agent(`git-monitor`) now.** Pass:
 - Pass: plan path, modified files list, repo root
-- `git-monitor` stages changes, commits, creates PR to base branch, and monitors CI/comments
+- `git-monitor` stages changes, commits, creates PR to base branch, monitors CI/comments, and deletes the plan file when all tasks are done
 - `ok` result -> include commit SHA and PR URL in summary
 - `fail` result -> flag for manual git action; do not block completion
 - Skip git-monitor only for plan-only or review-only runs with no file changes
