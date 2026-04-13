@@ -143,6 +143,13 @@ bash scripts/setup.sh --global   # install globally to ~/.claude
 /teamwork:task refactor the payment module to use the new Stripe SDK
 ```
 
+```
+/teamwork:mapping-repo           # Map and document repo architecture (produces ARCHITECTURE.md + docs/)
+/teamwork:mapping-repo --update  # Refresh existing architecture docs
+```
+
+Run `/teamwork:mapping-repo` to map and document this repository's architecture. The command produces `ARCHITECTURE.md` at repo root, topic files in `docs/`, and a simplified `AGENTS.md` index — following the harness engineering approach of treating documentation as a machine-readable contract.
+
 ## Troubleshooting
 
 ### Looks like teamwork/subagents were not used

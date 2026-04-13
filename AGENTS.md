@@ -1,74 +1,30 @@
-# Repository Guidelines
+# Agents Index
 
-## Layout
-- `SKILL.md`: teamwork skill contract and pipeline behavior.
-- `agents/*.md`: role prompts (`team-lead`, `research-lead`, `researcher`, `planner`, `plan-reviewer`, executors, gates).
-- `commands/task.md`: runtime orchestration entry.
-- `scripts/setup.sh`: install/check for `~/.claude` and repo `.claude`.
-- `templates/team.md`: repo routing/review/verification defaults.
-- `README.md`: install/usage/troubleshooting docs.
+This file is an index of all agents in the teamwork skill. Each agent is defined in `agents/<name>.md`. For repo conventions, style rules, commit guidelines, and versioning policy, see `CLAUDE.md`.
 
-## Navigation
-- Orchestration: `agents/team-lead.md`
-- Research split/merge: `agents/research-lead.md`
-- Code/web research worker: `agents/researcher.md`
-- Plan generation/probe: `agents/planner.md`
-- Verification cache gate: `agents/verifier.md`
+## Agent Inventory
 
-## Validation Commands
-- `bash scripts/setup.sh --check`
-- `bash scripts/setup.sh --repo`
-- `bash scripts/setup.sh --global`
-- `bash -n scripts/setup.sh`
+| Agent | Role | May Edit Files? | Source Path | Purpose |
+|-------|------|----------------|-------------|---------|
+| `team-lead` | Orchestration | No | `agents/team-lead.md` | Pipeline orchestrator; delegates to all other agents |
+| `research-lead` | Research | No | `agents/research-lead.md` | Splits scopes, routes backends, dispatches/merges researchers |
+| `researcher` | Research | No | `agents/researcher.md` | Single-scope code/web research worker |
+| `planner` | Planning | Plan files only | `agents/planner.md` | Creates structured plan files from research briefs |
+| `plan-reviewer` | Planning | Plan files only | `agents/plan-reviewer.md` | Reviews and gates plan quality |
+| `codex-coder` | Execution | Yes | `agents/codex-coder.md` | Codex-backed executor for rigorous/heavy tasks |
+| `copilot` | Execution | Yes | `agents/copilot.md` | Copilot-backed executor for all other tasks |
+| `claude-coder` | Execution | Yes | `agents/claude-coder.md` | Claude-native fallback executor when plugins are unavailable |
+| `verifier` | Quality | No | `agents/verifier.md` | Runs post-execution verification commands |
+| `final-reviewer` | Quality | No | `agents/final-reviewer.md` | Final code review gate |
+| `git-monitor` | Delivery | No | `agents/git-monitor.md` | Stages commits, creates PRs, monitors CI |
 
-Run `--check` before and after setup-related changes.
+## Validation
 
-## Style
-- Bash: keep `set -euo pipefail`, use small functions, quote expansions.
-- Prompt files: YAML front matter first (`name`, `description`, optional `tools`).
-- Naming: lowercase kebab-case for agent/doc filenames.
-- Keep examples copy-paste ready and path-specific.
+Run `bash scripts/setup.sh --check` to verify agent installation status.
+Run `bash scripts/setup.sh --repo` to install/sync agents to `.claude/agents/`.
 
-## Context Hygiene
-- Keep prompts compact and scope-local.
-- Avoid whole-repo summaries in researcher/planner flows.
-- Prefer path/symbol references over long pasted code blocks.
+## Commit Policy
 
-## Testing
-Operational smoke test:
-1. `bash scripts/setup.sh --check`
-2. run install flow (`--repo` or `--global`)
-3. `bash scripts/setup.sh --check` again
-4. verify expected files under target `.claude` paths
-
-For setup script changes, verify idempotency (running install twice stays valid).
-
-## Versioning Policy
-
-Format: `MAJOR.MINOR.PATCH`
-
-| Segment | Who decides | When to bump |
-|---------|-------------|--------------|
-| MAJOR | User only | Breaking changes or major milestones decided by user |
-| MINOR | Automatic | Any time a new agent is added to `agents/` |
-| PATCH | Automatic | Every other change (bug fix, behavior tweak, prompt update, etc.) |
-
-Version is stored in **two places** — both must be updated together:
-1. `skills/teamwork/SKILL.md` — `metadata.version` field
-2. `.claude-plugin/plugin.json` — `version` field
-
-## Commit/Push Rule
-Every time code is modified in this repo, finish both steps in the same task:
+Every time agents or commands are modified in this repo, finish both steps in the same task:
 1. Create a commit (Conventional Commits style).
 2. Push to `origin/<current-branch>` unless user explicitly says not to push.
-
-## PR Notes
-Include:
-1. what changed and why
-2. validation commands and key outputs
-3. related docs/template updates
-4. linked issue/context (if any)
-
-## Security
-- Never commit secrets or machine-specific credentials.
-- If touching `~/.claude/settings.json` behavior, preserve existing user settings and append-only required marketplace entries.

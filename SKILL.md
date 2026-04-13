@@ -31,6 +31,8 @@ Use these commands:
 
 ```text
 /teamwork:task <description>
+/teamwork:mapping-repo           # map and document repo architecture
+/teamwork:mapping-repo --update  # refresh existing docs
 ```
 
 Natural language trigger:
