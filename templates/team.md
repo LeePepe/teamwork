@@ -111,12 +111,9 @@ user-perspective: claude-haiku-4.5
 | Tier | Model | Capability |
 |------|-------|------------|
 | 1 | `claude-opus-4.6` | Full autonomy: orchestration, complex planning, multi-step reasoning |
-| 1 | `claude-opus-4.5` | Full autonomy: deep analysis, nuanced judgment |
-| 2 | `claude-sonnet-4.6` | Scoped autonomy: design, implementation, code review within given scope |
-| 2 | `claude-sonnet-4.5` | Scoped autonomy: reliable execution with moderate reasoning |
-| 2 | `claude-sonnet-4` | Scoped autonomy: balanced cost/capability for routine scoped work |
-| 3 | `claude-haiku-4.5` | Task execution: fast, follows instructions, handles defined tasks |
-| 4 | `claude-haiku-4.5` | Also suitable for mechanical checks (lowest Claude tier) |
+| 1 | `claude-opus-4.6-1m` | Full autonomy: same as opus-4.6 with 1M context window (Internal) |
+| 2-3 | `claude-sonnet-4.6` | Scoped autonomy to task execution: design, implementation, review, focused evaluation |
+| 4 | `claude-haiku-4.5` | Mechanical: script parsing, lint checks, structured output, fast/cheap |
 
 ### GPT / Codex Models
 
