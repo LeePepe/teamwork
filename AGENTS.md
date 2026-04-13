@@ -1,6 +1,6 @@
 # Agents Index
 
-This file is an index of all agents in the teamwork skill. Each agent is defined in `agents/<name>.md`. For repo conventions, style rules, commit guidelines, and versioning policy, see `CLAUDE.md`.
+Agent definitions live in `agents/<name>.md`. For repo conventions, style rules, commit guidelines, and versioning policy, see `CLAUDE.md`.
 
 ## Agent Inventory
 
@@ -25,11 +25,5 @@ This file is an index of all agents in the teamwork skill. Each agent is defined
 
 ## Validation
 
-Run `bash scripts/setup.sh --check` to verify agent installation status.
+Run `bash scripts/setup.sh --check` to verify agent installation status.  
 Run `bash scripts/setup.sh --repo` to install/sync agents to `.claude/agents/`.
-
-## Commit Policy
-
-Every time agents or commands are modified in this repo, finish both steps in the same task:
-1. Create a commit (Conventional Commits style).
-2. Push to `origin/<current-branch>` unless user explicitly says not to push.
