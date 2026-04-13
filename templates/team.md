@@ -34,41 +34,42 @@ Examples:
 
 ## Model Config
 
-<!-- Per-agent model override with two-tier resolution. -->
-<!-- team-lead resolves: Primary → Secondary → Primary default → Secondary default → omit. -->
-<!-- Format: role: model-id (one per line). -->
+<!-- Per-agent model assignment using tier + provider. -->
+<!-- Resolution: Primary → Secondary → Primary default → Secondary default → omit. -->
+<!-- Format: role: tier/provider (one per line). See templates/model-tiers.md for tier definitions. -->
+<!-- Providers: claude, openai -->
 
 ### Primary
 
-default: claude-sonnet-4.6
-team-lead: claude-opus-4.6
-research-lead: claude-opus-4.6
-researcher: gpt-5.4
-planner: claude-opus-4.6
-plan-reviewer: gpt-5.4
-designer: claude-sonnet-4.6
-fullstack-engineer: claude-sonnet-4.6
-verifier: gpt-5.1
-final-reviewer: gpt-5.4
-git-monitor: gpt-5.1
-pm: gpt-5.4
-security-reviewer: gpt-5.4
-devil-advocate: claude-haiku-4.5
-a11y-reviewer: gpt-5.4
-perf-reviewer: gpt-5.4
-user-perspective: claude-sonnet-4.6
+default: tier2/claude
+team-lead: tier1/claude
+research-lead: tier1/claude
+researcher: tier1/openai
+planner: tier1/claude
+plan-reviewer: tier1/openai
+designer: tier2/claude
+fullstack-engineer: tier2/claude
+verifier: tier4/openai
+final-reviewer: tier1/openai
+git-monitor: tier4/openai
+pm: tier1/openai
+security-reviewer: tier1/openai
+devil-advocate: tier4/claude
+a11y-reviewer: tier1/openai
+perf-reviewer: tier1/openai
+user-perspective: tier2/claude
 
 ### Secondary
 
-default: claude-haiku-4.5
-planner: claude-haiku-4.5
-fullstack-engineer: claude-haiku-4.5
-pm: claude-haiku-4.5
-security-reviewer: claude-haiku-4.5
-devil-advocate: claude-haiku-4.5
-a11y-reviewer: claude-haiku-4.5
-perf-reviewer: claude-haiku-4.5
-user-perspective: claude-haiku-4.5
+default: tier4/claude
+planner: tier4/claude
+fullstack-engineer: tier4/claude
+pm: tier4/claude
+security-reviewer: tier4/claude
+devil-advocate: tier4/claude
+a11y-reviewer: tier4/claude
+perf-reviewer: tier4/claude
+user-perspective: tier4/claude
 
 
 ## Definition of Done
@@ -97,40 +98,6 @@ user-perspective: claude-haiku-4.5
 - pm
 - user-perspective
 -->
-
-## Model Tiers
-
-<!-- Four autonomy tiers. team-lead uses this to understand each model's capability ceiling. -->
-<!-- Tier 1: Full autonomy — can make independent architectural decisions, orchestrate pipelines, replan on failure -->
-<!-- Tier 2: Scoped autonomy — given a defined scope, can explore and decide within boundaries -->
-<!-- Tier 3: Task execution — completes well-defined tasks reliably, follows instructions precisely -->
-<!-- Tier 4: Mechanical — runs scripts, parses output, checks lint/test results, no creative decisions -->
-
-### Claude Models
-
-| Tier | Model | Capability |
-|------|-------|------------|
-| 1 | `claude-opus-4.6` | Full autonomy: orchestration, complex planning, multi-step reasoning |
-| 1 | `claude-opus-4.6-1m` | Full autonomy: same as opus-4.6 with 1M context window (Internal) |
-| 2-3 | `claude-sonnet-4.6` | Scoped autonomy to task execution: design, implementation, review, focused evaluation |
-| 4 | `claude-haiku-4.5` | Mechanical: script parsing, lint checks, structured output, fast/cheap |
-
-### GPT / Codex Models
-
-| Tier | Model | Capability |
-|------|-------|------------|
-| 1-2 | `gpt-5.4` | Full to scoped autonomy: strongest reasoning, complex multi-step tasks, code review |
-| 3 | `gpt-5.3-codex` | Task execution: optimized for code generation, follows defined tasks precisely |
-| 4 | `gpt-5.4-mini` | Mechanical: script parsing, lint checks, structured output, fast/cheap |
-
-### Agent → Tier Mapping
-
-| Tier | Agents | Rationale |
-|------|--------|-----------|
-| 1 | team-lead, research-lead, planner | Orchestration, strategic decisions, plan creation |
-| 2 | fullstack-engineer, designer, plan-reviewer, final-reviewer | Scoped implementation, design, quality judgment |
-| 3 | researcher, pm, security-reviewer, a11y-reviewer, perf-reviewer, user-perspective, devil-advocate | Focused evaluation within expertise domain |
-| 4 | verifier, git-monitor | Run commands, parse results, report pass/fail |
 
 ## Notes
 
