@@ -44,7 +44,7 @@ git push origin "$CURRENT_BRANCH"
 4. Delete plan file if all tasks are done:
 
 ```bash
-PENDING_COUNT=$(grep -c 'status: pending' "<plan-path>" 2>/dev/null || echo "0")
+PENDING_COUNT=$(awk '/^---$/{n++; if(n==2) exit} n==1 && /status: pending/{c++} END{print c+0}' "<plan-path>" 2>/dev/null || echo "0")
 if [ "$PENDING_COUNT" = "0" ]; then
   rm "<plan-path>"
   PLAN_DELETED=true
