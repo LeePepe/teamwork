@@ -52,11 +52,11 @@ fullstack-engineer: tier2/claude
 verifier: tier4/openai
 final-reviewer: tier1/openai
 git-monitor: tier4/openai
-pm: tier1/openai
-security-reviewer: tier1/openai
+pm: tier2/openai
+security-reviewer: tier2/openai
 devil-advocate: tier4/claude
-a11y-reviewer: tier1/openai
-perf-reviewer: tier1/openai
+a11y-reviewer: tier2/openai
+perf-reviewer: tier2/openai
 user-perspective: tier2/claude
 
 ### Secondary
@@ -72,11 +72,11 @@ fullstack-engineer: tier2/openai
 verifier: tier4/claude
 final-reviewer: tier1/claude
 git-monitor: tier4/claude
-pm: tier1/claude
-security-reviewer: tier1/claude
+pm: tier2/claude
+security-reviewer: tier2/claude
 devil-advocate: tier4/openai
-a11y-reviewer: tier1/claude
-perf-reviewer: tier1/claude
+a11y-reviewer: tier2/claude
+perf-reviewer: tier2/claude
 user-perspective: tier2/openai
 
 
