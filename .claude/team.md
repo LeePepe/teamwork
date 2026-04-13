@@ -98,6 +98,47 @@ user-perspective: claude-haiku-4.5
 - user-perspective
 -->
 
+## Model Tiers
+
+<!-- Four autonomy tiers. team-lead uses this to understand each model's capability ceiling. -->
+<!-- Tier 1: Full autonomy — can make independent architectural decisions, orchestrate pipelines, replan on failure -->
+<!-- Tier 2: Scoped autonomy — given a defined scope, can explore and decide within boundaries -->
+<!-- Tier 3: Task execution — completes well-defined tasks reliably, follows instructions precisely -->
+<!-- Tier 4: Mechanical — runs scripts, parses output, checks lint/test results, no creative decisions -->
+
+### Claude Models
+
+| Tier | Model | Capability |
+|------|-------|------------|
+| 1 | `claude-opus-4.6` | Full autonomy: orchestration, complex planning, multi-step reasoning |
+| 1 | `claude-opus-4.5` | Full autonomy: deep analysis, nuanced judgment |
+| 2 | `claude-sonnet-4.6` | Scoped autonomy: design, implementation, code review within given scope |
+| 2 | `claude-sonnet-4.5` | Scoped autonomy: reliable execution with moderate reasoning |
+| 2 | `claude-sonnet-4` | Scoped autonomy: balanced cost/capability for routine scoped work |
+| 3 | `claude-haiku-4.5` | Task execution: fast, follows instructions, handles defined tasks |
+| 4 | `claude-haiku-4.5` | Also suitable for mechanical checks (lowest Claude tier) |
+
+### GPT / Codex Models
+
+| Tier | Model | Capability |
+|------|-------|------------|
+| 1 | `gpt-5.4` | Full autonomy: strongest reasoning, complex multi-step tasks |
+| 1 | `gpt-5.2` | Full autonomy: strong general reasoning |
+| 2 | `gpt-5.2-codex` | Scoped autonomy: optimized for code generation and review |
+| 2 | `gpt-5.1` | Scoped autonomy: reliable within defined boundaries |
+| 3 | `gpt-5.4-mini` | Task execution: fast, cost-effective for well-defined tasks |
+| 3 | `gpt-5-mini` | Task execution: lightweight, follows instructions |
+| 4 | `gpt-4.1` | Mechanical: script parsing, lint checks, structured output |
+
+### Agent → Tier Mapping
+
+| Tier | Agents | Rationale |
+|------|--------|-----------|
+| 1 | team-lead, research-lead, planner | Orchestration, strategic decisions, plan creation |
+| 2 | fullstack-engineer, designer, plan-reviewer, final-reviewer | Scoped implementation, design, quality judgment |
+| 3 | researcher, pm, security-reviewer, a11y-reviewer, perf-reviewer, user-perspective, devil-advocate | Focused evaluation within expertise domain |
+| 4 | verifier, git-monitor | Run commands, parse results, report pass/fail |
+
 ## Notes
 
 <!-- Context for the planner and team-lead about this repo -->
