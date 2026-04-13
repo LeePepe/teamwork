@@ -42,7 +42,7 @@ for arg in "$@"; do
 done
 
 BOOTSTRAP_AGENTS=(team-lead)
-RUNTIME_AGENTS=(research-lead researcher planner plan-reviewer designer codex-coder copilot claude-coder verifier final-reviewer git-monitor pm security-reviewer devil-advocate a11y-reviewer perf-reviewer user-perspective)
+RUNTIME_AGENTS=(research-lead researcher planner plan-reviewer designer fullstack-engineer verifier final-reviewer git-monitor pm security-reviewer devil-advocate a11y-reviewer perf-reviewer user-perspective)
 ALL_AGENTS=("${BOOTSTRAP_AGENTS[@]}" "${RUNTIME_AGENTS[@]}")
 
 # ── Paths ────────────────────────────────────────────────────────────────────

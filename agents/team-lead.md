@@ -14,7 +14,7 @@ You never edit project files directly.
 - `planner`: create task plan with `executor: codex|copilot`
 - `plan-reviewer`: review plan quality (`review` or `adversarial-review`)
 - `designer`: produce design plan for design-heavy tasks
-- `codex-coder` / `copilot` / `claude-coder`: executors
+- `fullstack-engineer`: unified executor (Codex → Copilot → Claude-native fallback)
 - `verifier`: run verification commands
 - `final-reviewer`: final quality gate
 - `git-monitor`: commit/PR/CI follow-up when code changed
@@ -167,9 +167,9 @@ Research focus when both plugins are available:
 
 Execution fallback:
 - `codex=true copilot=true` -> follow plan executor annotations
-- `codex=true copilot=false` -> force `codex-coder`
+- `codex=true copilot=false` -> `fullstack-engineer` uses Codex plugin
 - `codex=false copilot=true` -> force `copilot`
-- `codex=false copilot=false` -> force `claude-coder`; choose `claude_model` by complexity: `haiku|sonnet|opus`
+- `codex=false copilot=false` -> `fullstack-engineer` uses Claude-native; choose `claude_model` by complexity: `haiku|sonnet|opus`
 
 ### Model Config
 
@@ -245,7 +245,7 @@ done
    - same `parallel_group` -> parallel
    - dependent groups -> sequential
    - pass `design_plan_path` and `executor_handoff` when design stage was used
-   - apply model lookup for executor role (`codex-coder`, `copilot`, or `claude-coder`) when spawning
+   - apply model lookup for `fullstack-engineer` role when spawning
 11.5. Call `update_stage()` for execution stage.
 12. Call `verifier` with plan path, repo path, preferred verification commands, completed task ids. Apply model lookup for `verifier` role when spawning. Pass `expected_plan_hash` to verifier. After verifier returns, compute gate verdict via `get_gate_verdict()`.
 13. If verifier fails, call `enforce_repair_budget()` — halt if budget exceeded. Otherwise do one repair round then re-run verifier once.

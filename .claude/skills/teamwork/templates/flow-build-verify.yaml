@@ -1,0 +1,30 @@
+name: build-verify
+description: Quick build-and-verify flow for confident changes
+max_pipeline_steps: 10
+max_review_loops: 2
+red_behavior: halt
+nodes:
+  - id: plan
+    type: build
+    label: "Plan"
+  - id: execute
+    type: execute
+    label: "Execute"
+  - id: verify
+    type: gate
+    label: "Verify"
+  - id: ship
+    type: gate
+    label: "Ship"
+edges:
+  - from: plan
+    to: execute
+  - from: execute
+    to: verify
+  - from: verify
+    to: ship
+    condition: "green"
+  - from: verify
+    to: execute
+    condition: "yellow"
+    max_cycles: 1

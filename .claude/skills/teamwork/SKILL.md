@@ -67,13 +67,57 @@ team-lead
   ├── plan-reviewer  → reviews plan (review or adversarial-review)
   ├── designer       → creates implementation-ready design plan for design-heavy tasks
   ├── executors (parallel where possible):
-  │     executor: codex   → codex-coder
-  │     executor: copilot → copilot
-  │     fallback: claude  → claude-coder
+  │     fullstack-engineer (Codex → Copilot → Claude-native fallback)
   ├── verifier       → runs post-execution verification gate
   ├── final-reviewer → runs Codex final review gate, or Claude-native fallback
   └── git-monitor    → (optional) commit, PR creation, CI/comment monitoring
+   │     Optional specialty reviewers (pre-release flow):
+   │     security-reviewer, perf-reviewer, a11y-reviewer,
+   │     devil-advocate, pm, user-perspective
 ```
+
+## Flow Engine
+
+The pipeline supports multiple flow templates defined as typed node graphs in `templates/flow-*.yaml`.
+
+### Available Templates
+
+| Template | Use Case | Nodes |
+|----------|----------|-------|
+| `standard` | Full pipeline (default) | research → plan → plan-review → design? → execute → verify → final-review → ship |
+| `review` | Review-only (existing code/PRs) | research → review → verdict |
+| `build-verify` | Quick confident changes | plan → execute → verify → ship |
+| `pre-release` | Extra review gates | research → plan → plan-review → execute → verify → security → perf → final-review → ship |
+
+### Template Selection
+
+- Default: `standard`
+- Override: `/teamwork:flow <name>` command
+- Per-repo: `.claude/team.md` `## Flow Template` section
+
+### Gate Verdicts
+
+Verdicts are mechanical, computed from reviewer output markers:
+- 🔴 FAIL — halt or loop back per `red_behavior`
+- 🟡 ITERATE — loop back for revision within cycle limits
+- 🟢 PASS — advance to next node
+
+### Escape Hatches
+
+- `/teamwork:skip` — skip current node
+- `/teamwork:pass` — force current gate to green
+- `/teamwork:stop` — graceful halt with state preservation
+- `/teamwork:goto <node>` — jump to specified node
+
+## Definition of Done
+
+Before planning, three mandatory questions establish acceptance criteria:
+
+1. **What does "done" look like?** — observable outcomes
+2. **How will we verify it?** — runnable commands or test cases
+3. **How will we evaluate quality?** — quality standards
+
+Criteria are auto-inferred from codebase context (`package.json`, `Makefile`, CI config, `CLAUDE.md`) when not provided. Finalized criteria are written to plan files and included in every executor prompt.
 
 ## Workflow
 
@@ -82,8 +126,7 @@ Operational guardrails (always on):
 - If spawn fails due thread/resource limits, close stale agents and retry once; if still failing, stop and report delegation failure.
 - Treat verifier/final-review output as stale after any code-changing repair; re-run both gates on fresh evidence.
 - Keep an explicit automatic-repair counter and stop at one repair cycle; if still failing, return `needs_manual_fix`.
-- Emit executor evidence in the final summary: `task_id -> executor -> agent_id -> status`.
-- If `copilot=true` and there are `executor: copilot` tasks, dispatch at least one to `copilot`; otherwise report why not.
+- Emit executor evidence in the final summary: `task_id -> agent_id -> status`.
 - Use portable shell commands in prompts and snippets (avoid assumptions like `timeout` availability).
 
 ### 1) Validate plugin readiness
@@ -98,9 +141,9 @@ COPILOT_SCRIPT=$(find ~/.claude/plugins -name "copilot-companion.mjs" 2>/dev/nul
 ```
 
 Fallback policy:
-- Both installed -> tasks routed per plan annotation (default behavior)
-- Copilot unavailable + Codex available -> all plugin-backed tasks fallback to Codex
-- Codex unavailable + Copilot available -> use Copilot for research/execution; review gates fallback to Claude-native when needed
+- Both installed -> follow plan executor annotations (codex/copilot)
+- Copilot unavailable + Codex available -> fullstack-engineer uses Codex plugin
+- Codex unavailable + Copilot available -> force copilot; review gates fallback to Claude-native when needed
 - Both unavailable -> full Claude-native fallback (lead selects model)
 
 ### 2) Read repo team config
@@ -115,7 +158,7 @@ If `.claude/team.md` exists, read:
 - Executor routing overrides
 - Preferred review mode (`review` or `adversarial-review`)
 - Preferred verification commands (`## Verification`)
-- Model config (`## Model Config`) — per-agent model overrides
+- Model config (`## Model Config` with `### Primary` / `### Secondary`) — per-agent model overrides with two-tier resolution
 
 ### 3) Delegate orchestration to `team-lead`
 
@@ -152,7 +195,7 @@ Let `team-lead` run:
 7. `planner` creates the plan using the consolidated brief
 8. `plan-reviewer` reviews and iterates plan quality (Codex or Claude-native fallback)
 9. when design is explicitly required, `designer` creates a design plan before coding
-10. executors implement approved tasks (Codex/Copilot/Claude fallback)
+10. `fullstack-engineer` implements approved tasks (auto-selects best available backend)
 11. `verifier` runs required checks before completion
    - verifier may reuse cached verification only on exact repo+command key match
 12. `final-reviewer` runs final review (Codex or Claude-native fallback)
@@ -169,7 +212,7 @@ Return:
 - failed/skipped tasks
 - verification result with command evidence
 - final review result with key findings
-- copilot invocation evidence (`invoked: true|false`, tasks, agent ids)
+- executor evidence (task ids, agent ids)
 - boundary-violation notes (if any)
 - follow-up actions
 - model config applied (role → model mappings used, or "no overrides")
@@ -192,10 +235,18 @@ default: adversarial-review
 - npm test
 
 ## Model Config
+
+### Primary
 default: claude-sonnet-4
 researcher: claude-haiku-4.5
+plan-reviewer: gpt-5.2-codex
+fullstack-engineer: claude-sonnet-4
+final-reviewer: gpt-5.2-codex
 verifier: claude-haiku-4.5
-final-reviewer: claude-opus-4.6
+
+### Secondary
+default: claude-haiku-4.5
+fullstack-engineer: claude-haiku-4.5
 ```
 
 Optionally provide project-specific agent prompts in `.claude/agents/`:
@@ -203,26 +254,24 @@ Optionally provide project-specific agent prompts in `.claude/agents/`:
 - `.claude/agents/researcher.md`
 - `.claude/agents/research-lead.md`
 - `.claude/agents/designer.md`
-- `.claude/agents/codex-coder.md`
-- `.claude/agents/copilot.md`
-- `.claude/agents/claude-coder.md`
+- `.claude/agents/fullstack-engineer.md`
 - `.claude/agents/verifier.md`
 - `.claude/agents/final-reviewer.md`
 
 Project-level agents automatically take priority over global ones.
 
-## Executor Routing Defaults
+## Executor Routing
 
-Route by task weight and rigor requirement, not by language or file type:
+Routing is determined by task weight/rigor (not file type) and can be overridden per-repo via `.claude/team.md`. Only two valid executor values: `codex` and `copilot`.
 
-| Executor | When to use |
-|----------|-------------|
-| `codex` | Rigorous or heavy tasks: complex algorithms, security-sensitive code, auth/authz, data migrations, strict correctness requirements, large-scale refactors with many interdependencies, critical business logic, tasks requiring deep analysis before coding |
-| `copilot` | All other tasks: UI changes, simple feature additions, scripts, configuration, exploratory/experimental code, documentation, straightforward bug fixes, lightweight tooling |
+| Executor | Task Types |
+|----------|------------|
+| `codex` | Rigorous or heavy tasks: complex algorithms, security-sensitive code, auth/authz, data migrations, strict correctness, large-scale refactors, critical business logic |
+| `copilot` | All other tasks: UI changes, simple features, scripts, config, exploratory code, docs, straightforward bug fixes |
 
 ## Constraints
 
-- Keep task routing values to `codex` or `copilot`.
+- All execution tasks route to `fullstack-engineer`.
 - `researcher` is a planning support role and does not execute coding tasks.
 - Research splitting and parallelization are decided by `team-lead`, not by researcher/planner.
 - Runtime fallback may override plan executor annotation based on plugin availability.
@@ -234,6 +283,10 @@ Route by task weight and rigor requirement, not by language or file type:
 - Keep executor prompts concrete: scope, dependencies, verification.
 - After any code-changing repair, previous verifier/final-review results are invalid and must be refreshed.
 - Keep automatic repair loops bounded to one cycle; escalate instead of silently continuing beyond budget.
+- Verify plan hash before each execution step (tamper protection).
+- Enforce repair budget via code-level `enforce_repair_budget()`, not prompt-level.
+- Pipeline state file (`.claude/pipeline-state.json`) is ephemeral — never commit to git.
+- Respect flow template cycle limits (per-node, per-edge, and total steps).
 
 ## Shipped Agents
 
@@ -243,12 +296,16 @@ Route by task weight and rigor requirement, not by language or file type:
 - `planner.md`
 - `plan-reviewer.md`
 - `designer.md`
-- `codex-coder.md`
-- `copilot.md`
-- `claude-coder.md`
+- `fullstack-engineer.md`
 - `verifier.md`
 - `final-reviewer.md`
 - `git-monitor.md`
+- `pm.md`
+- `security-reviewer.md`
+- `devil-advocate.md`
+- `a11y-reviewer.md`
+- `perf-reviewer.md`
+- `user-perspective.md`
 
 Install manually when needed:
 

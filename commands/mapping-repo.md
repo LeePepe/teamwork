@@ -75,7 +75,7 @@ From this point onward, this command handler must only orchestrate and summarize
 ## Step 3 — Delegate to team-lead
 
 From the output of Step 1, read the actual `codex=true/false` and `copilot=true/false` values.
-Executor routing: `codex` (rigorous/heavy tasks) or `copilot` (all other tasks). Fallback to `claude-coder` when both plugins unavailable.
+Executor: `fullstack-engineer` auto-selects best backend (Codex → Copilot → Claude-native).
 
 Build the task description based on `${ARGUMENTS}`:
 - Empty (no argument): full mapping — produce ARCHITECTURE.md, all docs/ topic files, and simplified AGENTS.md TOC
@@ -100,7 +100,7 @@ Task: Map and document this repository's architecture. Produce the following doc
   Mode: <full mapping | update existing docs>
 Routing preferences: <contents of .claude/team.md, or "use defaults">
 Plugin availability: codex=<actual value from Step 1> copilot=<actual value from Step 1>
-Executor routing: codex (rigorous/heavy) or copilot (all other). Fallback: claude-coder.
+Executor: fullstack-engineer (Codex → Copilot → Claude-native fallback).
 Verification preferences: use plan task verification
 ```
 

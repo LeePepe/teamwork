@@ -2,7 +2,7 @@
 
 A Claude Code skill that orchestrates a full **research → plan → review → design (when needed) → execute → verify → final-review** pipeline using a team of agents.
 
-Executors are routed by task weight: `codex-coder` for rigorous/heavy tasks, `copilot` for all other tasks, `claude-coder` as fallback when plugins are unavailable.
+The `fullstack-engineer` executor auto-selects the best available backend (Codex → Copilot → Claude-native).
 
 ## How It Works
 
@@ -22,9 +22,8 @@ Executors are routed by task weight: `codex-coder` for rigorous/heavy tasks, `co
         ├── designer (for design-heavy tasks only)
         │                → creates implementation-ready design plan before coding
         ├── executors (parallel where possible)
-        │     codex-coder  ← rigorous/heavy tasks (algorithms, security, migrations, critical logic)
-        │     copilot      ← all other tasks (UI, scripts, config, simple features)
-        │     claude-coder ← fallback when codex/copilot are both unavailable
+        ├── fullstack-engineer (parallel where possible)
+        │     auto-selects: Codex → Copilot → Claude-native
         ├── verifier       → runs verification commands before completion
         ├── final-reviewer → runs final review (Codex when available, Claude fallback otherwise)
         └── git-monitor    → (optional) commit, PR creation, CI/comment monitoring
@@ -60,7 +59,7 @@ Run setup only for the plugins you installed:
 Fallback policy:
 - Copilot unavailable + Codex available: all plugin-backed work falls back to Codex
 - Codex unavailable + Copilot available: research/execution use Copilot, review gates use Claude fallback when needed
-- Codex unavailable + Copilot unavailable: full Claude-native fallback via `claude-coder`
+- Codex unavailable + Copilot unavailable: full Claude-native fallback via `fullstack-engineer`
 - Multiple research scopes: `research-lead` decides split and runs `researcher` workers in parallel
 
 ## Install This Skill
@@ -100,7 +99,7 @@ Setup now uses a lightweight default:
   - research stage: `research-lead` (which dispatches `researcher`)
   - plan stage: `planner`, `plan-reviewer`
   - design stage (conditional): `designer`
-  - execution stage: executor/gate roles only when needed (`codex-coder`/`copilot`/`claude-coder`, `verifier`, `final-reviewer`, optional `git-monitor`)
+  - execution stage: `fullstack-engineer`, `verifier`, `final-reviewer`, optional `git-monitor`)
 
 Research policy:
 - code read/search tasks are routed through `research-lead` and executed by `researcher`
@@ -228,8 +227,7 @@ default: adversarial-review
 
 Add repo-aware agent definitions to `.claude/agents/` in your repo:
 
-- `.claude/agents/codex-coder.md` — knows your TS conventions, test setup, etc.
-- `.claude/agents/copilot.md` — knows your xcodebuild commands, project structure, etc.
+- `.claude/agents/fullstack-engineer.md` — unified executor, knows your project conventions and test setup
 - `.claude/agents/research-lead.md` — splits research scopes and consolidates researcher outputs
 - `.claude/agents/researcher.md` — gathers repo/external context and writes planning briefs
 - `.claude/agents/designer.md` — produces design plan artifacts for design-heavy requests

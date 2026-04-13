@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "teamwork",
-      "description": "Plan → review → execute → verify → final-review pipeline with team-lead, planner, plan-reviewer, codex-coder/copilot/claude-coder, verifier, and final-reviewer agents.",
+      "description": "Plan → review → execute → verify → final-review pipeline with team-lead, planner, plan-reviewer, fullstack-engineer, verifier, and final-reviewer agents.",
       "source": "./"
     }
   ]

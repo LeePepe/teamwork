@@ -67,9 +67,7 @@ team-lead
   ├── plan-reviewer  → reviews plan (review or adversarial-review)
   ├── designer       → creates implementation-ready design plan for design-heavy tasks
   ├── executors (parallel where possible):
-  │     executor: codex   → codex-coder
-│     executor: copilot → copilot
-│     fallback: claude  → claude-coder
+  │     fullstack-engineer (Codex → Copilot → Claude-native fallback)
   ├── verifier       → runs post-execution verification gate
   ├── final-reviewer → runs Codex final review gate, or Claude-native fallback
   └── git-monitor    → (optional) commit, PR creation, CI/comment monitoring
@@ -144,7 +142,7 @@ COPILOT_SCRIPT=$(find ~/.claude/plugins -name "copilot-companion.mjs" 2>/dev/nul
 
 Fallback policy:
 - Both installed -> follow plan executor annotations (codex/copilot)
-- Copilot unavailable + Codex available -> force codex-coder
+- Copilot unavailable + Codex available -> fullstack-engineer uses Codex plugin
 - Codex unavailable + Copilot available -> force copilot; review gates fallback to Claude-native when needed
 - Both unavailable -> full Claude-native fallback (lead selects model)
 
@@ -197,7 +195,7 @@ Let `team-lead` run:
 7. `planner` creates the plan using the consolidated brief
 8. `plan-reviewer` reviews and iterates plan quality (Codex or Claude-native fallback)
 9. when design is explicitly required, `designer` creates a design plan before coding
-10. executor agents (`codex-coder`/`copilot`/`claude-coder`) implement approved tasks
+10. `fullstack-engineer` implements approved tasks (auto-selects best available backend)
 11. `verifier` runs required checks before completion
    - verifier may reuse cached verification only on exact repo+command key match
 12. `final-reviewer` runs final review (Codex or Claude-native fallback)
@@ -242,15 +240,13 @@ default: adversarial-review
 default: claude-sonnet-4
 researcher: claude-haiku-4.5
 plan-reviewer: gpt-5.2-codex
-codex-coder: claude-sonnet-4
-copilot: claude-sonnet-4
+fullstack-engineer: claude-sonnet-4
 final-reviewer: gpt-5.2-codex
 verifier: claude-haiku-4.5
 
 ### Secondary
 default: claude-haiku-4.5
-codex-coder: claude-haiku-4.5
-copilot: claude-haiku-4.5
+fullstack-engineer: claude-haiku-4.5
 ```
 
 Optionally provide project-specific agent prompts in `.claude/agents/`:
@@ -258,9 +254,7 @@ Optionally provide project-specific agent prompts in `.claude/agents/`:
 - `.claude/agents/researcher.md`
 - `.claude/agents/research-lead.md`
 - `.claude/agents/designer.md`
-- `.claude/agents/codex-coder.md`
-- `.claude/agents/copilot.md`
-- `.claude/agents/claude-coder.md`
+- `.claude/agents/fullstack-engineer.md`
 - `.claude/agents/verifier.md`
 - `.claude/agents/final-reviewer.md`
 
@@ -277,7 +271,7 @@ Routing is determined by task weight/rigor (not file type) and can be overridden
 
 ## Constraints
 
-- Keep task routing values to `codex` or `copilot`.
+- All execution tasks route to `fullstack-engineer`.
 - `researcher` is a planning support role and does not execute coding tasks.
 - Research splitting and parallelization are decided by `team-lead`, not by researcher/planner.
 - Runtime fallback may override plan executor annotation based on plugin availability.
@@ -302,9 +296,7 @@ Routing is determined by task weight/rigor (not file type) and can be overridden
 - `planner.md`
 - `plan-reviewer.md`
 - `designer.md`
-- `codex-coder.md`
-- `copilot.md`
-- `claude-coder.md`
+- `fullstack-engineer.md`
 - `verifier.md`
 - `final-reviewer.md`
 - `git-monitor.md`

@@ -46,9 +46,7 @@ researcher: gpt-5.4
 planner: claude-sonnet-4.6
 plan-reviewer: gpt-5.4
 designer: claude-sonnet-4.6
-codex-coder: claude-sonnet-4.6
-copilot: claude-sonnet-4.6
-claude-coder: claude-sonnet-4.6
+fullstack-engineer: claude-sonnet-4.6
 verifier: claude-haiku-4.5
 final-reviewer: gpt-5.4
 git-monitor: claude-haiku-4.5
@@ -63,9 +61,7 @@ user-perspective: claude-sonnet-4.6
 
 default: claude-haiku-4.5
 planner: claude-haiku-4.5
-codex-coder: claude-haiku-4.5
-copilot: claude-haiku-4.5
-claude-coder: claude-haiku-4.5
+fullstack-engineer: claude-haiku-4.5
 pm: claude-haiku-4.5
 security-reviewer: claude-haiku-4.5
 devil-advocate: claude-haiku-4.5

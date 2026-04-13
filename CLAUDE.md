@@ -29,7 +29,7 @@ Always run `--check` before and after modifying setup logic to confirm idempoten
 ### Pipeline Flow
 
 ```
-SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel when independent)  →  planner  →  plan-reviewer  →  designer (when needed)  →  codex-coder / copilot / claude-coder  →  verifier  →  final-reviewer  →  git-monitor (optional)
+SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel when independent)  →  planner  →  plan-reviewer  →  designer (when needed)  →  fullstack-engineer  →  verifier  →  final-reviewer  →  git-monitor (optional)
 ```
 
 `SKILL.md` is the skill entry point: it validates plugin availability, reads repo routing config (`.claude/team.md`), then delegates entirely to `team-lead`. The team-lead orchestrates the rest — it **must not modify files directly**.
@@ -47,9 +47,7 @@ SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel wh
   - `agents/plan-reviewer.md`
   - `agents/designer.md`
 - Execution and quality gates:
-  - `agents/codex-coder.md`
-  - `agents/copilot.md`
-  - `agents/claude-coder.md`
+  - `agents/fullstack-engineer.md`
   - `agents/verifier.md`
   - `agents/final-reviewer.md`
   - `agents/git-monitor.md`
@@ -85,9 +83,7 @@ SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel wh
 | `planner` | Writes plan files in `.claude/plan/` | Plan files only |
 | `plan-reviewer` | Plan review/iteration (Codex when available, Claude fallback otherwise) | Plan files only |
 | `designer` | Creates design plan artifacts for design-heavy tasks before coding | Plan/design files only |
-| `codex-coder` | Executes strict/formal tasks (TS/JS, APIs, tests) | Yes |
-| `copilot` | Executes all other tasks (Swift, scripts, UI) | Yes |
-| `claude-coder` | Claude-native executor fallback when plugins are unavailable | Yes |
+| `fullstack-engineer` | Unified executor — Codex → Copilot → Claude-native fallback | Yes |
 | `verifier` | Runs post-execution verification commands | No |
 | `final-reviewer` | Runs final review on working tree (Codex when available, Claude fallback otherwise) | No |
 | `git-monitor` | Stages commits, creates PRs, monitors CI and PR comments (optional, post-final-review) | No |
@@ -100,7 +96,7 @@ SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel wh
 
 ### Hard Pipeline Rule
 
-`team-lead` has `tools: Read, Glob, Agent` — no write access. Any direct file change from the lead is a pipeline violation. File changes flow through executor agents (`codex-coder`, `copilot`, `claude-coder`).
+`team-lead` has `tools: Read, Glob, Agent` — no write access. Any direct file change from the lead is a pipeline violation. File changes flow through the executor agent (`fullstack-engineer`).
 
 ### Executor Routing
 
@@ -111,12 +107,12 @@ Routing is determined by task weight/rigor (not file type) and can be overridden
 
 ### Plugin Dependency
 
-Executors delegate to plugins when available: `codex-coder` uses `codex-companion.mjs`, `copilot` uses `copilot-companion.mjs`. `research-lead` decides scope split and researcher backend routing. `researcher` can use either plugin and falls back to Claude-native research when needed.
+`fullstack-engineer` delegates to plugins when available: tries `codex-companion.mjs` first, then `copilot-companion.mjs`, then falls back to Claude-native. `research-lead` decides scope split and researcher backend routing. `researcher` can use either plugin and falls back to Claude-native research when needed.
 
 Fallback policy:
 - `copilot=false` and `codex=true`: route all plugin-backed work to Codex
 - `codex=false` and `copilot=true`: route research/execution to Copilot, use Claude-native review fallback
-- `codex=false` and `copilot=false`: route all execution to `claude-coder`, and let lead choose Claude model
+- `codex=false` and `copilot=false`: `fullstack-engineer` uses Claude-native, lead selects Claude model
 
 ### Model Config
 
