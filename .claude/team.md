@@ -119,13 +119,9 @@ user-perspective: claude-haiku-4.5
 
 | Tier | Model | Capability |
 |------|-------|------------|
-| 1 | `gpt-5.4` | Full autonomy: strongest reasoning, complex multi-step tasks |
-| 1 | `gpt-5.2` | Full autonomy: strong general reasoning |
-| 2 | `gpt-5.3-codex` | Scoped autonomy: optimized for code generation and review |
-| 2 | `gpt-5.1` | Scoped autonomy: reliable within defined boundaries |
-| 3 | `gpt-5.4-mini` | Task execution: fast, cost-effective for well-defined tasks |
-| 3 | `gpt-5-mini` | Task execution: lightweight, follows instructions |
-| 4 | `gpt-4.1` | Mechanical: script parsing, lint checks, structured output |
+| 1-2 | `gpt-5.4` | Full to scoped autonomy: strongest reasoning, complex multi-step tasks, code review |
+| 3 | `gpt-5.3-codex` | Task execution: optimized for code generation, follows defined tasks precisely |
+| 4 | `gpt-5.4-mini` | Mechanical: script parsing, lint checks, structured output, fast/cheap |
 
 ### Agent → Tier Mapping
 
