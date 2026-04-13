@@ -40,24 +40,24 @@ Examples:
 
 ### Primary
 
-default: claude-sonnet-4
+default: claude-sonnet-4.6
 research-lead: claude-haiku-4.5
-researcher: claude-haiku-4.5
-planner: claude-sonnet-4
+researcher: gpt-5.4
+planner: claude-sonnet-4.6
 plan-reviewer: gpt-5.4
-designer: claude-sonnet-4
-codex-coder: claude-sonnet-4
-copilot: claude-sonnet-4
-claude-coder: claude-sonnet-4
+designer: claude-sonnet-4.6
+codex-coder: claude-sonnet-4.6
+copilot: claude-sonnet-4.6
+claude-coder: claude-sonnet-4.6
 verifier: claude-haiku-4.5
 final-reviewer: gpt-5.4
 git-monitor: claude-haiku-4.5
-pm: claude-sonnet-4
-security-reviewer: claude-sonnet-4
-devil-advocate: claude-sonnet-4
-a11y-reviewer: claude-sonnet-4
-perf-reviewer: claude-sonnet-4
-user-perspective: claude-sonnet-4
+pm: claude-sonnet-4.6
+security-reviewer: claude-sonnet-4.6
+devil-advocate: claude-sonnet-4.6
+a11y-reviewer: claude-sonnet-4.6
+perf-reviewer: claude-sonnet-4.6
+user-perspective: claude-sonnet-4.6
 
 ### Secondary
 
