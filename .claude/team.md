@@ -51,10 +51,10 @@ verifier: claude-haiku-4.5
 final-reviewer: gpt-5.4
 git-monitor: claude-haiku-4.5
 pm: claude-sonnet-4.6
-security-reviewer: claude-sonnet-4.6
+security-reviewer: gpt-5.4
 devil-advocate: claude-sonnet-4.6
-a11y-reviewer: claude-sonnet-4.6
-perf-reviewer: claude-sonnet-4.6
+a11y-reviewer: gpt-5.4
+perf-reviewer: gpt-5.4
 user-perspective: claude-sonnet-4.6
 
 ### Secondary
