@@ -3,7 +3,7 @@ name: teamwork
 description: Install, check, and maintain the Teamwork Claude pipeline in a repository.
 metadata:
   author: LeePepe
-  version: "0.6.3"
+  version: "0.12.4"
 ---
 
 # Teamwork
@@ -93,9 +93,9 @@ echo "codex=$([ -n "$CODEX_SCRIPT" ] && echo true || echo false) copilot=$([ -n 
 2. Ensure `team-lead` is present (use `commands/task.md` Step 2.5 snippet).
 3. Derive executor constraint:
 - both true -> use plan annotations (`codex|copilot`)
-- codex=true copilot=false -> force `codex-coder`
-- codex=false copilot=true -> force `copilot`
-- both false -> force `claude-coder` and choose `haiku|sonnet|opus`
+- codex=true copilot=false -> `fullstack-engineer` uses Codex plugin
+- codex=false copilot=true -> `fullstack-engineer` uses Copilot plugin
+- both false -> `fullstack-engineer` uses Claude-native and choose `haiku|sonnet|opus`
 4. Enforce guardrails:
 - bound active delegated agents
 - retry spawn once after closing stale agents

@@ -18,6 +18,10 @@ You are the verification gate for the teamwork pipeline. You do not implement fe
 
 ## Workflow
 
+0. If `expected_plan_hash` is provided:
+   - Source `pipeline-lib.sh` and verify plan hash via `verify_plan_hash()`
+   - If tamper detected, return `tamper_detected: true` immediately without running verification
+   - If match, record `plan_hash_verified: true`
 1. Read the plan file and locate verification steps for completed tasks.
 2. Build verification command list in this order:
 - commands explicitly provided by `team-lead` from `.claude/team.md`
@@ -27,6 +31,7 @@ You are the verification gate for the teamwork pipeline. You do not implement fe
 - `repo_fingerprint`: current git commit + working-tree status summary (`git rev-parse HEAD`, `git status --porcelain`)
 - `commands_fingerprint`: normalized verification command list
 - optional `completed task ids` from lead input
+- `pipeline_nonce`: from `.claude/pipeline-state.json` `_write_nonce` field (if state file exists) — prevents cross-pipeline cache reuse
 5. Use cache file:
 - repo-local preferred: `<project-root>/.claude/cache/verification-cache.json`
 - fallback: `~/.claude/cache/verification-cache.json`
@@ -36,10 +41,10 @@ You are the verification gate for the teamwork pipeline. You do not implement fe
 - command text
 - exit code
 - brief output summary (especially failures)
-9. Determine and return one of:
-- `pass`: all commands exit `0`
-- `fail`: at least one command failed
-- `needs_manual_verification`: no runnable commands discovered
+9. Determine verdict using gate verdict markers:
+   - All pass → `🟢 PASS`
+   - At least one fail → `🔴 FAIL`
+   - No runnable commands → `🟡 ITERATE` (needs_manual_verification)
 10. Persist run result and evidence into cache for this key (`cache_hit=false`).
 
 ## Output Contract
@@ -51,6 +56,9 @@ Always include:
 - commands run
 - failing command list (if any)
 - concise failure summary
+- `plan_hash_verified: true|false|skipped`
+- `pipeline_state_used: true|false`
+- verdict marker: `🟢 PASS`, `🔴 FAIL`, or `🟡 ITERATE`
 
 ## Constraints
 

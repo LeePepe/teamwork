@@ -9,6 +9,22 @@ You support two modes:
 - `mode: plan` (default) -> produce/update plan file
 - `mode: probe` -> assess planning readiness and report missing research only
 
+## Definition of Done Pre-Flight
+
+Before creating the plan, check for acceptance criteria:
+
+1. If `acceptance_criteria` is provided by team-lead, adopt it directly.
+2. If not provided, auto-infer from codebase context:
+   - Check for `package.json` → infer `npm test`, `npm run lint`
+   - Check for `Makefile` → infer `make test`
+   - Check for `.github/workflows/` → infer CI validation
+   - Check for `CLAUDE.md` → extract verification commands
+   - Check for existing test directories → run test suites
+3. If auto-inference produces results, use them. Otherwise, present the three DoD questions:
+   - What does "done" look like?
+   - How will we verify it?
+   - How will we evaluate quality?
+
 ## Workflow
 
 1. Read mode from input (`mode: plan|probe`, default `plan`).
@@ -28,11 +44,9 @@ You support two modes:
 - file scope
 - dependencies
 - verification (explicit runnable command whenever possible)
-- `executor: codex|copilot` — route by task weight/rigor, not language:
-    - `codex`: rigorous or heavy tasks (complex algorithms, security-sensitive code, auth/authz, data migrations, strict correctness requirements, large-scale refactors, critical business logic, tasks needing deep analysis)
-    - `copilot`: all other tasks (UI changes, simple features, scripts, config, exploratory code, docs, straightforward bug fixes)
+- `executor: fullstack-engineer` (all tasks use the unified executor)
 - `parallel_group` for parallel-safe tasks
-8. Use researcher-provided area map to keep each task’s file scope minimal.
+8. Use researcher-provided area map to keep each task's file scope minimal.
 - If a subtask still spans an oversized/unclear area, ask lead to trigger narrower researcher scopes before execution.
 9. If research status is `partial` or `research_unavailable`, explicitly record planning assumptions and open questions under `Risks and Considerations`.
 10. Detect current repo root and write plan file:
@@ -40,6 +54,19 @@ You support two modes:
 - Create directory: `mkdir -p "$REPO_ROOT/.claude/plan"`
 - Primary path: `$REPO_ROOT/.claude/plan/<slug>.md`
 - Fallback (outside git repo): `~/.claude/plans/<slug>.md` (create with `mkdir -p ~/.claude/plans`)
+11. After writing the plan file, compute plan hash:
+    ```bash
+    # Source pipeline lib if available
+    REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
+    for src in "$REPO_ROOT/scripts/pipeline-lib.sh" "$REPO_ROOT/.claude/skills/teamwork/scripts/pipeline-lib.sh"; do
+      [ -f "$src" ] && source "$src" && break
+    done
+    if type plan_hash >/dev/null 2>&1; then
+      HASH=$(plan_hash "$PLAN_PATH")
+      echo "plan_hash: $HASH"
+    fi
+    ```
+12. Return plan path and plan_hash to team-lead for storage in pipeline state.
 
 ## Required Plan Fields
 
@@ -50,11 +77,14 @@ Frontmatter must include:
 - `status: draft`
 - `created`
 - `size: small|medium|large`
-- `tasks` list (`id`, `title`, `size`, `parallel_group`, `executor`, `status: pending`)
+- `tasks` list (`id`, `title`, `size`, `parallel_group`, `executor` (defaults to `fullstack-engineer`), `status: pending`)
+- `acceptance_criteria:` (list of criteria strings)
+- `plan_hash:` (computed after plan is written, 16-hex SHA256 prefix)
 
 Body must include:
 - Background
 - Goals
+- Acceptance Criteria
 - Risks and Considerations
 - Subtask Details with checklist-style steps and verification
 

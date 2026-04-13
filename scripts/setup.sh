@@ -42,7 +42,7 @@ for arg in "$@"; do
 done
 
 BOOTSTRAP_AGENTS=(team-lead)
-RUNTIME_AGENTS=(research-lead researcher planner plan-reviewer designer codex-coder copilot claude-coder verifier final-reviewer git-monitor)
+RUNTIME_AGENTS=(research-lead researcher planner plan-reviewer designer fullstack-engineer verifier final-reviewer git-monitor pm security-reviewer devil-advocate a11y-reviewer perf-reviewer user-perspective)
 ALL_AGENTS=("${BOOTSTRAP_AGENTS[@]}" "${RUNTIME_AGENTS[@]}")
 
 # ── Paths ────────────────────────────────────────────────────────────────────
@@ -149,6 +149,16 @@ if $CHECK_ONLY; then
   echo ""
   echo "Skill ($SKILL_DEST/SKILL.md):"
   [ -f "$SKILL_DEST/SKILL.md" ] && ok "  SKILL.md installed" || { fail "  SKILL.md missing"; STATUS_OK=false; }
+  echo ""
+  echo "Tests:"
+  [ -f "$SKILL_DIR/test/test-pipeline.sh" ] \
+    && ok "  test harness available: bash test/test-pipeline.sh" \
+    || warn "  test harness not found"
+  echo ""
+  echo "Pipeline infrastructure:"
+  [ -f "$SKILL_DIR/scripts/pipeline-lib.sh" ] \
+    && ok "  pipeline-lib.sh present" \
+    || warn "  pipeline-lib.sh missing"
   $STATUS_OK && exit 0 || exit 1
 fi
 
@@ -204,6 +214,20 @@ for agent in "${ALL_AGENTS[@]}"; do
   cp "$SKILL_DIR/agents/$agent.md" "$SKILL_DEST/agents/$agent.md"
 done
 ok "  agents bundle (for lazy-load)"
+
+# ── Install pipeline scripts ──────────────────────────────────────────────────
+mkdir -p "$SKILL_DEST/scripts"
+if [ -f "$SKILL_DIR/scripts/pipeline-lib.sh" ]; then
+  cp "$SKILL_DIR/scripts/pipeline-lib.sh" "$SKILL_DEST/scripts/pipeline-lib.sh"
+  ok "  pipeline-lib.sh"
+fi
+
+# ── Install flow templates ────────────────────────────────────────────────────
+mkdir -p "$SKILL_DEST/templates"
+for tmpl in "$SKILL_DIR"/templates/flow-*.yaml; do
+  [ -f "$tmpl" ] && cp "$tmpl" "$SKILL_DEST/templates/"
+done
+ok "  flow templates"
 
 # ── Install team.md template (repo mode only) ─────────────────────────────────
 if [ "$MODE" = "repo" ] && [ -n "$TEAM_MD" ] && [ ! -f "$TEAM_MD" ]; then

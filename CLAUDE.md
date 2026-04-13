@@ -29,7 +29,7 @@ Always run `--check` before and after modifying setup logic to confirm idempoten
 ### Pipeline Flow
 
 ```
-SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel when independent)  →  planner  →  plan-reviewer  →  designer (when needed)  →  codex-coder / copilot / claude-coder  →  verifier  →  final-reviewer  →  git-monitor (optional)
+SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel when independent)  →  planner  →  plan-reviewer  →  designer (when needed)  →  fullstack-engineer  →  verifier  →  final-reviewer  →  git-monitor (optional)
 ```
 
 `SKILL.md` is the skill entry point: it validates plugin availability, reads repo routing config (`.claude/team.md`), then delegates entirely to `team-lead`. The team-lead orchestrates the rest — it **must not modify files directly**.
@@ -47,9 +47,7 @@ SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel wh
   - `agents/plan-reviewer.md`
   - `agents/designer.md`
 - Execution and quality gates:
-  - `agents/codex-coder.md`
-  - `agents/copilot.md`
-  - `agents/claude-coder.md`
+  - `agents/fullstack-engineer.md`
   - `agents/verifier.md`
   - `agents/final-reviewer.md`
   - `agents/git-monitor.md`
@@ -57,6 +55,23 @@ SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel wh
   - `scripts/setup.sh`
   - `.claude/skills/teamwork/SKILL.md` (installed copy)
   - `.claude/skills/teamwork/agents/*` (lazy-load source)
+
+- Pipeline infrastructure:
+  - `scripts/pipeline-lib.sh`
+- Flow templates:
+  - `templates/flow-standard.yaml`
+  - `templates/flow-review.yaml`
+  - `templates/flow-build-verify.yaml`
+  - `templates/flow-pre-release.yaml`
+- Testing:
+  - `test/test-pipeline.sh`
+- Specialty reviewers:
+  - `agents/pm.md`
+  - `agents/security-reviewer.md`
+  - `agents/devil-advocate.md`
+  - `agents/a11y-reviewer.md`
+  - `agents/perf-reviewer.md`
+  - `agents/user-perspective.md`
 
 ### Agent Responsibilities
 
@@ -68,36 +83,43 @@ SKILL.md  →  team-lead  →  research-lead  →  researcher (1..N, parallel wh
 | `planner` | Writes plan files in `.claude/plan/` | Plan files only |
 | `plan-reviewer` | Plan review/iteration (Codex when available, Claude fallback otherwise) | Plan files only |
 | `designer` | Creates design plan artifacts for design-heavy tasks before coding | Plan/design files only |
-| `codex-coder` | Executes strict/formal tasks (TS/JS, APIs, tests) | Yes |
-| `copilot` | Executes all other tasks (Swift, scripts, UI) | Yes |
-| `claude-coder` | Claude-native executor fallback when plugins are unavailable | Yes |
+| `fullstack-engineer` | Unified executor — Codex → Copilot → Claude-native fallback | Yes |
 | `verifier` | Runs post-execution verification commands | No |
 | `final-reviewer` | Runs final review on working tree (Codex when available, Claude fallback otherwise) | No |
 | `git-monitor` | Stages commits, creates PRs, monitors CI and PR comments (optional, post-final-review) | No |
+| `pm` | Advisory | No | `agents/pm.md` | Product manager perspective; user value and scope validation |
+| `security-reviewer` | Quality | No | `agents/security-reviewer.md` | Security-focused review; vulnerability identification |
+| `devil-advocate` | Advisory | No | `agents/devil-advocate.md` | Adversarial challenger; stress-tests assumptions |
+| `a11y-reviewer` | Quality | No | `agents/a11y-reviewer.md` | Accessibility review; WCAG compliance |
+| `perf-reviewer` | Quality | No | `agents/perf-reviewer.md` | Performance review; bottleneck identification |
+| `user-perspective` | Advisory | No | `agents/user-perspective.md` | End-user perspective; UX quality evaluation |
 
 ### Hard Pipeline Rule
 
-`team-lead` has `tools: Read, Glob, Agent` — no write access. Any direct file change from the lead is a pipeline violation. File changes flow through executor agents (`codex-coder`, `copilot`, `claude-coder`).
+`team-lead` has `tools: Read, Glob, Agent` — no write access. Any direct file change from the lead is a pipeline violation. File changes flow through the executor agent (`fullstack-engineer`).
 
-### Executor Routing
+### Executor
 
-Routing is determined by task weight/rigor (not file type) and can be overridden per-repo via `.claude/team.md`. Only two valid executor values: `codex` and `copilot`.
+All execution tasks are handled by `fullstack-engineer`, which internally selects the best available backend:
 
-- `codex`: rigorous/heavy tasks — complex algorithms, security-sensitive, auth, data migrations, large refactors, critical business logic
-- `copilot`: all other tasks — UI changes, simple features, scripts, config, docs, straightforward bug fixes
+1. Codex plugin (`codex-companion.mjs`) when available
+2. Copilot plugin (`copilot-companion.mjs`) when Codex unavailable
+3. Claude-native implementation when no plugins available
+
+Task routing by weight/rigor is no longer needed at the plan level — `fullstack-engineer` handles all task types.
 
 ### Plugin Dependency
 
-Executors delegate to plugins when available: `codex-coder` uses `codex-companion.mjs`, `copilot` uses `copilot-companion.mjs`. `research-lead` decides scope split and researcher backend routing. `researcher` can use either plugin and falls back to Claude-native research when needed.
+`fullstack-engineer` delegates to plugins when available: tries `codex-companion.mjs` first, then `copilot-companion.mjs`, then falls back to Claude-native implementation. `research-lead` decides scope split and researcher backend routing. `researcher` can use either plugin and falls back to Claude-native research when needed.
 
 Fallback policy:
-- `copilot=false` and `codex=true`: route all plugin-backed work to Codex
-- `codex=false` and `copilot=true`: route research/execution to Copilot, use Claude-native review fallback
-- `codex=false` and `copilot=false`: route all execution to `claude-coder`, and let lead choose Claude model
+- `copilot=false` and `codex=true`: `fullstack-engineer` uses Codex plugin
+- `codex=false` and `copilot=true`: `fullstack-engineer` uses Copilot plugin, review gates use Claude-native fallback
+- `codex=false` and `copilot=false`: `fullstack-engineer` uses Claude-native implementation, lead selects Claude model
 
 ### Model Config
 
-`.claude/team.md` optionally contains a `## Model Config` section with `role: model-id` lines. When present, `team-lead` passes the `model` parameter to `task()` for each spawned agent. Resolution: role-specific key → `default` key → omit (no override). `research-lead` propagates model config to `researcher` dispatches.
+`.claude/team.md` optionally contains a `## Model Config` section with `### Primary` and `### Secondary` subsections. Each subsection has `role: model-id` lines. When present, `team-lead` resolves the model for each agent by checking Primary first, then Secondary, then Primary `default`, then Secondary `default`, then omitting (no override). `research-lead` propagates model config to `researcher` dispatches.
 
 ### Research and Verification Policies
 
@@ -111,7 +133,7 @@ Fallback policy:
 
 ### Plan File Format
 
-Plans are written to `.claude/plan/<slug>.md` with YAML frontmatter containing: `title`, `project` (absolute path), `branch`, `status: draft|approved`, `created`, `size: small|medium|large`, and a `tasks` list. Each task has `id`, `title`, `size`, `parallel_group`, `executor: codex|copilot`, and `status: pending|done`. Tasks in the same `parallel_group` are run in parallel; different groups run sequentially by dependency order.
+Plans are written to `.claude/plan/<slug>.md` with YAML frontmatter containing: `title`, `project` (absolute path), `branch`, `status: draft|approved`, `created`, `size: small|medium|large`, and a `tasks` list. Each task has `id`, `title`, `size`, `parallel_group`, `executor: fullstack-engineer`, and `status: pending|done`. Tasks in the same `parallel_group` are run in parallel; different groups run sequentially by dependency order.
 
 ### Source vs Installed Files
 
@@ -120,6 +142,37 @@ The repo ships two copies of agent prompts:
 - `.claude/agents/*.md` — installed copies for this repo (regenerated by `bash scripts/setup.sh --repo`)
 
 Similarly, `SKILL.md` (source) installs to `.claude/skills/teamwork/SKILL.md`, and `commands/*.md` serve as the skill command handlers. The `templates/team.md` is the template copied to a new repo's `.claude/team.md` on first `--repo` install.
+
+
+### Tamper Protection
+
+Runtime pipeline integrity is enforced through code-level mechanisms:
+
+- **Plan hash**: SHA256 truncated to 16 hex chars, computed at plan creation, verified before each execution step. If hash mismatches, the pipeline halts with `tamper_detected`.
+- **Write nonce**: 16-hex random nonce generated at pipeline start, stored in `pipeline-state.json`. All state transitions verify the nonce.
+- **Oscillation detection**: Tracks the last 6 stage transitions. If an A→B→A→B pattern is detected (4+ alternations), the pipeline warns the user and offers escape hatches.
+- **Repair budget**: Code-enforced single repair cycle via `enforce_repair_budget()`. If budget is exceeded, the pipeline halts with `repair_budget_exhausted`.
+- **Review independence**: In adversarial-review mode, reviewer outputs are compared for >95% similarity. If too similar, a re-review from a different perspective is requested.
+
+### Flow Engine
+
+The pipeline supports directed graph-based flow templates in `templates/flow-*.yaml`:
+
+- Node types: `discussion`, `build`, `review`, `execute`, `gate`
+- Flow templates: `standard`, `review`, `build-verify`, `pre-release`
+- Gate verdicts: 🔴 FAIL, 🟡 ITERATE, 🟢 PASS (mechanical, from evidence)
+- Cycle limits: `max_pipeline_steps`, `max_review_loops`, per-edge `max_cycles`
+- Escape hatches: `/teamwork:skip`, `/teamwork:pass`, `/teamwork:stop`, `/teamwork:goto`
+- Visualization: ASCII pipeline rendering with ✅/▶/○ markers
+
+### State Persistence
+
+Pipeline state is tracked in `.claude/pipeline-state.json` (ephemeral, never committed):
+
+- Fields: `plan_path`, `plan_hash`, `_write_nonce`, `current_stage`, `completed_stages[]`, `pending_stages[]`, `stage_history[]`, `pipeline_steps`, `review_loops`, `repair_count`
+- Resume: on pipeline start, existing state is detected and validated (hash chain integrity)
+- Graceful termination: `/teamwork:stop` preserves state for later resume
+- Cleanup: state file is removed after `git-monitor` successfully commits
 
 ## File Conventions
 

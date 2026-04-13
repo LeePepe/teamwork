@@ -70,11 +70,7 @@ From this point, only orchestrate + summarize.
 
 ## Step 3 — Delegate to `team-lead`
 
-Determine executor constraint from Step 1:
-- both true -> plan annotations
-- codex=true copilot=false -> force `codex-coder`
-- codex=false copilot=true -> force `copilot`
-- both false -> force `claude-coder` and select `haiku|sonnet|opus`
+Executor: `fullstack-engineer` (auto-selects best available backend based on plugin availability).
 
 Spawn `team-lead` with:
 
@@ -82,9 +78,8 @@ Spawn `team-lead` with:
 Task: ${ARGUMENTS}
 Routing preferences: <.claude/team.md or "use defaults">
 Plugin availability: codex=<step1> copilot=<step1>
-Executor constraint: <derived above>
+Executor: fullstack-engineer
 Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
-Claude fallback model policy: choose `haiku|sonnet|opus` when both plugins are unavailable
 Design-first policy: for design-heavy tasks call `designer` first, output design plan, then execute
 Model config: <from .claude/team.md ## Model Config, or "no model overrides">
 ```
@@ -100,11 +95,10 @@ Return:
 - fallback strategy + selected model (if Claude fallback)
 - plan path
 - design-stage result and design plan path (if used)
-- modified files by executor
+- modified files
 - failed/skipped tasks
 - verifier result + command evidence
 - final review result + key findings
-- copilot evidence (`invoked`, tasks, agent ids, or reason)
 - boundary violations (if any)
 - suggested follow-up actions
 - model config applied (role → model mappings used, or "no overrides")

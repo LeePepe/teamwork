@@ -12,12 +12,16 @@ This file is an index of all agents in the teamwork skill. Each agent is defined
 | `planner` | Planning | Plan files only | `agents/planner.md` | Creates structured plan files from research briefs |
 | `plan-reviewer` | Planning | Plan files only | `agents/plan-reviewer.md` | Reviews and gates plan quality |
 | `designer` | Design | Plan/design files only | `agents/designer.md` | Produces design plans for design-heavy tasks before execution |
-| `codex-coder` | Execution | Yes | `agents/codex-coder.md` | Codex-backed executor for rigorous/heavy tasks |
-| `copilot` | Execution | Yes | `agents/copilot.md` | Copilot-backed executor for all other tasks |
-| `claude-coder` | Execution | Yes | `agents/claude-coder.md` | Claude-native fallback executor when plugins are unavailable |
+| `fullstack-engineer` | Execution | Yes | `agents/fullstack-engineer.md` | Unified executor — Codex → Copilot → Claude-native fallback |
 | `verifier` | Quality | No | `agents/verifier.md` | Runs post-execution verification commands |
 | `final-reviewer` | Quality | No | `agents/final-reviewer.md` | Final code review gate |
 | `git-monitor` | Delivery | No | `agents/git-monitor.md` | Stages commits, creates PRs, monitors CI |
+| `pm` | Advisory | No | `agents/pm.md` | Product manager perspective; validates user value and scope |
+| `security-reviewer` | Quality | No | `agents/security-reviewer.md` | Security-focused code review; identifies vulnerabilities |
+| `devil-advocate` | Advisory | No | `agents/devil-advocate.md` | Adversarial challenger; stress-tests assumptions |
+| `a11y-reviewer` | Quality | No | `agents/a11y-reviewer.md` | Accessibility review; WCAG compliance checks |
+| `perf-reviewer` | Quality | No | `agents/perf-reviewer.md` | Performance review; identifies bottlenecks and scalability risks |
+| `user-perspective` | Advisory | No | `agents/user-perspective.md` | End-user advocate; evaluates UX quality |
 
 ## Validation
 

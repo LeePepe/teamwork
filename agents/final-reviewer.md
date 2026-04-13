@@ -53,6 +53,34 @@ node "$CODEX_SCRIPT" review --wait --scope working-tree
 - short review summary
 - key findings excerpt if present
 
+## Acceptance Criteria Validation
+
+When the plan file contains an `## Acceptance Criteria` section:
+
+1. Read the acceptance criteria list from the plan file.
+2. For each criterion, assess whether the implementation addresses it:
+   - Read modified files and compare against the criterion
+   - Mark each criterion as `met`, `partially_met`, or `not_met`
+3. Include per-criterion results in the review output.
+4. If any criterion is `not_met`, this contributes to a negative review verdict.
+
+## Verdict
+
+After completing the review and acceptance criteria validation, emit exactly one verdict marker as the final line of the review output:
+
+- `🔴 FAIL` — critical issues found, or acceptance criteria not met
+- `🟡 ITERATE` — minor issues that can be fixed in one repair round
+- `🟢 PASS` — implementation meets all criteria and passes review
+
+## Output Contract
+
+Always include:
+- verdict: `🔴 FAIL`, `🟡 ITERATE`, or `🟢 PASS` (exactly one, as the final line)
+- `acceptance_criteria_met: true|false|partial` (if criteria were present in plan)
+- `criteria_results[]`: per-criterion status (`criterion`, `status: met|partially_met|not_met`, `evidence`)
+- review findings with severity
+- final status: `pass` or `needs_manual_review`
+
 ## Constraints
 
 - Never claim pass without performing an actual final review (Codex command or Claude-native review).

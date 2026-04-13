@@ -5,7 +5,7 @@
 
 ## Executor Routing
 
-<!-- Override default routing. Only two executors: codex and copilot. -->
+<!-- Override default routing. Single executor: fullstack-engineer (auto-selects best backend). -->
 <!--
 Examples:
 - *.swift, *.m, *.xib → copilot
@@ -34,22 +34,56 @@ Examples:
 
 ## Model Config
 
-<!-- Per-agent model override. When set, team-lead passes the `model` parameter to task() when spawning each agent. -->
-<!-- Format: role: model-id (one per line). Use `default` as fallback for unlisted roles. -->
-<!-- Omit this section or leave it empty to use default model selection (no override). -->
+<!-- Per-agent model override with two-tier resolution. -->
+<!-- team-lead resolves: Primary → Secondary → Primary default → Secondary default → omit. -->
+<!-- Format: role: model-id (one per line). -->
+
+### Primary
 
 default: claude-sonnet-4
 research-lead: claude-haiku-4.5
 researcher: claude-haiku-4.5
 planner: claude-sonnet-4
-plan-reviewer: claude-sonnet-4
+plan-reviewer: gpt-5.2-codex
 designer: claude-sonnet-4
-codex-coder: claude-sonnet-4
-copilot: claude-sonnet-4
-claude-coder: claude-sonnet-4
+fullstack-engineer: claude-sonnet-4
 verifier: claude-haiku-4.5
-final-reviewer: claude-sonnet-4
+final-reviewer: gpt-5.2-codex
 git-monitor: claude-haiku-4.5
+
+### Secondary
+
+default: claude-haiku-4.5
+planner: claude-haiku-4.5
+fullstack-engineer: claude-haiku-4.5
+
+
+## Definition of Done
+
+<!-- Answer these three questions before planning begins. -->
+<!-- Leave blank to auto-infer from codebase context. -->
+
+<!-- What does "done" look like? -->
+<!-- How will we verify it? -->
+<!-- How will we evaluate quality? -->
+
+## Flow Template
+
+<!-- Override default flow template selection. Options: standard, review, build-verify, pre-release -->
+<!-- default: standard -->
+
+## Specialty Reviewers
+
+<!-- Uncomment roles to include in review stages. -->
+<!-- These are invoked during pre-release flow or adversarial-review mode. -->
+<!--
+- security-reviewer
+- perf-reviewer
+- a11y-reviewer
+- devil-advocate
+- pm
+- user-perspective
+-->
 
 ## Notes
 
