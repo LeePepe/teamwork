@@ -32,6 +32,75 @@ Examples:
 - go test ./...
 -->
 
+## Model Config
+
+<!-- Per-agent model override with two-tier resolution. -->
+<!-- team-lead resolves: Primary → Secondary → Primary default → Secondary default → omit. -->
+<!-- Format: role: model-id (one per line). -->
+
+### Primary
+
+default: claude-sonnet-4
+research-lead: claude-haiku-4.5
+researcher: claude-haiku-4.5
+planner: claude-sonnet-4
+plan-reviewer: gpt-5.4
+designer: claude-sonnet-4
+codex-coder: claude-sonnet-4
+copilot: claude-sonnet-4
+claude-coder: claude-sonnet-4
+verifier: claude-haiku-4.5
+final-reviewer: gpt-5.4
+git-monitor: claude-haiku-4.5
+pm: claude-sonnet-4
+security-reviewer: claude-sonnet-4
+devil-advocate: claude-sonnet-4
+a11y-reviewer: claude-sonnet-4
+perf-reviewer: claude-sonnet-4
+user-perspective: claude-sonnet-4
+
+### Secondary
+
+default: claude-haiku-4.5
+planner: claude-haiku-4.5
+codex-coder: claude-haiku-4.5
+copilot: claude-haiku-4.5
+claude-coder: claude-haiku-4.5
+pm: claude-haiku-4.5
+security-reviewer: claude-haiku-4.5
+devil-advocate: claude-haiku-4.5
+a11y-reviewer: claude-haiku-4.5
+perf-reviewer: claude-haiku-4.5
+user-perspective: claude-haiku-4.5
+
+
+## Definition of Done
+
+<!-- Answer these three questions before planning begins. -->
+<!-- Leave blank to auto-infer from codebase context. -->
+
+<!-- What does "done" look like? -->
+<!-- How will we verify it? -->
+<!-- How will we evaluate quality? -->
+
+## Flow Template
+
+<!-- Override default flow template selection. Options: standard, review, build-verify, pre-release -->
+<!-- default: standard -->
+
+## Specialty Reviewers
+
+<!-- Uncomment roles to include in review stages. -->
+<!-- These are invoked during pre-release flow or adversarial-review mode. -->
+<!--
+- security-reviewer
+- perf-reviewer
+- a11y-reviewer
+- devil-advocate
+- pm
+- user-perspective
+-->
+
 ## Notes
 
 <!-- Context for the planner and team-lead about this repo -->
