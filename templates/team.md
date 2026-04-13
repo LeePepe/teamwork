@@ -52,7 +52,7 @@ final-reviewer: gpt-5.4
 git-monitor: gpt-5.1
 pm: gpt-5.4
 security-reviewer: gpt-5.4
-devil-advocate: claude-sonnet-4.6
+devil-advocate: claude-haiku-4.5
 a11y-reviewer: gpt-5.4
 perf-reviewer: gpt-5.4
 user-perspective: claude-sonnet-4.6
