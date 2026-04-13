@@ -89,7 +89,7 @@ Install for Codex via native skill discovery:
 ```bash
 git clone https://github.com/LeePepe/teamwork.git ~/.codex/teamwork
 mkdir -p ~/.agents/skills
-ln -sfn ~/.codex/teamwork/skills ~/.agents/skills/teamwork
+ln -sfn ~/.codex/teamwork/skills/teamwork ~/.agents/skills/teamwork
 ```
 
 Then restart Codex.

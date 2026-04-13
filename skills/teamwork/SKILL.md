@@ -3,7 +3,7 @@ name: teamwork
 description: Install, check, and maintain the Teamwork Claude pipeline in a repository.
 metadata:
   author: LeePepe
-  version: "0.6.1"
+  version: "0.6.2"
 ---
 
 # Teamwork
@@ -16,15 +16,32 @@ Always resolve `TEAMWORK_ROOT` before any setup command:
 
 ```bash
 resolve_teamwork_root() {
+  if [ -n "${TEAMWORK_ROOT:-}" ] && [ -f "$TEAMWORK_ROOT/scripts/setup.sh" ]; then
+    (cd "$TEAMWORK_ROOT" && pwd -P)
+    return 0
+  fi
+
   if [ -f "scripts/setup.sh" ]; then
     pwd -P
     return 0
   fi
 
   for base in "$HOME/.agents/skills/teamwork" "$HOME/.claude/skills/teamwork"; do
-    [ -d "$base" ] || continue
+    [ -e "$base" ] || continue
     skill_dir="$(cd "$base" && pwd -P)"
-    for candidate in "$skill_dir/../.." "$skill_dir"; do
+
+    repo_root=""
+    case "$skill_dir" in
+      */skills/teamwork)
+        repo_root="${skill_dir%/skills/teamwork}"
+        ;;
+      */skills)
+        repo_root="${skill_dir%/skills}"
+        ;;
+    esac
+
+    for candidate in "$repo_root" "$skill_dir"; do
+      [ -n "$candidate" ] || continue
       if [ -f "$candidate/scripts/setup.sh" ]; then
         (cd "$candidate" && pwd -P)
         return 0
