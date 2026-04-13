@@ -124,7 +124,7 @@ user-perspective: claude-haiku-4.5
 |------|-------|------------|
 | 1 | `gpt-5.4` | Full autonomy: strongest reasoning, complex multi-step tasks |
 | 1 | `gpt-5.2` | Full autonomy: strong general reasoning |
-| 2 | `gpt-5.2-codex` | Scoped autonomy: optimized for code generation and review |
+| 2 | `gpt-5.3-codex` | Scoped autonomy: optimized for code generation and review |
 | 2 | `gpt-5.1` | Scoped autonomy: reliable within defined boundaries |
 | 3 | `gpt-5.4-mini` | Task execution: fast, cost-effective for well-defined tasks |
 | 3 | `gpt-5-mini` | Task execution: lightweight, follows instructions |
