@@ -43,7 +43,7 @@ Examples:
 default: claude-sonnet-4.6
 research-lead: claude-haiku-4.5
 researcher: gpt-5.4
-planner: claude-sonnet-4.6
+planner: claude-opus-4.6
 plan-reviewer: gpt-5.4
 designer: claude-sonnet-4.6
 fullstack-engineer: claude-sonnet-4.6
