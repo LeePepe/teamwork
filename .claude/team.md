@@ -34,50 +34,48 @@ Examples:
 
 ## Model Config
 
-<!-- Per-agent model assignment using tier + provider. -->
+<!-- Per-agent model override. Concrete model IDs resolved from templates/model-tiers.md. -->
 <!-- Resolution: Primary → Secondary → Primary default → Secondary default → omit. -->
-<!-- Format: role: tier/provider (one per line). See templates/model-tiers.md for tier definitions. -->
-<!-- Providers: claude, openai -->
 
 ### Primary
 
-default: tier2/claude
-team-lead: tier1/claude
-research-lead: tier1/claude
-researcher: tier2/openai
-planner: tier1/claude
-plan-reviewer: tier1/openai
-designer: tier2/claude
-fullstack-engineer: tier2/claude
-verifier: tier4/openai
-final-reviewer: tier1/openai
-git-monitor: tier4/openai
-pm: tier2/openai
-security-reviewer: tier2/openai
-devil-advocate: tier4/claude
-a11y-reviewer: tier2/openai
-perf-reviewer: tier2/openai
-user-perspective: tier2/claude
+default: claude-sonnet-4.6
+team-lead: claude-opus-4.6
+research-lead: claude-opus-4.6
+researcher: gpt-5.4
+planner: claude-opus-4.6
+plan-reviewer: gpt-5.4
+designer: claude-sonnet-4.6
+fullstack-engineer: claude-sonnet-4.6
+verifier: gpt-5.4-mini
+final-reviewer: gpt-5.4
+git-monitor: gpt-5.4-mini
+pm: gpt-5.4
+security-reviewer: gpt-5.4
+devil-advocate: claude-haiku-4.5
+a11y-reviewer: gpt-5.4
+perf-reviewer: gpt-5.4
+user-perspective: claude-sonnet-4.6
 
 ### Secondary
 
-default: tier2/openai
-team-lead: tier1/openai
-research-lead: tier1/openai
-researcher: tier2/claude
-planner: tier1/openai
-plan-reviewer: tier1/claude
-designer: tier2/openai
-fullstack-engineer: tier2/openai
-verifier: tier4/claude
-final-reviewer: tier1/claude
-git-monitor: tier4/claude
-pm: tier2/claude
-security-reviewer: tier2/claude
-devil-advocate: tier4/openai
-a11y-reviewer: tier2/claude
-perf-reviewer: tier2/claude
-user-perspective: tier2/openai
+default: gpt-5.4
+team-lead: gpt-5.4
+research-lead: gpt-5.4
+researcher: claude-sonnet-4.6
+planner: gpt-5.4
+plan-reviewer: claude-opus-4.6
+designer: gpt-5.4
+fullstack-engineer: gpt-5.4
+verifier: claude-haiku-4.5
+final-reviewer: claude-opus-4.6
+git-monitor: claude-haiku-4.5
+pm: claude-sonnet-4.6
+security-reviewer: claude-sonnet-4.6
+devil-advocate: gpt-5.4-mini
+a11y-reviewer: claude-sonnet-4.6
+perf-reviewer: claude-sonnet-4.6
+user-perspective: gpt-5.4
 
 
 ## Definition of Done
