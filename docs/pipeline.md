@@ -18,7 +18,13 @@ plan (plan-lead) -> plan-review (tech+pm) -> execute -> verify -> pm-review -> f
 - Dispatches `researcher` workers for scoped research (parallel when independent)
 - Consolidates findings
 - Dispatches `designer` when design output is required
+- Dispatches `linter` to define strict architecture lint contract
 - Produces the executable plan directly
+
+Lint contract baseline:
+- layer order: `Types -> Config -> Repo -> Service -> Runtime -> UI`
+- lower layers cannot reverse-depend on upper layers
+- lint diagnostics must explain rule rationale and correct refactor direction
 
 **Output**:
 - `.claude/plan/<slug>.md`
@@ -26,6 +32,7 @@ plan (plan-lead) -> plan-review (tech+pm) -> execute -> verify -> pm-review -> f
 - `owner_per_task`
 - `research_status`
 - `design_status`
+- `lint_contract_summary`
 
 ### 2. Plan Gate (Dual Approval)
 
@@ -49,6 +56,7 @@ Backend priority: Copilot -> Claude-native -> Codex (tertiary fallback).
 **Agent**: `verifier`
 
 Runs verification commands and returns concrete command evidence.
+Lint command(s) are mandatory; missing lint evidence prevents passing the delivery gate.
 
 ### 5. PM Delivery Gate
 
@@ -102,6 +110,7 @@ Verdicts are marker-based (`🔴 FAIL`, `🟡 ITERATE`, `🟢 PASS`) and process
 
 Implemented by `scripts/pipeline-lib.sh`:
 - Plan hash verification
+- Mandatory lint enforcement in verification/CI gate
 - Write nonce verification
 - Repair budget enforcement
 - Oscillation detection

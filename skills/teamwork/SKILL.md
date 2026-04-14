@@ -31,9 +31,10 @@ Use teamwork to implement <feature>
 
 ```text
 team-lead
-  ├── plan-lead      → dispatches researcher/designer, writes plan
+  ├── plan-lead      → dispatches researcher/designer/linter, writes plan
   │     ├── researcher(s) (parallel when useful)
   │     └── designer (only when design output required)
+  │     └── linter (layered dependency lint contract)
   ├── plan-reviewer  → technical plan gate
   ├── pm             → product plan gate + delivery supervision
   ├── fullstack-engineer → execute tasks
@@ -81,6 +82,7 @@ Gate policy:
 
 - `team-lead.md`
 - `plan-lead.md`
+- `linter.md`
 - `researcher.md`
 - `designer.md`
 - `plan-reviewer.md`

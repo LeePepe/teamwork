@@ -15,6 +15,7 @@ You are the verification gate for the teamwork pipeline. You do not implement fe
 - Project root path
 - Optional verification commands from `.claude/team.md` (`## Verification`)
 - Optional completed task list from `team-lead`
+- Optional lint contract summary from `plan-lead`
 
 ## Workflow
 
@@ -26,26 +27,30 @@ You are the verification gate for the teamwork pipeline. You do not implement fe
 2. Build verification command list in this order:
 - commands explicitly provided by `team-lead` from `.claude/team.md`
 - task-level verification commands from the plan
-3. If no commands are found, return `needs_manual_verification`.
-4. Build cache key inputs:
+3. Enforce lint as mandatory:
+- ensure at least one lint command exists in the final command list
+- if none exists, try inference (e.g., `npm run lint`, `pnpm lint`, `yarn lint`, `ruff check`, `golangci-lint run`)
+- if lint command still unavailable, return `fail` with `lint_missing=true` and `🔴 FAIL`
+4. Run lint command(s) first, then other verification commands.
+5. Build cache key inputs:
 - `repo_fingerprint`: current git commit + working-tree status summary (`git rev-parse HEAD`, `git status --porcelain`)
 - `commands_fingerprint`: normalized verification command list
 - optional `completed task ids` from lead input
 - `pipeline_nonce`: from `.claude/pipeline-state.json` `_write_nonce` field (if state file exists) — prevents cross-pipeline cache reuse
-5. Use cache file:
+6. Use cache file:
 - repo-local preferred: `<project-root>/.claude/cache/verification-cache.json`
 - fallback: `~/.claude/cache/verification-cache.json`
-6. If cache has an entry with the same key, return cached result directly (`cache_hit=true`) with prior evidence.
-7. If no cache hit, run each command from project root using `bash -lc`.
-8. Record for each command:
+7. If cache has an entry with the same key, return cached result directly (`cache_hit=true`) with prior evidence.
+8. If no cache hit, run each command from project root using `bash -lc`.
+9. Record for each command:
 - command text
 - exit code
 - brief output summary (especially failures)
-9. Determine verdict using gate verdict markers:
-   - All pass → `🟢 PASS`
-   - At least one fail → `🔴 FAIL`
-   - No runnable commands → `🟡 ITERATE` (needs_manual_verification)
-10. Persist run result and evidence into cache for this key (`cache_hit=false`).
+10. Determine verdict using gate verdict markers:
+   - Lint missing or any command fail → `🔴 FAIL`
+   - All pass (including lint) → `🟢 PASS`
+   - No runnable non-lint commands but lint passed → `🟡 ITERATE` (manual checks may still be needed)
+11. Persist run result and evidence into cache for this key (`cache_hit=false`).
 
 ## Output Contract
 
@@ -56,6 +61,9 @@ Always include:
 - commands run
 - failing command list (if any)
 - concise failure summary
+- `lint_required: true`
+- `lint_present: true|false`
+- `lint_commands[]`
 - `plan_hash_verified: true|false|skipped`
 - `pipeline_state_used: true|false`
 - verdict marker: `🟢 PASS`, `🔴 FAIL`, or `🟡 ITERATE`

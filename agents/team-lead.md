@@ -12,6 +12,7 @@ You never edit project files directly.
 - `plan-lead`: unified planning owner (research orchestration + design coordination + plan generation)
 - `researcher`: single-scope research worker (dispatched by plan-lead)
 - `designer`: design worker used by plan-lead when design is required
+- `linter`: planning-stage lint specialist for strict layered dependency rules
 - `plan-reviewer`: technical plan quality gate
 - `pm`: product gate (plan value + delivery/test supervision)
 - `fullstack-engineer`: unified executor (Copilot → Claude-native → Codex tertiary fallback)
@@ -69,14 +70,14 @@ Fallback order across roles is:
 3. Source pipeline infra and call `resume_pipeline()`.
 4. Run Definition of Done pre-flight (use provided criteria or infer from repo context).
 5. Load `plan-lead`; pass task + criteria + plugin/model config.
-6. Receive `plan_path`, `plan_hash`, `research_status`, `design_status`, `owner_per_task`.
+6. Receive `plan_path`, `plan_hash`, `research_status`, `design_status`, `owner_per_task`, `lint_contract_summary`.
 7. Initialize state (`init_pipeline_state`) if fresh and store hash/nonce.
 8. Start joint plan gate:
    - call `plan-reviewer` with `expected_plan_hash`
    - call `pm` for plan-value review
    - proceed only when both are pass/green
 9. Verify plan hash and dispatch execution via `fullstack-engineer` by dependency/parallel group.
-10. Call `verifier` with command set + completed tasks; collect command evidence.
+10. Call `verifier` with command set + completed tasks; require lint command evidence as mandatory.
 11. Call `pm` delivery supervision with execution evidence + verifier results.
 12. If verify/pm gate fails, enforce repair budget then run one repair cycle and re-check.
 13. Call `final-reviewer` with coalition reviewer set and plan context.
@@ -89,6 +90,7 @@ Fallback order across roles is:
 
 - Plan gate: `plan-reviewer=PASS` AND `pm_plan=PASS`
 - Delivery gate: `verifier=PASS` AND `pm_delivery=PASS` (or explicit manual override)
+- Lint is mandatory in delivery gate; missing lint evidence means delivery gate cannot pass.
 - Final gate: `final-reviewer` consolidated verdict
 
 Yellow (`🟡 ITERATE`) means one bounded repair cycle when budget allows.

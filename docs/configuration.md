@@ -142,6 +142,7 @@ Controls which model is used for each agent. Uses a two-tier Primary/Secondary r
 default: claude-sonnet-4.6
 team-lead: claude-opus-4.6
 plan-lead: claude-opus-4.6
+linter: gpt-5.4
 researcher: gpt-5.4
 plan-reviewer: gpt-5.4
 designer: claude-sonnet-4.6
@@ -160,6 +161,7 @@ user-perspective: claude-sonnet-4.6
 default: gpt-5.4
 team-lead: gpt-5.4
 plan-lead: gpt-5.4
+linter: claude-sonnet-4.6
 ...
 ```
 
@@ -214,6 +216,12 @@ Auto-inference sources (in order):
 - Existing test directories → runs test suites
 
 If auto-inference produces nothing, `plan-lead` prompts the three DoD questions interactively.
+
+Lint policy (mandatory):
+- verifier must include lint command evidence before delivery gate can pass
+- recommended layered architecture model: `Types -> Config -> Repo -> Service -> Runtime -> UI`
+- lower layers must not reverse-depend on upper layers
+- lint diagnostics should include: violated rule, why it exists, and concrete fix guidance
 
 ---
 

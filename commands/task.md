@@ -80,7 +80,7 @@ Routing preferences: <.claude/team.md or "use defaults">
 Plugin availability: codex=<step1> copilot=<step1>
 Executor: fullstack-engineer (Copilot → Claude-native → Codex tertiary fallback).
 Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
-Planning policy: `plan-lead` may dispatch `designer` for design-heavy tasks before execution
+Planning policy: `plan-lead` may dispatch `designer` and `linter` before execution
 Model config: <from .claude/team.md ## Model Config, or "no model overrides">
 ```
 
@@ -91,14 +91,14 @@ Wait for `team-lead` completion. Do not run independent implementation in this c
 Before return: if Step 2.5 had `temp=true`, run `rm -f "<path>"`.
 
 Return:
-- plan-lead planning summary (`research_status`, `design_status`)
+- plan-lead planning summary (`research_status`, `design_status`, `lint_contract_summary`)
 - fallback strategy + selected model (if Claude fallback)
 - plan path
 - plan gate result (`plan-reviewer` + `pm`)
 - PM delivery supervision result
 - modified files
 - failed/skipped tasks
-- verifier result + command evidence
+- verifier result + command evidence (lint evidence mandatory)
 - final review result + key findings
 - boundary violations (if any)
 - suggested follow-up actions

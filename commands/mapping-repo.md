@@ -115,12 +115,13 @@ Before returning the summary:
 
 Return:
 - Files produced (ARCHITECTURE.md, docs/* files, AGENTS.md)
-- Plan-lead summary (`research_status`, `design_status`)
+- Plan-lead summary (`research_status`, `design_status`, `lint_contract_summary`)
 - Fallback strategy and selected model (when Claude fallback is used)
 - Plan file path
 - Modified files grouped by executor
 - Failed or skipped tasks
 - Verification result and command evidence
+- Lint evidence status from verifier
 - PM delivery supervision result
 - Final review result and key findings
 - Suggested follow-up actions

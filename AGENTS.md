@@ -7,7 +7,8 @@ Agent definitions live in `agents/<name>.md`. For repo conventions, style rules,
 | Agent | Role | May Edit Files? | Source Path | Purpose |
 |-------|------|----------------|-------------|---------|
 | `team-lead` | Orchestration | No | `agents/team-lead.md` | Pipeline orchestrator; delegates to all other agents |
-| `plan-lead` | Planning | Plan/design files only | `agents/plan-lead.md` | Unified planning lead: orchestrates researcher/designer and writes plan |
+| `plan-lead` | Planning | Plan/design files only | `agents/plan-lead.md` | Unified planning lead: orchestrates researcher/designer/linter and writes plan |
+| `linter` | Planning | No | `agents/linter.md` | Defines strict layered-dependency lint contract and CI blocking policy |
 | `researcher` | Research | No | `agents/researcher.md` | Single-scope code/web research worker |
 | `plan-reviewer` | Planning | Plan files only | `agents/plan-reviewer.md` | Reviews and gates plan quality |
 | `designer` | Design | Plan/design files only | `agents/designer.md` | Design specialist dispatched by `plan-lead` when required |
@@ -29,3 +30,10 @@ CLI/Codex fallback: run `bash scripts/setup.sh --check`.
 
 Claude Code: run `/teamwork:setup` to install into the current repo (creates `.claude/team.md` if missing).  
 CLI/Codex fallback: run `bash scripts/setup.sh --repo`.
+
+## Completion Rule
+
+When work is completed:
+- Automatically bump version according to policy in `CLAUDE.md` / `docs/extending.md`.
+- Automatically commit the changes.
+- Automatically push to the current remote branch.

@@ -11,9 +11,10 @@ The `fullstack-engineer` executor uses backend priority: Copilot → Claude-nati
         │
         ▼
    team-lead (orchestrates only — never modifies files directly)
-        ├── plan-lead → orchestrates researcher + designer and writes plan directly
+        ├── plan-lead → orchestrates researcher + designer + linter and writes plan directly
         │    ├── researcher(s) → scoped parallel research workers
         │    └── designer      → design output when required
+        │    └── linter        → layered dependency lint contract + CI gate
         ├── plan-reviewer + pm (joint plan gate, both must pass)
         ├── fullstack-engineer (parallel where possible)
         │     auto-selects: Copilot → Claude-native → Codex
@@ -102,7 +103,7 @@ Then restart Codex.
 Setup now uses a lightweight default:
 - Does not preload runtime agents by default
 - Loads agents progressively by stage from the skill bundle/plugin assets:
-  - planning stage: `plan-lead` (dispatches `researcher`, `designer` when needed)
+  - planning stage: `plan-lead` (dispatches `researcher`, `designer`, `linter` when needed)
   - plan gate stage: `plan-reviewer` + `pm`
   - execution stage: `fullstack-engineer`, `verifier`, `pm`, `final-reviewer`, optional `git-monitor`
 
@@ -115,6 +116,10 @@ Delivery policy:
 - `pm` supervises whether task results and test evidence satisfy user-facing acceptance criteria
 - `verifier` remains the source of command-level test evidence
 - `final-reviewer` performs code review and aggregates specialty reviewer findings
+- lint is mandatory in verifier and CI: layered dependency violations block merge
+- canonical dependency layers: `Types -> Config -> Repo -> Service -> Runtime -> UI`
+- lower layers cannot reverse-depend on upper layers
+- lint errors must explain: why rule exists + correct fix direction (for agent self-repair)
 
 Verification policy:
 - verifier uses cache keyed by repo state + verification command set

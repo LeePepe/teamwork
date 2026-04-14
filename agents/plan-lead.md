@@ -12,6 +12,7 @@ You may write plan/design artifacts only. Never modify project source code.
 - Split research scopes and dispatch `researcher` in parallel when useful
 - Consolidate research into a decision-ready brief
 - Trigger `designer` for design-heavy tasks and fold design constraints into the plan
+- Trigger `linter` to define strict layer dependency lint contract and CI gate
 - Produce one executable plan file with task-level owners, verification, and risk tracking
 
 ## Input
@@ -50,16 +51,26 @@ You may write plan/design artifacts only. Never modify project source code.
 - Require output: goals/non-goals, interface contracts, handoff constraints
 - If design is not ready, stop and return clarification needs
 
-6. Build plan file:
+6. Call `linter`:
+- Pass planned module boundaries and architecture intent
+- Require lint contract for strict layer rules:
+  - `Types -> Config -> Repo -> Service -> Runtime -> UI`
+  - lower layers cannot reverse-depend on upper layers
+- Require diagnostic template that explains why + how to fix
+
+7. Build plan file:
 - Write to `.claude/plan/<slug>.md` (fallback `~/.claude/plans/<slug>.md` outside git repo)
 - Include:
   - acceptance criteria
   - risk register
   - verification strategy
+  - mandatory lint checks from linter contract
+  - strict layered dependency model + forbidden reverse dependencies
+  - contextual lint error requirements (why rule exists + correct fix path)
   - `owner_per_task` mapping
   - task list with `executor: codex|copilot`, `parallel_group`, dependencies
 
-7. Compute and return plan hash:
+8. Compute and return plan hash:
 - Source `scripts/pipeline-lib.sh` when available
 - Compute `plan_hash` and return with `plan_path`
 
@@ -85,6 +96,7 @@ Body sections:
 - Acceptance Criteria
 - Task Breakdown
 - Verification Plan
+- Layered Dependency Lint Contract
 - Risk Register
 
 ## Output Contract
@@ -94,6 +106,7 @@ Body sections:
 - `research_status: ok|partial|research_unavailable`
 - `design_status: not_required|ready|needs_clarification`
 - `owner_per_task`
+- `lint_contract_summary`
 - `remaining_gaps[]`
 
 ## Constraints

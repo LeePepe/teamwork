@@ -35,6 +35,7 @@ SKILL.md -> team-lead -> plan-lead -> (plan-reviewer + pm) -> fullstack-engineer
 `plan-lead` internally dispatches:
 - `researcher` (scoped research)
 - `designer` (only when design output is required)
+- `linter` (strict layer-dependency lint contract + CI gate requirements)
 
 `final-reviewer` internally dispatches specialty reviewers:
 - `security-reviewer`
@@ -49,6 +50,7 @@ SKILL.md -> team-lead -> plan-lead -> (plan-reviewer + pm) -> fullstack-engineer
 |-------|------|--------------------------|
 | `team-lead` | Orchestrates entire pipeline | No |
 | `plan-lead` | Unified planning owner (research + design coordination + plan output) | Plan/design files only |
+| `linter` | Defines strict architecture lint rules and diagnostic contract | No |
 | `researcher` | Scoped research worker | No |
 | `designer` | Design artifact specialist (dispatched by plan-lead) | Plan/design files only |
 | `plan-reviewer` | Technical plan gate | Plan files only |
@@ -62,7 +64,9 @@ SKILL.md -> team-lead -> plan-lead -> (plan-reviewer + pm) -> fullstack-engineer
 
 - `plan-reviewer` and `pm` must both pass for plan approval.
 - `verifier` evidence + `pm` delivery supervision gate execution readiness.
+- Lint check is mandatory in verifier and CI gate.
 - `final-reviewer` owns final consolidated verdict.
+- Layered dependency baseline: `Types -> Config -> Repo -> Service -> Runtime -> UI`; lower layers cannot reverse-depend on upper layers.
 - Any code-changing repair invalidates prior gate evidence.
 - Automatic repair budget is bounded (single cycle unless user overrides).
 
@@ -93,3 +97,10 @@ Managed by `scripts/pipeline-lib.sh`:
 - `tools` is a hard permission boundary.
 - Use Conventional Commits (`type: short imperative summary`).
 - After agent changes, run setup before validating installed copies.
+
+## Completion Rule
+
+When a requested change is complete and verification passes:
+- Bump version using the policy in `docs/extending.md` (`SKILL.md` + `.claude-plugin/plugin.json`).
+- Commit the changes with a Conventional Commit message.
+- Push to the current remote branch.

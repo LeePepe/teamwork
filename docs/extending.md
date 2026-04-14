@@ -225,3 +225,5 @@ After any modification to source files:
 - [ ] Update `AGENTS.md` inventory table if a new agent was added
 - [ ] Update `docs/agents.md` if agent behavior changed
 - [ ] Bump version in `SKILL.md` and `.claude-plugin/plugin.json` (MINOR for new agent, PATCH otherwise)
+- [ ] Commit with a Conventional Commit message after verification passes
+- [ ] Push the commit to the current remote branch

@@ -25,7 +25,7 @@ Runs a full pipeline for a task: plugin check → team config read → team-lead
 2. **Read team config** — reads `.claude/team.md` for executor routing, review mode, verification commands, and model config.
 3. **Ensure team-lead** — copies `team-lead.md` from the skill bundle to `.claude/agents/` if missing. Stops if team-lead cannot be found (run `/teamwork:setup` or `bash scripts/setup.sh --repo` to fix).
 4. **Delegate to team-lead** — spawns `team-lead` with task, routing preferences, plugin availability, verification preferences, planning policy, and model config.
-5. **Report** — returns plan-lead summary (`research_status`/`design_status`), plan gate result, PM delivery gate result, modified files, failed/skipped tasks, verifier result, final review coalition result, boundary violations, suggested follow-up actions, model config applied.
+5. **Report** — returns plan-lead summary (`research_status`/`design_status`/`lint_contract_summary`), plan gate result, PM delivery gate result, modified files, failed/skipped tasks, verifier result (with lint evidence), final review coalition result, boundary violations, suggested follow-up actions, model config applied.
 
 If the argument is empty, the command stops and asks for a task description.
 

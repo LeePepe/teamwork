@@ -19,7 +19,19 @@ Owns stage transitions, gate policy, repair budget, and final summary.
 Combines research orchestration and planning into one role:
 - dispatches `researcher`
 - dispatches `designer` when required
+- dispatches `linter` for strict architecture lint contracts
 - produces the plan directly
+
+### linter
+
+**Source**: `agents/linter.md`  
+**Role**: Architecture lint specialist
+
+Defines deterministic lint policy for strict layered dependency enforcement:
+- layer order: `Types -> Config -> Repo -> Service -> Runtime -> UI`
+- lower layers cannot reverse-depend on upper layers
+- lint diagnostics must explain why the rule exists and how to fix violations
+- violations are CI-blocking regardless of human/AI code authorship
 
 ## Planning and Governance Gates
 

@@ -42,6 +42,7 @@ Examples:
 default: claude-sonnet-4.6
 team-lead: claude-opus-4.6
 plan-lead: claude-opus-4.6
+linter: gpt-5.4
 researcher: gpt-5.4
 plan-reviewer: gpt-5.4
 designer: claude-sonnet-4.6
@@ -61,6 +62,7 @@ user-perspective: claude-sonnet-4.6
 default: gpt-5.4
 team-lead: gpt-5.4
 plan-lead: gpt-5.4
+linter: claude-sonnet-4.6
 researcher: claude-sonnet-4.6
 plan-reviewer: claude-opus-4.6
 designer: gpt-5.4

@@ -4,7 +4,7 @@
 
 ```
 team-lead
-  -> plan-lead (dispatches researcher/designer, outputs plan)
+  -> plan-lead (dispatches researcher/designer/linter, outputs plan)
   -> plan gate: plan-reviewer + pm (both must pass)
   -> fullstack-engineer (execution)
   -> verifier (test/command evidence)
@@ -22,6 +22,7 @@ Default flow template (`standard`):
 | Stage | Entering Roles |
 |-------|----------------|
 | Plan | `plan-lead` (internally: `researcher`, optional `designer`) |
+| Plan Lint Contract | `linter` (dispatched by `plan-lead`) |
 | Plan Gate | `plan-reviewer`, `pm` |
 | Execute | `fullstack-engineer` |
 | Verify | `verifier` |
@@ -36,6 +37,7 @@ Default flow template (`standard`):
 | Skill entry | Skill | `SKILL.md` | Activates teamwork and delegates to `team-lead` |
 | Team orchestrator | Agent | `agents/team-lead.md` | Stage orchestration and gate control |
 | Unified planning | Agent | `agents/plan-lead.md` | Research/design coordination + plan generation |
+| Planning lint specialist | Agent | `agents/linter.md` | Encodes strict layer dependency rules and lint diagnostics |
 | Technical plan gate | Agent | `agents/plan-reviewer.md` | Feasibility/dependency/risk review |
 | Product gate | Agent | `agents/pm.md` | Plan co-approval + delivery supervision |
 | Execution | Agent | `agents/fullstack-engineer.md` | Implements planned tasks |
@@ -49,6 +51,8 @@ Default flow template (`standard`):
 ## Integrity and Control
 
 - Plan hash checked before execution and gates.
+- Lint is mandatory in verification and CI merge gate.
+- Canonical layer model: `Types -> Config -> Repo -> Service -> Runtime -> UI` with no reverse dependencies.
 - Nonce required for state transitions.
 - Repair budget enforced to prevent endless loops.
 - Oscillation detection warns on loop patterns.
@@ -82,4 +86,3 @@ planning-team-skill/
 ├── docs/
 └── SKILL.md
 ```
-
