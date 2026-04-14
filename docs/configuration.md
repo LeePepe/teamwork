@@ -1,6 +1,6 @@
 # Configuration
 
-Per-repo configuration lives in `.claude/team.md`. This file is read by `team-lead` and `planner` at the start of every pipeline run. A template is provided at `templates/team.md` and is copied automatically on the first `--repo` install.
+Per-repo configuration lives in `.claude/team.md`. This file is read by `team-lead` and `plan-lead` at the start of every pipeline run. A template is provided at `templates/team.md` and is copied automatically on the first setup (`/teamwork:setup` or `bash scripts/setup.sh --repo`).
 
 ## team.md Format
 
@@ -37,7 +37,7 @@ default: gpt-5.4
 (list of specialty reviewer roles or empty)
 
 ## Notes
-(context for planner and team-lead about this repo)
+(context for plan-lead and team-lead about this repo)
 ```
 
 ---
@@ -51,7 +51,7 @@ Controls which executor (`codex` or `copilot`) handles tasks. Only two valid exe
 | `codex` | Rigorous or heavy tasks: complex algorithms, security-sensitive code, auth/authz, data migrations, strict correctness requirements, large-scale refactors, critical business logic |
 | `copilot` | All other tasks: UI changes, simple features, scripts, config, exploratory code, docs, straightforward bug fixes |
 
-Routing is determined by **task weight and rigor**, not file type. The default is for `planner` to annotate each task with the appropriate executor based on task characteristics.
+Routing is determined by **task weight and rigor**, not file type. The default is for `plan-lead` to annotate each task with the appropriate executor based on task characteristics.
 
 ### Per-Repo Overrides
 
@@ -67,7 +67,7 @@ Specify file-glob-based routing in `## Executor Routing`:
 - *.py, *.sh          → copilot
 ```
 
-When overrides are specified, `planner` uses them when annotating tasks. Overrides take precedence over the default task-weight routing.
+When overrides are specified, `plan-lead` uses them when annotating tasks. Overrides take precedence over the default task-weight routing.
 
 ### Plugin Availability Overrides
 
@@ -75,10 +75,9 @@ At runtime, `team-lead` adjusts routing based on actual plugin availability:
 
 | Availability | Behavior |
 |-------------|----------|
-| Both available | Follow plan executor annotations |
-| `codex=true`, `copilot=false` | Force all tasks to `codex` |
-| `codex=false`, `copilot=true` | Force all tasks to `copilot` |
-| Both unavailable | `fullstack-engineer` uses Claude-native; `team-lead` selects model by task complexity |
+| `copilot=true` | Prioritize Copilot-backed role execution |
+| `copilot=false` | Use Claude-native role execution |
+| Codex available | Tertiary fallback when prior options are unavailable or explicitly disallowed |
 
 ---
 
@@ -142,9 +141,8 @@ Controls which model is used for each agent. Uses a two-tier Primary/Secondary r
 ### Primary
 default: claude-sonnet-4.6
 team-lead: claude-opus-4.6
-research-lead: claude-opus-4.6
+plan-lead: claude-opus-4.6
 researcher: gpt-5.4
-planner: claude-opus-4.6
 plan-reviewer: gpt-5.4
 designer: claude-sonnet-4.6
 fullstack-engineer: claude-sonnet-4.6
@@ -161,7 +159,7 @@ user-perspective: claude-sonnet-4.6
 ### Secondary
 default: gpt-5.4
 team-lead: gpt-5.4
-research-lead: gpt-5.4
+plan-lead: gpt-5.4
 ...
 ```
 
@@ -185,7 +183,7 @@ Agent model assignments are organized into four autonomy tiers defined in `templ
 | 2–3 | Scoped autonomy / task execution | `claude-sonnet-4.6` | `gpt-5.3-codex` |
 | 4 | Mechanical | `claude-haiku-4.5` | `gpt-5.4-mini` |
 
-Tier 1 agents (orchestrators/planners): `team-lead`, `research-lead`, `planner`, `plan-reviewer`, `final-reviewer`  
+Tier 1 agents (orchestrators/planners): `team-lead`, `plan-lead`, `plan-reviewer`, `final-reviewer`  
 Tier 2 agents (scoped workers): `fullstack-engineer`, `designer`, `researcher`, `pm`, `security-reviewer`, `a11y-reviewer`, `perf-reviewer`, `user-perspective`  
 Tier 4 agents (mechanical): `devil-advocate`, `verifier`, `git-monitor`
 
@@ -215,7 +213,7 @@ Auto-inference sources (in order):
 - `CLAUDE.md` → extracts verification commands from `## Commands`
 - Existing test directories → runs test suites
 
-If auto-inference produces nothing, `planner` prompts the three DoD questions interactively.
+If auto-inference produces nothing, `plan-lead` prompts the three DoD questions interactively.
 
 ---
 
@@ -254,7 +252,7 @@ When listed, these agents are invoked by `team-lead` at the appropriate pipeline
 
 ## Notes
 
-Free-form context for `planner` and `team-lead` about this repo.
+Free-form context for `plan-lead` and `team-lead` about this repo.
 
 ```markdown
 ## Notes
@@ -273,7 +271,7 @@ Place agent files in `.claude/agents/` to override the global skill bundle. Proj
 
 Overrideable agents:
 - `.claude/agents/researcher.md`
-- `.claude/agents/research-lead.md`
+- `.claude/agents/plan-lead.md`
 - `.claude/agents/designer.md`
 - `.claude/agents/fullstack-engineer.md`
 - `.claude/agents/verifier.md`

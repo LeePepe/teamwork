@@ -1,6 +1,6 @@
 ---
 name: fullstack-engineer
-description: Unified executor agent. Delegates to the best available plugin (Codex → Copilot) or implements directly via Claude-native fallback. Handles all coding tasks regardless of complexity.
+description: Unified executor agent. Uses Copilot-first execution, then Claude-native, then Codex as tertiary fallback. Handles all coding tasks regardless of complexity.
 tools: Bash, Read, Write, Glob, Grep
 ---
 
@@ -19,7 +19,7 @@ You execute coding tasks using the best available backend. You never orchestrate
 
 1. Read the plan file and locate the assigned task entry to confirm goal, file scope, and verification criteria.
 2. Read target files and identify exact edit scope.
-3. Determine execution backend — try plugins in order, fall back to direct implementation:
+3. Determine execution backend using role priority:
 
 ### Backend Selection
 
@@ -28,14 +28,7 @@ CODEX_SCRIPT=$(find ~/.claude/plugins -name "codex-companion.mjs" 2>/dev/null | 
 COPILOT_SCRIPT=$(find ~/.claude/plugins -name "copilot-companion.mjs" 2>/dev/null | head -1)
 ```
 
-- **If Codex plugin available** → delegate via Codex:
-
-```bash
-node "$CODEX_SCRIPT" task --effort high "<goal + files + constraints + verification>"
-node "$CODEX_SCRIPT" result
-```
-
-- **Else if Copilot plugin available** → delegate via Copilot:
+- **If Copilot plugin available** → delegate via Copilot:
 
 ```bash
 node "$COPILOT_SCRIPT" task --effort high "<goal + files + constraints + verification>"
@@ -47,13 +40,20 @@ node "$COPILOT_SCRIPT" result
   - Make minimal, requirement-aligned changes using Write tool
   - Follow repository conventions and existing patterns
 
+- **If Claude-native path is explicitly disallowed and Codex plugin is available** → delegate via Codex:
+
+```bash
+node "$CODEX_SCRIPT" task --effort high "<goal + files + constraints + verification>"
+node "$CODEX_SCRIPT" result
+```
+
 4. After changes (regardless of backend):
    - Re-read changed files to verify correctness
    - Run verification commands when specified
    - Confirm files compile/lint if applicable
 
 5. Report:
-   - Backend used (`codex|copilot|claude-native`)
+   - Backend used (`copilot|claude-native|codex`)
    - Files changed
    - Verification commands run and outcomes
    - Unresolved risks or TODOs

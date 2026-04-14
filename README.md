@@ -1,8 +1,8 @@
-# Teamwork Skill for Claude Code
+# Teamwork Skill for Claude Code and Codex
 
-A Claude Code skill that orchestrates a full **research → plan → review → design (when needed) → execute → verify → final-review** pipeline using a team of agents.
+A Claude Code skill that orchestrates a full **plan-led planning → dual plan gate → execute → verify → PM delivery gate → final-review coalition** pipeline.
 
-The `fullstack-engineer` executor auto-selects the best available backend (Codex → Copilot → Claude-native).
+The `fullstack-engineer` executor uses backend priority: Copilot → Claude-native → Codex (tertiary fallback).
 
 ## How It Works
 
@@ -11,21 +11,20 @@ The `fullstack-engineer` executor auto-selects the best available backend (Codex
         │
         ▼
    team-lead (orchestrates only — never modifies files directly)
-        ├── research-lead → splits scopes, routes backends, dispatches/merges researchers
-        │    └── researcher(s) → run in parallel when scopes are independent
-        │                         backend: copilot|codex|claude per scope policy
-        │    └── planner (probe mode, optional) → checks research sufficiency; triggers focused supplemental research
-        ├── planner      → creates .claude/plan/<slug>.md
-        │                   each task annotated: executor: codex | copilot
-        ├── plan-reviewer
-        │                → reviews or adversarially challenges the plan (Codex or Claude fallback)
-        ├── designer (for design-heavy tasks only)
-        │                → creates implementation-ready design plan before coding
-        ├── executors (parallel where possible)
+        ├── plan-lead → orchestrates researcher + designer and writes plan directly
+        │    ├── researcher(s) → scoped parallel research workers
+        │    └── designer      → design output when required
+        ├── plan-reviewer + pm (joint plan gate, both must pass)
         ├── fullstack-engineer (parallel where possible)
-        │     auto-selects: Codex → Copilot → Claude-native
-        ├── verifier       → runs verification commands before completion
-        ├── final-reviewer → runs final review (Codex when available, Claude fallback otherwise)
+        │     auto-selects: Copilot → Claude-native → Codex
+        ├── verifier       → runs verification commands
+        ├── pm             → supervises task outcomes and test evidence
+        ├── final-reviewer → runs code review + leads specialty review coalition
+        │    ├── security-reviewer
+        │    ├── devil-advocate
+        │    ├── a11y-reviewer
+        │    ├── perf-reviewer
+        │    └── user-perspective
         └── git-monitor    → (optional) commit, PR creation, CI/comment monitoring
 ```
 
@@ -57,10 +56,10 @@ Run setup only for the plugins you installed:
 ```
 
 Fallback policy:
-- Copilot unavailable + Codex available: all plugin-backed work falls back to Codex
-- Codex unavailable + Copilot available: research/execution use Copilot, review gates use Claude fallback when needed
-- Codex unavailable + Copilot unavailable: full Claude-native fallback via `fullstack-engineer`
-- Multiple research scopes: `research-lead` decides split and runs `researcher` workers in parallel
+- Copilot available: prioritize Copilot-backed role execution
+- Copilot unavailable: use Claude-native role execution
+- Codex is tertiary fallback (used when prior options are unavailable or explicitly disallowed)
+- Plan phase ownership: `plan-lead` owns research consolidation, design handoff, and plan generation
 
 ## Install This Skill
 
@@ -75,6 +74,13 @@ Then run setup (`--repo` by default, or pass `--global` for global install):
 ```
 /teamwork:setup
 /teamwork:setup --global
+```
+
+Equivalent CLI fallback (including Codex sessions without slash commands):
+
+```bash
+bash scripts/setup.sh --repo
+bash scripts/setup.sh --global
 ```
 
 ### Codex support
@@ -94,32 +100,33 @@ ln -sfn ~/.codex/teamwork/skills/teamwork ~/.agents/skills/teamwork
 Then restart Codex.
 
 Setup now uses a lightweight default:
-- Preloads only `team-lead` into `.claude/agents`
-- Stores all other teamwork agents in `.claude/skills/teamwork/agents` and loads them progressively by stage:
-  - research stage: `research-lead` (which dispatches `researcher`)
-  - plan stage: `planner`, `plan-reviewer`
-  - design stage (conditional): `designer`
-  - execution stage: `fullstack-engineer`, `verifier`, `final-reviewer`, optional `git-monitor`)
+- Does not preload runtime agents by default
+- Loads agents progressively by stage from the skill bundle/plugin assets:
+  - planning stage: `plan-lead` (dispatches `researcher`, `designer` when needed)
+  - plan gate stage: `plan-reviewer` + `pm`
+  - execution stage: `fullstack-engineer`, `verifier`, `pm`, `final-reviewer`, optional `git-monitor`
 
-Research policy:
-- code read/search tasks are routed through `research-lead` and executed by `researcher`
-- researcher outputs scoped navigation maps (`areas`, `entry points`, key paths) and must split oversized areas to keep context small
-- research-lead may call planner in `mode: probe` to detect missing information, then dispatch targeted supplementary researcher scopes
-- when both plugins are available:
-  - code investigation scopes default to Codex (stability/accuracy first)
-  - web/external research scopes default to Copilot Claude path (open-ended synthesis first)
-  - mixed scopes should be split into independent code/web scopes before dispatch
+Planning policy:
+- `plan-lead` consolidates scoped research and directly produces plan
+- `designer` is dispatched by `plan-lead` when design output is required
+- plan gate is dual-key: `plan-reviewer` (technical) + `pm` (product)
 
-Design policy:
-- when the task explicitly requires design output (UX flow, API/contract design, architecture design, etc.), `team-lead` dispatches `designer` before execution
-- `designer` produces a design plan and executor handoff constraints
-- executors implement against the approved plan + design handoff
+Delivery policy:
+- `pm` supervises whether task results and test evidence satisfy user-facing acceptance criteria
+- `verifier` remains the source of command-level test evidence
+- `final-reviewer` performs code review and aggregates specialty reviewer findings
 
 Verification policy:
 - verifier uses cache keyed by repo state + verification command set
 - exact cache hit may be reused; cache miss runs commands and writes result back
 
 If you prefer legacy behavior (preload all runtime agents), use:
+
+```
+/teamwork:setup --full-agents
+```
+
+or:
 
 ```bash
 bash scripts/setup.sh --repo --full-agents
@@ -131,13 +138,10 @@ Check status at any time:
 /teamwork:setup --check
 ```
 
-### Manual install (without the plugin system)
+or:
 
 ```bash
-git clone https://github.com/LeePepe/teamwork.git
-cd teamwork
-bash scripts/setup.sh            # defaults to --repo (project-local)
-bash scripts/setup.sh --global   # install globally to ~/.claude
+bash scripts/setup.sh --check
 ```
 
 ## Usage
@@ -164,15 +168,8 @@ Run `/teamwork:mapping-repo` to map and document this repository's architecture.
 If you see direct `Bash/Write/Edit` implementation in the main session, usually one of these happened:
 
 1. The task was not started with `/teamwork:task ...` (or an explicit "use teamwork" request), so the teamwork skill never activated.
-2. `team-lead` could not be loaded; run:
-   ```bash
-   bash scripts/setup.sh --check
-   ```
-   and ensure `.claude/agents/team-lead.md` and `.claude/skills/teamwork/agents/team-lead.md` exist.
-3. The command was run before setup in that repo; run:
-   ```bash
-   bash scripts/setup.sh --repo
-   ```
+2. `team-lead` could not be loaded; run `/teamwork:setup --check` (or `bash scripts/setup.sh --check`) and ensure `team-lead.md` exists in plugin/repo assets.
+3. The command was run before setup in that repo; run `/teamwork:setup` (or `bash scripts/setup.sh --repo`).
 
 ### `529 overloaded_error` on simple prompts (for example `hi`)
 
@@ -180,14 +177,8 @@ This is usually an upstream model capacity error, but large startup context can 
 
 If this appears right after installing this skill:
 
-1. Re-run setup so the latest (lighter) agent prompts are installed:
-   ```bash
-   bash scripts/setup.sh --repo
-   ```
-2. Verify status:
-   ```bash
-   bash scripts/setup.sh --check
-   ```
+1. Re-run setup: `/teamwork:setup` (or `bash scripts/setup.sh --repo`)
+2. Verify status: `/teamwork:setup --check` (or `bash scripts/setup.sh --check`)
 3. Check for recursive teamwork plugin cache growth:
    ```bash
    find ~/.claude/plugins/cache/teamwork -type d -path "*/teamwork/*/teamwork/*" | head
@@ -208,7 +199,7 @@ If this appears right after installing this skill:
 
 ### Routing preferences
 
-Run `bash scripts/setup.sh --repo` inside your repo — it copies a `team.md` template to `.claude/team.md` automatically. Then edit it to set routing rules, review mode, and verification commands:
+Run `/teamwork:setup` inside your repo (or `bash scripts/setup.sh --repo`) — it creates `.claude/team.md` from the template automatically. Then edit it to set routing rules, review mode, and verification commands:
 
 ```markdown
 ## Routing
@@ -228,11 +219,12 @@ default: adversarial-review
 Add repo-aware agent definitions to `.claude/agents/` in your repo:
 
 - `.claude/agents/fullstack-engineer.md` — unified executor, knows your project conventions and test setup
-- `.claude/agents/research-lead.md` — splits research scopes and consolidates researcher outputs
+- `.claude/agents/plan-lead.md` — unified planning owner (research + design + plan)
 - `.claude/agents/researcher.md` — gathers repo/external context and writes planning briefs
 - `.claude/agents/designer.md` — produces design plan artifacts for design-heavy requests
+- `.claude/agents/pm.md` — co-approves plan and supervises task/test delivery
 - `.claude/agents/verifier.md` — enforces repo-specific verification strategy and output style
-- `.claude/agents/final-reviewer.md` — runs final review policy (Codex when available, Claude fallback otherwise)
+- `.claude/agents/final-reviewer.md` — leads coalition review + final code review
 
 Project-level agents automatically override global ones.
 

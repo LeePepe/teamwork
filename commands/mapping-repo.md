@@ -60,7 +60,7 @@ fi
 echo "team_lead=ok path=$TEAM_LEAD_PATH temp=$TEAM_LEAD_TEMP"
 ```
 
-If this step prints `team_lead=missing`, stop and tell the user to run `/teamwork:setup` first.
+If this step prints `team_lead=missing`, stop and tell the user to run `/teamwork:setup` (or `bash scripts/setup.sh --repo`) first.
 
 ## Mandatory delegation gate — HARD STOP
 
@@ -75,7 +75,7 @@ From this point onward, this command handler must only orchestrate and summarize
 ## Step 3 — Delegate to team-lead
 
 From the output of Step 1, read the actual `codex=true/false` and `copilot=true/false` values.
-Executor: `fullstack-engineer` auto-selects best backend (Codex → Copilot → Claude-native).
+Executor: `fullstack-engineer` auto-selects backend with priority (Copilot → Claude-native → Codex).
 
 Build the task description based on `${ARGUMENTS}`:
 - Empty (no argument): full mapping — produce ARCHITECTURE.md, all docs/ topic files, and simplified AGENTS.md TOC
@@ -95,12 +95,12 @@ Task: Map and document this repository's architecture. Produce the following doc
      - docs/extending.md — how to add new agents, commands, executors
   3. AGENTS.md — simplified to agent inventory table (TOC format only):
      Columns: Agent | Role | May Edit Files? | Source Path | Purpose
-     Plus a Validation subsection: bash scripts/setup.sh --check and --repo commands
+     Plus a Validation subsection: /teamwork:setup --check and /teamwork:setup commands (and `bash scripts/setup.sh --check|--repo` fallback)
      Remove prose sections already covered in CLAUDE.md (style, commit rules, security, versioning, testing, context hygiene)
   Mode: <full mapping | update existing docs>
 Routing preferences: <contents of .claude/team.md, or "use defaults">
 Plugin availability: codex=<actual value from Step 1> copilot=<actual value from Step 1>
-Executor: fullstack-engineer (Codex → Copilot → Claude-native fallback).
+Executor: fullstack-engineer (Copilot → Claude-native → Codex tertiary fallback).
 Verification preferences: use plan task verification
 ```
 
@@ -115,11 +115,12 @@ Before returning the summary:
 
 Return:
 - Files produced (ARCHITECTURE.md, docs/* files, AGENTS.md)
-- Research split strategy and consolidated result summary (or `research_unavailable`)
+- Plan-lead summary (`research_status`, `design_status`)
 - Fallback strategy and selected model (when Claude fallback is used)
 - Plan file path
 - Modified files grouped by executor
 - Failed or skipped tasks
 - Verification result and command evidence
+- PM delivery supervision result
 - Final review result and key findings
 - Suggested follow-up actions

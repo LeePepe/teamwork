@@ -1,18 +1,15 @@
 name: pre-release
-description: Pre-release flow with security and performance review gates
+description: Pre-release flow with stricter PM and final coalition gates
 max_pipeline_steps: 20
 max_review_loops: 3
 red_behavior: halt
 nodes:
-  - id: research
-    type: discussion
-    label: "Research"
   - id: plan
     type: build
-    label: "Plan"
+    label: "Plan (Plan-Lead)"
   - id: plan-review
     type: review
-    label: "Plan Review"
+    label: "Plan Gate (Tech+PM)"
     max_cycles: 3
   - id: execute
     type: execute
@@ -20,38 +17,43 @@ nodes:
   - id: verify
     type: gate
     label: "Verify"
-  - id: security-review
+  - id: pm-review
     type: review
-    label: "Security Review"
-  - id: perf-review
-    type: review
-    label: "Perf Review"
+    label: "PM Delivery Gate"
+    max_cycles: 2
   - id: final-review
     type: review
-    label: "Final Review"
+    label: "Final Review Coalition"
+    max_cycles: 2
   - id: ship
     type: gate
     label: "Ship"
 edges:
-  - from: research
-    to: plan
   - from: plan
     to: plan-review
   - from: plan-review
     to: execute
+    condition: "green"
+  - from: plan-review
+    to: plan
+    condition: "yellow"
+    max_cycles: 2
   - from: execute
     to: verify
   - from: verify
-    to: security-review
+    to: pm-review
     condition: "green"
   - from: verify
     to: execute
     condition: "yellow"
     max_cycles: 1
-  - from: security-review
-    to: perf-review
-  - from: perf-review
+  - from: pm-review
     to: final-review
+    condition: "green"
+  - from: pm-review
+    to: execute
+    condition: "yellow"
+    max_cycles: 1
   - from: final-review
     to: ship
     condition: "green"

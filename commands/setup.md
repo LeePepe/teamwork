@@ -4,7 +4,7 @@ argument-hint: "[--global|--repo|--check|--full-agents]"
 allowed-tools: Bash
 ---
 
-Validate the argument before running the setup script.
+Validate the argument before proceeding.
 
 Accepted values for `${ARGUMENTS}` are:
 - empty (default `--repo`)

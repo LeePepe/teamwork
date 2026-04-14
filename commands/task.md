@@ -1,5 +1,5 @@
 ---
-description: Run a task through research -> plan -> review -> design(optional) -> execute -> verify -> final-review. Pass your task as the argument.
+description: Run a task through plan-led planning -> dual plan gate -> execute -> verify -> PM delivery gate -> final-review coalition.
 argument-hint: "<task description>"
 allowed-tools: Bash, Agent
 ---
@@ -58,7 +58,7 @@ fi
 echo "team_lead=ok path=$TEAM_LEAD_PATH temp=$TEAM_LEAD_TEMP"
 ```
 
-If `team_lead=missing`, stop and ask user to run `/teamwork:setup`.
+If `team_lead=missing`, stop and ask user to run `/teamwork:setup` (or `bash scripts/setup.sh --repo`).
 
 ## Delegation Gate (Mandatory)
 
@@ -70,7 +70,7 @@ From this point, only orchestrate + summarize.
 
 ## Step 3 — Delegate to `team-lead`
 
-Executor: `fullstack-engineer` auto-selects best backend (Codex → Copilot → Claude-native).
+Executor: `fullstack-engineer` auto-selects backend with priority (Copilot → Claude-native → Codex).
 
 Spawn `team-lead` with:
 
@@ -78,9 +78,9 @@ Spawn `team-lead` with:
 Task: ${ARGUMENTS}
 Routing preferences: <.claude/team.md or "use defaults">
 Plugin availability: codex=<step1> copilot=<step1>
-Executor: fullstack-engineer (Codex → Copilot → Claude-native fallback).
+Executor: fullstack-engineer (Copilot → Claude-native → Codex tertiary fallback).
 Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
-Design-first policy: for design-heavy tasks call `designer` first, output design plan, then execute
+Planning policy: `plan-lead` may dispatch `designer` for design-heavy tasks before execution
 Model config: <from .claude/team.md ## Model Config, or "no model overrides">
 ```
 
@@ -91,10 +91,11 @@ Wait for `team-lead` completion. Do not run independent implementation in this c
 Before return: if Step 2.5 had `temp=true`, run `rm -f "<path>"`.
 
 Return:
-- research split strategy + consolidated summary (or `research_unavailable`)
+- plan-lead planning summary (`research_status`, `design_status`)
 - fallback strategy + selected model (if Claude fallback)
 - plan path
-- design-stage result and design plan path (if used)
+- plan gate result (`plan-reviewer` + `pm`)
+- PM delivery supervision result
 - modified files
 - failed/skipped tasks
 - verifier result + command evidence

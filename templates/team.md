@@ -1,7 +1,7 @@
 # Team Config
 
 > Copy this file to `.claude/team.md` in your repo to customize teamwork routing.
-> The team-lead and planner read this file before starting.
+> The team-lead and plan-lead read this file before starting.
 
 ## Executor Routing
 
@@ -41,9 +41,8 @@ Examples:
 
 default: claude-sonnet-4.6
 team-lead: claude-opus-4.6
-research-lead: claude-opus-4.6
+plan-lead: claude-opus-4.6
 researcher: gpt-5.4
-planner: claude-opus-4.6
 plan-reviewer: gpt-5.4
 designer: claude-sonnet-4.6
 fullstack-engineer: claude-sonnet-4.6
@@ -61,9 +60,8 @@ user-perspective: claude-sonnet-4.6
 
 default: gpt-5.4
 team-lead: gpt-5.4
-research-lead: gpt-5.4
+plan-lead: gpt-5.4
 researcher: claude-sonnet-4.6
-planner: gpt-5.4
 plan-reviewer: claude-opus-4.6
 designer: gpt-5.4
 fullstack-engineer: gpt-5.4
@@ -107,4 +105,4 @@ user-perspective: gpt-5.4
 
 ## Notes
 
-<!-- Context for the planner and team-lead about this repo -->
+<!-- Context for the plan-lead and team-lead about this repo -->

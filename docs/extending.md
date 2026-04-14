@@ -26,18 +26,7 @@ The `tools:` field is a **hard constraint** — only list tools the agent is act
 | Reviewer/Gate | `Bash, Read, Glob, Grep` |
 | Planner | `Read, Write, Glob, Grep, Bash, Agent` |
 
-### 2. Add to setup.sh
-
-Edit `scripts/setup.sh` and add the agent name to the appropriate array:
-
-```bash
-BOOTSTRAP_AGENTS=(team-lead)
-RUNTIME_AGENTS=(research-lead researcher planner plan-reviewer designer fullstack-engineer verifier final-reviewer git-monitor pm security-reviewer devil-advocate a11y-reviewer perf-reviewer user-perspective <your-new-agent>)
-```
-
-Use `BOOTSTRAP_AGENTS` only for the orchestrator (currently only `team-lead`). All other agents belong in `RUNTIME_AGENTS`.
-
-### 3. Register in AGENTS.md
+### 2. Register in AGENTS.md
 
 Add a row to the agent inventory table in `AGENTS.md`:
 
@@ -45,11 +34,11 @@ Add a row to the agent inventory table in `AGENTS.md`:
 | `<name>` | <Role> | <Yes/No/Plan files only> | `agents/<name>.md` | <Purpose> |
 ```
 
-### 4. Register in SKILL.md (if needed)
+### 3. Register in SKILL.md (if needed)
 
 If the agent appears in pipeline documentation, add it to the `## Shipped Agents` list in `SKILL.md`.
 
-### 5. Assign to a Model Tier
+### 4. Assign to a Model Tier
 
 Edit `templates/model-tiers.md` and add the agent to the `## Agent Assignments` table:
 
@@ -59,17 +48,7 @@ Edit `templates/model-tiers.md` and add the agent to the `## Agent Assignments` 
 
 Then update `templates/team.md` `## Model Config` sections with a `<name>: <model-id>` entry in both `### Primary` and `### Secondary`.
 
-### 6. Sync Installed Copies
-
-After editing source files:
-
-```bash
-bash scripts/setup.sh --repo
-```
-
-This copies `agents/<name>.md` to `.claude/skills/teamwork/agents/<name>.md` (lazy-load source) and `.claude/agents/<name>.md` if `--full-agents` is used.
-
-### 7. Wire into team-lead (if needed)
+### 5. Wire into team-lead (if needed)
 
 If the agent participates in the pipeline, add it to `agents/team-lead.md`:
 - `## Team` section: agent name and brief role description
@@ -165,7 +144,8 @@ echo "codex=$CODEX_OK copilot=$COPILOT_OK new=$NEW_OK"
 Add the new plugin to `## Routing Policy` → execution fallback table:
 
 ```
-- codex=true copilot=true new=true → follow plan executor annotations
+- copilot=true new=true → keep Copilot as default, then apply project fallback rules
+- copilot=false new=true → evaluate where new backend sits vs Claude/Codex fallback
 - ...
 ```
 
@@ -173,7 +153,7 @@ Add the new plugin to `## Routing Policy` → execution fallback table:
 
 If the new backend needs its own `executor:` annotation value in plan tasks, add it to:
 - The `## Plan File Format` section in `CLAUDE.md`
-- The `planner.md` annotation guidance
+- The `plan-lead.md` annotation guidance
 - The `team-lead.md` routing policy
 
 Currently only two valid executor values are `codex` and `copilot`. Adding a third value requires updates in all places that parse `executor:` fields.
@@ -217,14 +197,6 @@ Add the template name to `## Flow Engine` → `### Flow Template Selection` → 
 
 Add a row to the `## Flow Templates` → `### Available Templates` table.
 
-### 5. Install
-
-```bash
-bash scripts/setup.sh --repo
-```
-
-This copies `templates/flow-<name>.yaml` to `.claude/skills/teamwork/templates/`.
-
 ---
 
 ## Versioning Policy
@@ -248,9 +220,7 @@ Version format: `MAJOR.MINOR.PATCH`
 
 After any modification to source files:
 
-- [ ] `bash -n scripts/setup.sh` — syntax check the setup script
-- [ ] `bash scripts/setup.sh --repo` — sync installed copies
-- [ ] `bash scripts/setup.sh --check` — verify installation status
+- [ ] `/teamwork:setup --check` (or `bash scripts/setup.sh --check`) — verify plugin and marketplace status
 - [ ] `bash test/test-pipeline.sh` — run pipeline-lib.sh unit tests (if pipeline-lib.sh was modified)
 - [ ] Update `AGENTS.md` inventory table if a new agent was added
 - [ ] Update `docs/agents.md` if agent behavior changed

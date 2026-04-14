@@ -7,16 +7,15 @@ Agent definitions live in `agents/<name>.md`. For repo conventions, style rules,
 | Agent | Role | May Edit Files? | Source Path | Purpose |
 |-------|------|----------------|-------------|---------|
 | `team-lead` | Orchestration | No | `agents/team-lead.md` | Pipeline orchestrator; delegates to all other agents |
-| `research-lead` | Research | No | `agents/research-lead.md` | Splits scopes, routes backends, dispatches/merges researchers |
+| `plan-lead` | Planning | Plan/design files only | `agents/plan-lead.md` | Unified planning lead: orchestrates researcher/designer and writes plan |
 | `researcher` | Research | No | `agents/researcher.md` | Single-scope code/web research worker |
-| `planner` | Planning | Plan files only | `agents/planner.md` | Creates structured plan files from research briefs |
 | `plan-reviewer` | Planning | Plan files only | `agents/plan-reviewer.md` | Reviews and gates plan quality |
-| `designer` | Design | Plan/design files only | `agents/designer.md` | Produces design plans for design-heavy tasks before execution |
+| `designer` | Design | Plan/design files only | `agents/designer.md` | Design specialist dispatched by `plan-lead` when required |
 | `fullstack-engineer` | Execution | Yes | `agents/fullstack-engineer.md` | Unified executor — Codex → Copilot → Claude-native fallback |
 | `verifier` | Quality | No | `agents/verifier.md` | Runs post-execution verification commands |
-| `final-reviewer` | Quality | No | `agents/final-reviewer.md` | Final code review gate |
+| `final-reviewer` | Quality | No | `agents/final-reviewer.md` | Leads specialty review coalition and performs final code review |
 | `git-monitor` | Delivery | No | `agents/git-monitor.md` | Stages commits, creates PRs, monitors CI |
-| `pm` | Advisory | No | `agents/pm.md` | Product manager perspective; validates user value and scope |
+| `pm` | Quality | No | `agents/pm.md` | Co-approves plan with plan-reviewer; supervises task outcomes and tests |
 | `security-reviewer` | Quality | No | `agents/security-reviewer.md` | Security-focused code review; identifies vulnerabilities |
 | `devil-advocate` | Advisory | No | `agents/devil-advocate.md` | Adversarial challenger; stress-tests assumptions |
 | `a11y-reviewer` | Quality | No | `agents/a11y-reviewer.md` | Accessibility review; WCAG compliance checks |
@@ -25,5 +24,8 @@ Agent definitions live in `agents/<name>.md`. For repo conventions, style rules,
 
 ## Validation
 
-Run `bash scripts/setup.sh --check` to verify agent installation status.  
-Run `bash scripts/setup.sh --repo` to install/sync agents to `.claude/agents/`.
+Claude Code: run `/teamwork:setup --check` to verify plugin and marketplace status.  
+CLI/Codex fallback: run `bash scripts/setup.sh --check`.
+
+Claude Code: run `/teamwork:setup` to install into the current repo (creates `.claude/team.md` if missing).  
+CLI/Codex fallback: run `bash scripts/setup.sh --repo`.

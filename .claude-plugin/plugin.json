@@ -1,6 +1,6 @@
 {
   "name": "teamwork",
-  "description": "Research \u2192 plan \u2192 review \u2192 design (when needed) \u2192 execute \u2192 verify \u2192 final-review pipeline with team-lead, designer, and executor/review agents.",
+  "description": "Use for explicit teamwork orchestration requests (/teamwork:task, /teamwork:mapping-repo, or \"use teamwork\"). Delegates to team-lead for plan-led execution with gated review and verification.",
   "version": "0.12.4",
   "author": {
     "name": "LeePepe"

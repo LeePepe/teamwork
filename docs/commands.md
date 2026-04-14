@@ -23,9 +23,9 @@ Runs a full pipeline for a task: plugin check → team config read → team-lead
 
 1. **Plugin check** — detects `codex-companion.mjs` and `copilot-companion.mjs` in `~/.claude/plugins/`. Does not stop when both are absent; `team-lead` uses Claude-native fallback.
 2. **Read team config** — reads `.claude/team.md` for executor routing, review mode, verification commands, and model config.
-3. **Ensure team-lead** — copies `team-lead.md` from the skill bundle to `.claude/agents/` if missing. Stops if team-lead cannot be found (run `/teamwork:setup` to fix).
-4. **Delegate to team-lead** — spawns `team-lead` with task, routing preferences, plugin availability, verification preferences, design-first policy, and model config.
-5. **Report** — returns research summary, plan path, design stage result, modified files, failed/skipped tasks, verifier result, final review result, boundary violations, suggested follow-up actions, model config applied.
+3. **Ensure team-lead** — copies `team-lead.md` from the skill bundle to `.claude/agents/` if missing. Stops if team-lead cannot be found (run `/teamwork:setup` or `bash scripts/setup.sh --repo` to fix).
+4. **Delegate to team-lead** — spawns `team-lead` with task, routing preferences, plugin availability, verification preferences, planning policy, and model config.
+5. **Report** — returns plan-lead summary (`research_status`/`design_status`), plan gate result, PM delivery gate result, modified files, failed/skipped tasks, verifier result, final review coalition result, boundary violations, suggested follow-up actions, model config applied.
 
 If the argument is empty, the command stops and asks for a task description.
 
@@ -36,47 +36,46 @@ If the argument is empty, the command stops and asks for a task description.
 **File**: `commands/setup.md`  
 **Argument**: `[--global|--repo|--check|--full-agents]` (optional, default `--repo`)
 
-Installs the teamwork skill bundle into the repo or global `~/.claude/`. Delegates entirely to `scripts/setup.sh`.
+Runs `scripts/setup.sh` from the plugin bundle/repo root. Registers plugin marketplaces, creates `.claude/team.md` from template, and optionally preloads all agents (legacy mode). The plugin system handles file distribution; setup handles one-time configuration.
 
 ### Usage
 
 ```
 /teamwork:setup                    # install to current repo (default)
-/teamwork:setup --global           # install globally to ~/.claude/
-/teamwork:setup --check            # check status only, no install
-/teamwork:setup --full-agents      # repo install + preload all runtime agents (legacy mode)
+/teamwork:setup --global           # register marketplaces globally (no team.md)
+/teamwork:setup --check            # check status only, no changes
+/teamwork:setup --full-agents      # repo install + preload all agents (legacy mode)
 /teamwork:setup --repo --full-agents
 /teamwork:setup --global --full-agents
 ```
 
+Equivalent CLI usage:
+
+```bash
+bash scripts/setup.sh --repo
+bash scripts/setup.sh --global
+bash scripts/setup.sh --check
+bash scripts/setup.sh --repo --full-agents
+```
+
 ### What --repo Does
 
-- Installs `team-lead.md` to `.claude/agents/` (bootstrap agent, always preloaded)
-- Prunes preloaded runtime agents from `.claude/agents/` if they match the bundled copies (keeps custom overrides)
-- Copies all agents to `.claude/skills/teamwork/agents/` (lazy-load source)
-- Copies `SKILL.md` to `.claude/skills/teamwork/SKILL.md`
-- Copies `pipeline-lib.sh` to `.claude/skills/teamwork/scripts/`
-- Copies flow templates to `.claude/skills/teamwork/templates/`
-- Creates `.claude/team.md` from `templates/team.md` if it does not exist
 - Registers `openai-codex` and `copilot-local` plugin marketplaces in `~/.claude/settings.json`
+- Creates `.claude/team.md` from `templates/team.md` if it does not exist
 - Detects and cleans recursive teamwork plugin cache if safe to do so
+- Reports plugin install instructions when plugins are missing
 
 ### What --check Does
 
 Reports:
 - Which plugins are installed (`codex`, `copilot`)
-- Whether bootstrap agents are preloaded (warns if so — higher baseline context)
-- Whether the skill bundle is complete (all agent files present in `~/.claude/skills/teamwork/agents/`)
-- Whether runtime agents are preloaded (warns if so)
-- Whether `SKILL.md` is installed
-- Test harness availability
-- `pipeline-lib.sh` presence
-
-Exits 0 on success, 1 if any required files are missing.
+- Whether marketplace entries are registered in `settings.json`
+- Whether `.claude/team.md` is present (repo mode)
+- Recursive cache warnings
 
 ### What --full-agents Does
 
-Preloads all 16 runtime agents to `.claude/agents/` in addition to `team-lead`. Use for legacy eager-load behavior. Not recommended for normal use — increases baseline context and 529 overload risk.
+Preloads all agents to `.claude/agents/` from the plugin bundle. Use for legacy eager-load behavior. Not recommended for normal use — increases baseline context and 529 overload risk.
 
 ---
 
@@ -130,7 +129,7 @@ Selects a flow template or displays the current flow state.
 | `standard` | Full research → plan → review → execute → verify → final-review (default) |
 | `review` | Review-only flow for existing code or PRs |
 | `build-verify` | Quick build-and-verify for confident changes |
-| `pre-release` | Extended pipeline with security and performance review gates |
+| `pre-release` | Extended pipeline with stricter PM and final coalition gates |
 
 Note: Template can only be changed before execution begins. Changing templates mid-pipeline warns about implications.
 

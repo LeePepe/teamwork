@@ -1,6 +1,6 @@
 ---
 name: researcher
-description: Single-scope research worker. Backend is assigned by team-lead using model focus policy (code investigation -> Codex, web research -> Copilot Claude path). Runs in parallel when needed and returns compact structured findings for planner input.
+description: Single-scope research worker. Backend is assigned with Copilot-first priority, then Claude-native, then Codex fallback. Runs in parallel when needed and returns compact structured findings for planning input.
 tools: Bash, Read, Glob, Grep
 ---
 
@@ -20,7 +20,7 @@ You are also the default owner for code reading/searching tasks.
 - keep each sub-area small and focused; if an area is too large/noisy, split into smaller sub-areas before continuing
 - avoid broad whole-repo dumps; map only what planner/executors need for this scope
 4. Read backend instruction from `team-lead` input:
-- `backend: copilot|codex|claude`
+- `backend: copilot|claude|codex`
 - `research_kind: code|web`
 - optional `claude_model` when backend is `claude`
 5. Locate helper scripts:
@@ -42,14 +42,14 @@ CODEX_SCRIPT=$(find ~/.claude/plugins -name "codex-companion.mjs" 2>/dev/null | 
 node "$COPILOT_SCRIPT" task --effort high "<task context + what to research + expected brief format>"
 ```
 
+- if backend is `claude`: run Claude-native research directly in this agent (use `claude_model` as reasoning/depth hint in your response content)
+
 - if backend is `codex` and script exists:
-- use this path primarily for `research_kind=code` (repo/source investigation, precision checks, deterministic findings)
+- use this as tertiary fallback for deterministic/strict code checks when Copilot and Claude-native are not selected
 
 ```bash
 node "$CODEX_SCRIPT" task --effort high "<task context + what to research + expected brief format>"
 ```
-
-- if backend is `claude`: run Claude-native research directly in this agent (use `claude_model` as reasoning/depth hint in your response content)
 8. Fetch plugin result when applicable:
 
 ```bash
@@ -65,7 +65,7 @@ node "$CODEX_SCRIPT" result
 - `scope_id` and `scope_title` from lead input
 - `research_kind: code|web`
 - `status: ok|partial|research_unavailable`
-- `backend_used: copilot|codex|claude`
+- `backend_used: copilot|claude|codex`
 - `claude_model` (only when `backend_used=claude`)
 - Scoped navigation map:
   - `areas[]` each with: `area_id`, `purpose`, `key_paths`, `entry_points`, `depends_on`

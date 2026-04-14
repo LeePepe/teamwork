@@ -344,10 +344,15 @@ else FAIL=$((FAIL + 1)); echo "  ❌ 9.2 Some new agents missing Expertise secti
 echo ""
 echo "=== Group 10: Setup ==="
 
-# 10.1: setup.sh syntax is valid
+# 10.1: pipeline-lib.sh syntax is valid
+bash -n "$REPO_ROOT/scripts/pipeline-lib.sh" 2>/dev/null
+RESULT=$?
+assert_exit_code "0" "$RESULT" "10.1 pipeline-lib.sh passes syntax check"
+
+# 10.2: setup.sh syntax is valid
 bash -n "$REPO_ROOT/scripts/setup.sh" 2>/dev/null
 RESULT=$?
-assert_exit_code "0" "$RESULT" "10.1 setup.sh passes syntax check"
+assert_exit_code "0" "$RESULT" "10.2 setup.sh passes syntax check"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 

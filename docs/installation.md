@@ -38,10 +38,10 @@ Plugins are optional. The pipeline always works without any plugin:
 
 | Plugin State | Behavior |
 |-------------|----------|
-| Both available | Follow plan executor annotations (codex/copilot per task) |
-| Codex only | All plugin-backed work falls back to Codex |
-| Copilot only | Research/execution use Copilot; review gates use Claude-native fallback |
-| Neither | Full Claude-native fallback via `fullstack-engineer`; `team-lead` selects model by complexity |
+| Copilot available | Prioritize Copilot-backed role execution |
+| Copilot unavailable | Use Claude-native role execution |
+| Codex available | Tertiary fallback when prior options are unavailable or explicitly disallowed |
+| No plugins | Full Claude-native fallback via `fullstack-engineer` |
 
 ---
 
@@ -62,13 +62,20 @@ Then run setup:
 /teamwork:setup --global # install globally to ~/.claude/
 ```
 
+Equivalent CLI fallback:
+
+```bash
+bash scripts/setup.sh --repo
+bash scripts/setup.sh --global
+```
+
 ### Verify Installation
 
 ```
 /teamwork:setup --check
 ```
 
-Or directly:
+or:
 
 ```bash
 bash scripts/setup.sh --check
@@ -80,39 +87,48 @@ bash scripts/setup.sh --check
 
 ### --repo (default)
 
-Installs the skill bundle into the current git repo. Requires running inside a git repository.
+Registers marketplaces and creates `.claude/team.md` in the current git repo. Requires running inside a git repository.
 
-```bash
-bash scripts/setup.sh --repo
-# or
+```
 /teamwork:setup
 ```
 
-Creates/updates:
-- `.claude/agents/team-lead.md` (bootstrap agent, always preloaded)
-- `.claude/skills/teamwork/SKILL.md`
-- `.claude/skills/teamwork/agents/` (lazy-load source for all 16 agents)
-- `.claude/skills/teamwork/scripts/pipeline-lib.sh`
-- `.claude/skills/teamwork/templates/flow-*.yaml`
-- `.claude/team.md` (from template, if not already present)
-
-### --global
-
-Installs globally to `~/.claude/`. Use outside a git repo, or to share across all repos.
+or:
 
 ```bash
-bash scripts/setup.sh --global
-# or
-/teamwork:setup --global
+bash scripts/setup.sh --repo
 ```
 
 Creates/updates:
-- `~/.claude/agents/team-lead.md`
-- `~/.claude/skills/teamwork/` (full skill bundle)
+- `~/.claude/settings.json` — registers `openai-codex` and `copilot-local` marketplaces
+- `.claude/team.md` (from template, if not already present)
+
+The plugin system handles all file distribution (`SKILL.md`, agents, templates) automatically on install.
+
+### --global
+
+Registers marketplaces without creating a `team.md`. Use outside a git repo, or for a one-time global configuration.
+
+```
+/teamwork:setup --global
+```
+
+or:
+
+```bash
+bash scripts/setup.sh --global
+```
 
 ### --full-agents (legacy)
 
-Preloads all 16 runtime agents to `.claude/agents/` in addition to `team-lead`.
+Preloads all 16 runtime agents to `.claude/agents/` from the plugin bundle.
+
+```
+/teamwork:setup --repo --full-agents
+/teamwork:setup --global --full-agents
+```
+
+or:
 
 ```bash
 bash scripts/setup.sh --repo --full-agents
@@ -120,19 +136,6 @@ bash scripts/setup.sh --global --full-agents
 ```
 
 Not recommended for normal use. Increases baseline context loaded on every Claude Code session, which can increase 529 overload risk and slow startup. Use only if you need eager agent availability for debugging.
-
----
-
-## Manual Install (without the plugin system)
-
-Clone the repo and run setup directly:
-
-```bash
-git clone https://github.com/LeePepe/teamwork.git
-cd teamwork
-bash scripts/setup.sh            # defaults to --repo (project-local)
-bash scripts/setup.sh --global   # install globally to ~/.claude/
-```
 
 ---
 
@@ -157,28 +160,15 @@ Then restart Codex.
 If you see direct `Bash/Write/Edit` implementation in the main session without agent delegation:
 
 1. The task was not started with `/teamwork:task ...` (or an explicit "use teamwork" request) — the skill never activated.
-2. `team-lead` could not be loaded. Check:
-   ```bash
-   bash scripts/setup.sh --check
-   ```
-   Ensure both `.claude/agents/team-lead.md` and `.claude/skills/teamwork/agents/team-lead.md` exist.
-3. The command was run before setup in that repo. Fix:
-   ```bash
-   bash scripts/setup.sh --repo
-   ```
+2. `team-lead` could not be loaded. Check with `/teamwork:setup --check` (or `bash scripts/setup.sh --check`). Ensure `team-lead.md` exists in plugin/repo assets.
+3. The command was run before setup in that repo. Fix: `/teamwork:setup` (or `bash scripts/setup.sh --repo`)
 
 ### 529 overloaded_error on Simple Prompts
 
 Large startup context (too many preloaded agents) can make 529 errors more likely.
 
-1. Re-run setup to install the latest lighter agent prompts:
-   ```bash
-   bash scripts/setup.sh --repo
-   ```
-2. Verify status:
-   ```bash
-   bash scripts/setup.sh --check
-   ```
+1. Re-run setup: `/teamwork:setup` (or `bash scripts/setup.sh --repo`)
+2. Verify status: `/teamwork:setup --check` (or `bash scripts/setup.sh --check`)
 3. Check for recursive teamwork plugin cache growth:
    ```bash
    find ~/.claude/plugins/cache/teamwork -type d -path "*/teamwork/*/teamwork/*" | head
@@ -197,7 +187,7 @@ Large startup context (too many preloaded agents) can make 529 errors more likel
 
 ### Recursive Plugin Cache
 
-`setup.sh` auto-detects and cleans a recursive teamwork cache (`teamwork/*/teamwork/*` nested paths) when it is safe to do so (i.e., not currently running from within the cache). If running from the cache, manual cleanup is needed:
+`/teamwork:setup` (and `bash scripts/setup.sh`) auto-detects and cleans a recursive teamwork cache (`teamwork/*/teamwork/*` nested paths) when it is safe to do so (i.e., not currently running from within the cache). If running from the cache, manual cleanup is needed:
 
 ```bash
 rm -rf ~/.claude/plugins/cache/teamwork
@@ -207,25 +197,10 @@ Then run `/reload-plugins`.
 
 ### Missing team-lead Agent
 
-If `/teamwork:task` reports `team_lead=missing`:
+If `/teamwork:task` reports `team_lead=missing`, run `/teamwork:setup` (or `bash scripts/setup.sh --repo`) or manually:
 
 ```bash
-bash scripts/setup.sh --repo
-```
-
-Or manually:
-
-```bash
-cp agents/team-lead.md .claude/agents/team-lead.md
-```
-
-### Agents Directory Missing
-
-If `.claude/agents/` does not exist:
-
-```bash
-mkdir -p .claude/agents
-bash scripts/setup.sh --repo
+cp .claude/skills/teamwork/agents/team-lead.md .claude/agents/team-lead.md
 ```
 
 ### Pipeline State Corruption

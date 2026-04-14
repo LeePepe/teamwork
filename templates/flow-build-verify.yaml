@@ -1,18 +1,24 @@
 name: build-verify
-description: Quick build-and-verify flow for confident changes
-max_pipeline_steps: 10
+description: Compact plan-led flow with verification, PM delivery gate, and final review
+max_pipeline_steps: 12
 max_review_loops: 2
 red_behavior: halt
 nodes:
   - id: plan
     type: build
-    label: "Plan"
+    label: "Plan (Plan-Lead)"
   - id: execute
     type: execute
     label: "Execute"
   - id: verify
     type: gate
     label: "Verify"
+  - id: pm-review
+    type: review
+    label: "PM Delivery Gate"
+  - id: final-review
+    type: review
+    label: "Final Review Coalition"
   - id: ship
     type: gate
     label: "Ship"
@@ -22,9 +28,23 @@ edges:
   - from: execute
     to: verify
   - from: verify
-    to: ship
+    to: pm-review
     condition: "green"
   - from: verify
+    to: execute
+    condition: "yellow"
+    max_cycles: 1
+  - from: pm-review
+    to: final-review
+    condition: "green"
+  - from: pm-review
+    to: execute
+    condition: "yellow"
+    max_cycles: 1
+  - from: final-review
+    to: ship
+    condition: "green"
+  - from: final-review
     to: execute
     condition: "yellow"
     max_cycles: 1
