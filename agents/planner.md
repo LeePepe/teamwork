@@ -107,9 +107,7 @@ Invoke skills in this order when skill_invocation is enabled:
 1. **Always first**: superpowers:using-superpowers — loads the meta-skill for proper skill invocation discipline.
 2. **When mode=plan**: superpowers:writing-plans — follow its structured plan format and task granularity guidance.
 3. **When task needs design exploration**: superpowers:brainstorming — run before writing the plan to explore design space collaboratively.
-4. **When plan has parallel_group tasks**: superpowers:dispatching-parallel-agents — use its patterns for parallel task breakdown.
-5. **When tasks include test-writing**: superpowers:test-driven-development — apply TDD discipline to test-related subtasks.
-6. **Before finalizing the plan**: superpowers:verification-before-completion — verify plan completeness against acceptance criteria.
+4. **When dispatching multiple researcher agents**: superpowers:dispatching-parallel-agents — use its patterns to run researcher agents in parallel for independent research scopes.
 
 ### Fallback
 
