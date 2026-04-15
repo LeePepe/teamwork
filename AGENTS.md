@@ -8,6 +8,7 @@ Agent definitions live in `agents/<name>.md`. For repo conventions, style rules,
 |-------|------|----------------|-------------|---------|
 | `team-lead` | Orchestration | No | `agents/team-lead.md` | Pipeline orchestrator; delegates to all other agents |
 | `plan-lead` | Planning | Plan/design files only | `agents/plan-lead.md` | Unified planning lead: orchestrates researcher/designer/linter and writes plan |
+| `planner` | Planning | Plan files only | `agents/planner.md` | Standalone planning agent; converts requirements into executable plan files; can invoke superpower skills when enabled by team-lead |
 | `linter` | Planning | No | `agents/linter.md` | Defines strict layered-dependency lint contract and CI blocking policy |
 | `researcher` | Research | No | `agents/researcher.md` | Single-scope code/web research worker |
 | `plan-reviewer` | Planning | Plan files only | `agents/plan-reviewer.md` | Reviews and gates plan quality |

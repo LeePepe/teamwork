@@ -72,6 +72,34 @@ Backend priority order (applied within each spawned agent, not by team-lead inli
 
 **No inline execution.** CLI unavailability never justifies collapsing pipeline stages into team-lead itself. Every stage is always a dedicated spawned agent.
 
+## Skill Invocation Decision
+
+Before spawning plan-lead or planner, decide whether to enable superpower skill invocation based on the following criteria:
+
+**Enable (skill_invocation: enabled) when:**
+- Task complexity is large or the task explicitly involves architecture/design decisions
+- User request contains phrases like 'use superpowers', 'use skills', or 'use superpower skills'
+- Task involves planning a multi-phase feature spanning multiple agents or services
+- Research status returns partial or research_unavailable (planning benefits from brainstorming skill)
+
+**Disable (omit flag or set skill_invocation: disabled) when:**
+- Task is a single-file patch, docs-only change, or trivial config update
+- Plan size is small with no design ambiguity
+- Speed is prioritized and task is well-understood
+
+**How to pass the flag:**
+Include in the spawn input to plan-lead/planner:
+skill_invocation: enabled
+available_skills:
+  - superpowers:using-superpowers
+  - superpowers:writing-plans
+  - superpowers:brainstorming
+  - superpowers:dispatching-parallel-agents
+  - superpowers:test-driven-development
+  - superpowers:verification-before-completion
+
+**Default:** disabled — lean planning is the default unless criteria above are met.
+
 ## Workflow
 
 1. Read `.claude/team.md` (if present): CLI flags, routing preferences, verification config, model config.
