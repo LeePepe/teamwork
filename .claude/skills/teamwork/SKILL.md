@@ -129,22 +129,22 @@ Operational guardrails (always on):
 - Emit executor evidence in the final summary: `task_id -> agent_id -> status`.
 - Use portable shell commands in prompts and snippets (avoid assumptions like `timeout` availability).
 
-### 1) Validate plugin readiness
+### 1) Detect CLI backend availability
 
 ```bash
-# Check which plugins are available
-CODEX_SCRIPT=$(find ~/.claude/plugins -name "codex-companion.mjs" 2>/dev/null | head -1)
-COPILOT_SCRIPT=$(find ~/.claude/plugins -name "copilot-companion.mjs" 2>/dev/null | head -1)
+# Check which CLI backends are available
+COPILOT_BIN=$(which copilot 2>/dev/null)
+CODEX_BIN=$(which codex 2>/dev/null)
 
-[ -n "$CODEX_SCRIPT" ]   && node "$CODEX_SCRIPT"   setup --json 2>/dev/null && CODEX_OK=true   || CODEX_OK=false
-[ -n "$COPILOT_SCRIPT" ] && node "$COPILOT_SCRIPT" setup --json 2>/dev/null && COPILOT_OK=true || COPILOT_OK=false
+[ -n "$COPILOT_BIN" ] && COPILOT_OK=true || COPILOT_OK=false
+[ -n "$CODEX_BIN" ]   && CODEX_OK=true   || CODEX_OK=false
 ```
 
-Fallback policy:
-- Both installed -> follow plan executor annotations (codex/copilot)
-- Copilot unavailable + Codex available -> fullstack-engineer uses Codex plugin
-- Codex unavailable + Copilot available -> force copilot; review gates fallback to Claude-native when needed
-- Both unavailable -> full Claude-native fallback (lead selects model)
+Backend priority (applied within each spawned agent, never inline in this skill or team-lead):
+- Both CLIs available → follow plan executor annotations (codex/copilot)
+- Only Codex CLI available → fullstack-engineer uses Codex CLI
+- Only Copilot CLI available → fullstack-engineer uses Copilot CLI
+- Neither available → Claude-native fallback (team-lead selects model per agent)
 
 ### 2) Read repo team config
 
@@ -175,31 +175,28 @@ Pass:
 Agent: team-lead
 Prompt: <user's description>
         Routing preferences: <from .claude/team.md, or "use defaults">
+        CLI availability: copilot_available=<true|false>, codex_available=<true|false>
         Model config: <from .claude/team.md ## Model Config, or "no model overrides">
 ```
 
-Let `team-lead` run:
+Let `team-lead` run (all stages are mandatory — no skipping):
 
-1. `team-lead` delegates research-stage orchestration to `research-lead`
-2. `team-lead` chooses fallback strategy from plugin availability
-3. if full Claude fallback is selected, `team-lead` chooses model (`haiku|sonnet|opus`)
-4. `research-lead` runs scope split + backend routing + researcher dispatch
+1. `team-lead` spawns `research-lead` sub-agent for research orchestration
+2. `team-lead` detects CLI backends and passes availability flags to all sub-agents
+3. `research-lead` runs scope split + backend routing + researcher dispatch
    - splits scopes and classifies `research_kind` (`code|web`)
    - dispatches one or more `researcher` agents (parallel when independent)
-   - routes backend by policy when both plugins are available:
-     - code scopes -> Codex
-     - web scopes -> Copilot Claude path
+   - routes backend by CLI availability: code scopes → Codex CLI, web scopes → Copilot CLI, neither → Claude-native
    - each scope returns a minimal navigation map; oversized areas must be split
-5. `research-lead` consolidates outputs (`ok|partial|research_unavailable`) into one brief
-6. optional readiness loop: `research-lead` can call `planner` in `mode: probe`; if info is insufficient, dispatch targeted `researcher` supplement scopes
-7. `planner` creates the plan using the consolidated brief
-8. `plan-reviewer` reviews and iterates plan quality (Codex or Claude-native fallback)
-9. when design is explicitly required, `designer` creates a design plan before coding
-10. `fullstack-engineer` implements approved tasks (auto-selects best available backend)
-11. `verifier` runs required checks before completion
-   - verifier may reuse cached verification only on exact repo+command key match
-12. `final-reviewer` runs final review (Codex or Claude-native fallback)
-13. `git-monitor` (optional) commits changes, creates PR, monitors CI and PR comments
+4. `research-lead` consolidates outputs (`ok|partial|research_unavailable`) into one brief
+5. optional readiness loop: `research-lead` can call `planner` in `mode: probe`; if info is insufficient, dispatch targeted `researcher` supplement scopes
+6. `planner` creates the plan using the consolidated brief
+7. **Plan gate (mandatory):** `plan-reviewer` reviews and gates plan quality
+8. when design is explicitly required, `designer` creates a design plan before coding
+9. `fullstack-engineer` implements approved tasks (selects Copilot CLI → Codex CLI → Claude-native)
+10. **Delivery gate (mandatory):** `verifier` runs required checks; lint evidence required
+11. **Final gate (mandatory):** `final-reviewer` runs final review coalition
+12. `git-monitor` commits changes, creates PR, monitors CI and PR comments
 
 ### 4) Report outcome
 

@@ -18,7 +18,7 @@ You may write plan/design artifacts only. Never modify project source code.
 ## Input
 
 - Task from `team-lead`
-- Plugin availability (`codex`, `copilot`)
+- CLI availability (`codex`, `copilot`) — detected via `which`; passed in as boolean flags
 - Optional routing preferences from `.claude/team.md`
 - Optional `acceptance_criteria`
 - Optional `design_required`
@@ -38,8 +38,8 @@ You may write plan/design artifacts only. Never modify project source code.
 
 3. Dispatch `researcher` workers:
 - Use parallel dispatch for independent scopes
-- Use Copilot-first backend selection; fallback to Claude-native, then Codex when needed
-- Fall back to Claude-native research if plugins unavailable
+- Backend selection order: Copilot CLI → Codex CLI → Claude-native (determined by `which copilot` / `which codex` results passed from team-lead)
+- Researcher agents always run as dedicated spawned agents regardless of backend
 
 4. Consolidate research:
 - Produce a concise merged brief

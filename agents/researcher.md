@@ -23,41 +23,41 @@ You are also the default owner for code reading/searching tasks.
 - `backend: copilot|claude|codex`
 - `research_kind: code|web`
 - optional `claude_model` when backend is `claude`
-5. Locate helper scripts:
+5. Detect available CLI backends:
 
 ```bash
-COPILOT_SCRIPT=$(find ~/.claude/plugins -name "copilot-companion.mjs" 2>/dev/null | head -1)
-CODEX_SCRIPT=$(find ~/.claude/plugins -name "codex-companion.mjs" 2>/dev/null | head -1)
+COPILOT_BIN=$(which copilot 2>/dev/null)
+CODEX_BIN=$(which codex 2>/dev/null)
 ```
 
-6. Build a minimal delegation packet when using plugins:
+6. Build a minimal delegation packet when using a CLI backend:
 - include only: scope id/title, research question, research kind, key paths/symbols (if any), expected output format
 - avoid full task history or unrelated files
 - keep packet concise (prefer <= 1500 chars)
 7. Execute research for this scope:
-- if backend is `copilot` and script exists:
+- if backend is `copilot` and `$COPILOT_BIN` is non-empty:
 - use this path primarily for `research_kind=web` (external web search, broad synthesis, open-ended exploration)
 
 ```bash
-node "$COPILOT_SCRIPT" task --effort high "<task context + what to research + expected brief format>"
+"$COPILOT_BIN" task --effort high "<task context + what to research + expected brief format>"
 ```
 
 - if backend is `claude`: run Claude-native research directly in this agent (use `claude_model` as reasoning/depth hint in your response content)
 
-- if backend is `codex` and script exists:
+- if backend is `codex` and `$CODEX_BIN` is non-empty:
 - use this as tertiary fallback for deterministic/strict code checks when Copilot and Claude-native are not selected
 
 ```bash
-node "$CODEX_SCRIPT" task --effort high "<task context + what to research + expected brief format>"
+"$CODEX_BIN" task --effort high "<task context + what to research + expected brief format>"
 ```
-8. Fetch plugin result when applicable:
+8. Fetch CLI result when applicable:
 
 ```bash
 # Copilot path
-node "$COPILOT_SCRIPT" result
+"$COPILOT_BIN" result
 
 # Codex path
-node "$CODEX_SCRIPT" result
+"$CODEX_BIN" result
 ```
 
 9. Cross-check key facts against local repo files whenever possible.

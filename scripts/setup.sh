@@ -40,17 +40,10 @@ for arg in "$@"; do
   esac
 done
 
-find_companion_script() {
-  local script_name="$1"
-  find "$HOME/.claude/plugins" -name "$script_name" 2>/dev/null | head -1
-}
-
-CODEX_SCRIPT="$(find_companion_script "codex-companion.mjs")"
-COPILOT_SCRIPT="$(find_companion_script "copilot-companion.mjs")"
 CODEX_OK=false
 COPILOT_OK=false
-[ -n "$CODEX_SCRIPT" ] && CODEX_OK=true || true
-[ -n "$COPILOT_SCRIPT" ] && COPILOT_OK=true || true
+[ -n "$(which codex 2>/dev/null)" ]   && CODEX_OK=true   || true
+[ -n "$(which copilot 2>/dev/null)" ] && COPILOT_OK=true || true
 
 has_recursive_cache() {
   [ -d "$TEAMWORK_CACHE_ROOT" ] || return 1
@@ -90,11 +83,11 @@ fi
 if $CHECK_ONLY; then
   echo "=== Teamwork Skill — Status ==="
   echo ""
-  echo "Plugins:"
-  $CODEX_OK && ok "  codex plugin installed" || warn "  codex plugin not installed (optional)"
-  $COPILOT_OK && ok "  copilot plugin installed" || warn "  copilot plugin not installed (optional)"
+  echo "CLI backends:"
+  $CODEX_OK && ok "  codex CLI found ($(which codex))" || warn "  codex CLI not found (optional)"
+  $COPILOT_OK && ok "  copilot CLI found ($(which copilot))" || warn "  copilot CLI not found (optional)"
   if ! $CODEX_OK && ! $COPILOT_OK; then
-    warn "  Neither plugin installed — will use Claude-native fallback"
+    warn "  Neither CLI found — will use Claude-native fallback"
   fi
   has_recursive_cache && warn "  Recursive teamwork cache detected (may cause intermittent 529 errors)" || true
 
@@ -204,29 +197,19 @@ if $FULL_AGENTS; then
 fi
 
 echo ""
-NEEDS_RELOAD=false
 if $CODEX_OK; then
-  ok "codex plugin installed"
+  ok "codex CLI found ($(which codex))"
 else
-  info "codex not installed (optional). To install in Claude Code:"
-  info "  /plugin install codex@openai-codex"
-  NEEDS_RELOAD=true
+  info "codex CLI not found (optional). Install it and ensure it is in PATH."
 fi
 if $COPILOT_OK; then
-  ok "copilot plugin installed"
+  ok "copilot CLI found ($(which copilot))"
 else
-  info "copilot not installed (optional). To install in Claude Code:"
-  info "  /plugin install copilot@copilot-local"
-  NEEDS_RELOAD=true
+  info "copilot CLI not found (optional). Install it and ensure it is in PATH."
 fi
 if ! $CODEX_OK && ! $COPILOT_OK; then
   echo ""
-  warn "Neither plugin installed — teamwork will use Claude-native fallback."
-fi
-if $NEEDS_RELOAD; then
-  echo ""
-  info "After installing plugins, run /reload-plugins, then plugin setup commands"
-  info "(for example /codex:setup or /copilot:setup)."
+  warn "Neither CLI found — teamwork will use Claude-native fallback."
 fi
 
 echo ""

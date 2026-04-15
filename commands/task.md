@@ -7,21 +7,18 @@ allowed-tools: Bash, Agent
 If `${ARGUMENTS}` is empty, stop and return:
 > Please provide a task description. Example: `/teamwork:task implement JWT auth middleware`
 
-## Step 1 — Plugin Check
+## Step 1 — CLI Backend Detection
 
 ```bash
-CODEX_SCRIPT=$(find ~/.claude/plugins -name "codex-companion.mjs" 2>/dev/null | head -1)
-COPILOT_SCRIPT=$(find ~/.claude/plugins -name "copilot-companion.mjs" 2>/dev/null | head -1)
-
 CODEX_OK=false
 COPILOT_OK=false
-[ -n "$CODEX_SCRIPT" ]   && CODEX_OK=true || true
-[ -n "$COPILOT_SCRIPT" ] && COPILOT_OK=true || true
+[ -n "$(which codex 2>/dev/null)" ]   && CODEX_OK=true   || true
+[ -n "$(which copilot 2>/dev/null)" ] && COPILOT_OK=true || true
 
 echo "codex=$CODEX_OK copilot=$COPILOT_OK"
 ```
 
-Do not stop when both are false; team-lead will use Claude fallback.
+Do not stop when both are false; team-lead will use Claude-native fallback with proper sub-agent spawning.
 
 ## Step 2 — Read Team Config
 
@@ -77,8 +74,8 @@ Spawn `team-lead` with:
 ```
 Task: ${ARGUMENTS}
 Routing preferences: <.claude/team.md or "use defaults">
-Plugin availability: codex=<step1> copilot=<step1>
-Executor: fullstack-engineer (Copilot → Claude-native → Codex tertiary fallback).
+CLI availability: codex_available=<step1> copilot_available=<step1>
+Executor: fullstack-engineer (Copilot CLI → Codex CLI → Claude-native fallback; all gates mandatory).
 Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
 Planning policy: `plan-lead` may dispatch `designer` and `linter` before execution
 Model config: <from .claude/team.md ## Model Config, or "no model overrides">

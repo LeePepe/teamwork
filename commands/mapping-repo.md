@@ -7,21 +7,18 @@ allowed-tools: Bash, Agent
 If `${ARGUMENTS}` is not empty and not `--update`, stop and tell the user:
 > Invalid argument. Accepted values: --update (to refresh existing docs), or leave blank for full mapping.
 
-## Step 1 — Validate plugins
+## Step 1 — Detect CLI backends
 
 ```bash
-CODEX_SCRIPT=$(find ~/.claude/plugins -name "codex-companion.mjs" 2>/dev/null | head -1)
-COPILOT_SCRIPT=$(find ~/.claude/plugins -name "copilot-companion.mjs" 2>/dev/null | head -1)
-
 CODEX_OK=false
 COPILOT_OK=false
-[ -n "$CODEX_SCRIPT" ]   && CODEX_OK=true || true
-[ -n "$COPILOT_SCRIPT" ] && COPILOT_OK=true || true
+[ -n "$(which codex 2>/dev/null)" ]   && CODEX_OK=true   || true
+[ -n "$(which copilot 2>/dev/null)" ] && COPILOT_OK=true || true
 
 echo "codex=$CODEX_OK copilot=$COPILOT_OK"
 ```
 
-Do not stop when both are false; `team-lead` will use Claude-native fallback.
+Do not stop when both are false; `team-lead` will use Claude-native fallback with proper sub-agent spawning.
 
 ## Step 2 — Read team config
 
@@ -75,7 +72,7 @@ From this point onward, this command handler must only orchestrate and summarize
 ## Step 3 — Delegate to team-lead
 
 From the output of Step 1, read the actual `codex=true/false` and `copilot=true/false` values.
-Executor: `fullstack-engineer` auto-selects backend with priority (Copilot → Claude-native → Codex).
+Executor: `fullstack-engineer` auto-selects backend with priority (Copilot CLI → Codex CLI → Claude-native).
 
 Build the task description based on `${ARGUMENTS}`:
 - Empty (no argument): full mapping — produce ARCHITECTURE.md, all docs/ topic files, and simplified AGENTS.md TOC
@@ -91,7 +88,7 @@ Task: Map and document this repository's architecture. Produce the following doc
      - docs/agents.md — detailed per-agent reference (not the index — full descriptions)
      - docs/commands.md — command reference (task, setup, mapping-repo)
      - docs/configuration.md — team.md, executor routing, review mode, verification config
-     - docs/installation.md — plugin deps, setup steps, troubleshooting
+     - docs/installation.md — CLI deps, setup steps, troubleshooting
      - docs/extending.md — how to add new agents, commands, executors
   3. AGENTS.md — simplified to agent inventory table (TOC format only):
      Columns: Agent | Role | May Edit Files? | Source Path | Purpose
@@ -99,8 +96,8 @@ Task: Map and document this repository's architecture. Produce the following doc
      Remove prose sections already covered in CLAUDE.md (style, commit rules, security, versioning, testing, context hygiene)
   Mode: <full mapping | update existing docs>
 Routing preferences: <contents of .claude/team.md, or "use defaults">
-Plugin availability: codex=<actual value from Step 1> copilot=<actual value from Step 1>
-Executor: fullstack-engineer (Copilot → Claude-native → Codex tertiary fallback).
+CLI availability: codex_available=<actual value from Step 1> copilot_available=<actual value from Step 1>
+Executor: fullstack-engineer (Copilot CLI → Codex CLI → Claude-native fallback; all gates mandatory).
 Verification preferences: use plan task verification
 ```
 
