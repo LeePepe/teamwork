@@ -88,6 +88,7 @@ print(state.get('_write_nonce', ''))
 
 init_pipeline_state() {
   local plan_path="$1"
+  local max_pipeline_steps="${2:-20}"
 
   if [ ! -f "$plan_path" ]; then
     echo "ERROR: plan file not found: $plan_path" >&2
@@ -122,13 +123,14 @@ state = {
     'created_at': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
     'pipeline_steps': 0,
     'review_loops': 0,
-    'repair_count': 0
+    'repair_count': 0,
+    'max_pipeline_steps': int(sys.argv[5]) if len(sys.argv) > 5 else 20
 }
 
 with open(sys.argv[4], 'w') as f:
     json.dump(state, f, indent=2)
     f.write('\n')
-" "$plan_path" "$hash" "$nonce" "$tmp_file"
+" "$plan_path" "$hash" "$nonce" "$tmp_file" "$max_pipeline_steps"
 
   mv "$tmp_file" "$state_file"
 
@@ -154,11 +156,11 @@ import json, sys, datetime
 state_file = sys.argv[1]
 new_stage = sys.argv[2]
 tmp_file = sys.argv[3]
-max_steps = 15
 
 with open(state_file) as f:
     state = json.load(f)
 
+max_steps = int(state.get('max_pipeline_steps', 20))
 steps = state.get('pipeline_steps', 0)
 if steps >= max_steps:
     print('ERROR: max pipeline steps ({}) exceeded — pipeline halted'.format(max_steps), file=sys.stderr)
@@ -539,4 +541,37 @@ cleanup_pipeline_state() {
   if [ -f "$state_file" ]; then
     rm -f "$state_file"
   fi
+}
+
+# ── Pipeline State Helpers ───────────────────────────────────────────────────
+
+get_pipeline_field() {
+  local state_file="$1"
+  local field_name="$2"
+
+  if [ ! -f "$state_file" ]; then
+    echo ""
+    return 0
+  fi
+
+  python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    state = json.load(f)
+val = state.get(sys.argv[2], '')
+if isinstance(val, list):
+    print(','.join(str(x) for x in val))
+else:
+    print(val)
+" "$state_file" "$field_name"
+}
+
+get_current_stage() {
+  local state_file="${1:-}"
+  if [ -z "$state_file" ]; then
+    local repo_root
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
+    state_file="$repo_root/.claude/pipeline-state.json"
+  fi
+  get_pipeline_field "$state_file" "current_stage"
 }

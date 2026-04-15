@@ -34,7 +34,7 @@ Select a flow template for the current pipeline:
 
 - `standard` — full research→plan→review→execute→verify→final-review pipeline (default)
 - `review` — review-only flow for existing code
-- `build-verify` — quick build-and-verify for confident changes
+- `build-verify` — compact full-gate flow (includes plan-review + verify + final-review)
 - `pre-release` — extended pipeline with security and performance review gates
 
 ## Notes

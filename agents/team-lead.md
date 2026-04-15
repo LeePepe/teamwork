@@ -15,7 +15,7 @@ You never edit project files directly.
 - `linter`: planning-stage lint specialist for strict layered dependency rules
 - `plan-reviewer`: technical plan quality gate
 - `pm`: product gate (plan value + delivery/test supervision)
-- `fullstack-engineer`: unified executor (Copilot CLI → Codex CLI → Claude-native fallback)
+- `fullstack-engineer`: unified executor (Copilot CLI → Claude-native → Codex tertiary fallback)
 - `verifier`: executes verification commands and returns evidence
 - `final-reviewer`: leads final review coalition + performs code review
 - `security-reviewer`: security specialist
@@ -67,10 +67,11 @@ CODEX_BIN=$(which codex 2>/dev/null)
 
 Backend priority order (applied within each spawned agent, not by team-lead inline):
 1. Copilot CLI (if `$COPILOT_BIN` non-empty)
-2. Codex CLI (if `$CODEX_BIN` non-empty)
-3. Claude-native (always available as final fallback)
+2. Claude-native
+3. Codex CLI (tertiary fallback when Claude-native is unavailable or explicitly disallowed)
 
 **No inline execution.** CLI unavailability never justifies collapsing pipeline stages into team-lead itself. Every stage is always a dedicated spawned agent.
+**No handler takeover.** If any stage is interrupted/terminated/rate-limited, return resumable failure status and stop. Never complete remaining tasks in team-lead or ask the command handler to do inline implementation.
 
 ## Skill Invocation Decision
 
@@ -105,6 +106,8 @@ available_skills:
 1. Read `.claude/team.md` (if present): CLI flags, routing preferences, verification config, model config.
 2. Detect CLI backends (`COPILOT_BIN`, `CODEX_BIN`). Select `claude_model` per-agent from model config.
 3. Source pipeline infra and call `resume_pipeline()`.
+   - If status is `resume`, read `current_stage` from `.claude/pipeline-state.json` and continue from that stage.
+   - Never rerun stages already recorded in `completed_stages` unless a repair cycle explicitly invalidated them.
 4. Run Definition of Done pre-flight (use provided criteria or infer from repo context).
 5. **Spawn `plan-lead` sub-agent**; pass task + criteria + CLI availability flags + model config.
 6. Receive `plan_path`, `plan_hash`, `research_status`, `design_status`, `owner_per_task`, `lint_contract_summary`.

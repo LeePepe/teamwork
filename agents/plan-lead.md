@@ -38,7 +38,7 @@ You may write plan/design artifacts only. Never modify project source code.
 
 3. Dispatch `researcher` workers:
 - Use parallel dispatch for independent scopes
-- Backend selection order: Copilot CLI → Codex CLI → Claude-native (determined by `which copilot` / `which codex` results passed from team-lead)
+- Backend selection order: Copilot CLI → Claude-native → Codex tertiary fallback (determined by `which copilot` / `which codex` results passed from team-lead)
 - Researcher agents always run as dedicated spawned agents regardless of backend
 
 4. Consolidate research:

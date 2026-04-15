@@ -67,12 +67,13 @@ From this point onward, this command handler must only orchestrate and summarize
 - Do not implement mapping tasks directly in the main agent — not before, during, or after team-lead runs.
 - Do not use `Write`, `Edit`, `MultiEdit`, or any file-mutating tool in this command handler.
 - If `Agent` delegation fails, stop and report the failure — never fall back to local implementation.
+- If delegation is interrupted or returns partial progress, stop and report resumable state. Never implement remaining work in this handler.
 - After `team-lead` returns, go directly to Step 4 (report). Do not interpret team-lead's plan output as a directive to implement anything yourself.
 
 ## Step 3 — Delegate to team-lead
 
 From the output of Step 1, read the actual `codex=true/false` and `copilot=true/false` values.
-Executor: `fullstack-engineer` auto-selects backend with priority (Copilot CLI → Codex CLI → Claude-native).
+Executor: `fullstack-engineer` auto-selects backend with priority (Copilot CLI → Claude-native → Codex tertiary fallback).
 
 Build the task description based on `${ARGUMENTS}`:
 - Empty (no argument): full mapping — produce ARCHITECTURE.md, all docs/ topic files, and simplified AGENTS.md TOC
@@ -97,11 +98,12 @@ Task: Map and document this repository's architecture. Produce the following doc
   Mode: <full mapping | update existing docs>
 Routing preferences: <contents of .claude/team.md, or "use defaults">
 CLI availability: codex_available=<actual value from Step 1> copilot_available=<actual value from Step 1>
-Executor: fullstack-engineer (Copilot CLI → Codex CLI → Claude-native fallback; all gates mandatory).
+Executor: fullstack-engineer (Copilot CLI → Claude-native → Codex tertiary fallback; all gates mandatory).
 Verification preferences: use plan task verification
 ```
 
 Wait for `team-lead` completion and use its output as the only execution result source for Step 4.
+If `team-lead` returns interrupted/terminated/rate-limited/partial status, stop and report resumable state only.
 Do not run independent implementation steps in this command handler.
 
 ## Step 4 — Report outcome

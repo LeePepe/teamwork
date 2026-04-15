@@ -104,9 +104,9 @@ Add a section to `docs/commands.md` following the existing pattern.
 ## Adding a New Executor Backend
 
 The pipeline currently supports three executor backends in `fullstack-engineer`:
-1. Codex plugin (`codex-companion.mjs`)
-2. Copilot plugin (`copilot-companion.mjs`)
-3. Claude-native fallback
+1. Copilot plugin (`copilot-companion.mjs`)
+2. Claude-native execution
+3. Codex plugin (`codex-companion.mjs`) as tertiary fallback
 
 To add a new backend:
 
@@ -123,10 +123,10 @@ NEW_SCRIPT=$(find ~/.claude/plugins -name "new-companion.mjs" 2>/dev/null | head
 Add the new backend to the selection priority chain:
 
 ```
-1. codex-companion.mjs (existing)
-2. copilot-companion.mjs (existing)
-3. new-companion.mjs (new)
-4. Claude-native (always last)
+1. copilot-companion.mjs (existing)
+2. Claude-native (existing)
+3. codex-companion.mjs (existing tertiary)
+4. new-companion.mjs (new, place explicitly where intended)
 ```
 
 ### 3. Add Plugin Availability Flag

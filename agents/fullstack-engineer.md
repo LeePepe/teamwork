@@ -1,6 +1,6 @@
 ---
 name: fullstack-engineer
-description: Unified executor agent. Uses Copilot-first execution (CLI), then Codex CLI, then Claude-native. Handles all coding tasks regardless of complexity.
+description: Unified executor agent. Uses Copilot-first execution (CLI), then Claude-native, with Codex CLI as tertiary fallback. Handles all coding tasks regardless of complexity.
 tools: Bash, Read, Write, Glob, Grep
 ---
 
@@ -35,17 +35,16 @@ CODEX_BIN=$(which codex 2>/dev/null)
 "$COPILOT_BIN" result
 ```
 
-- **Else if Codex CLI available** (`$CODEX_BIN` non-empty) → delegate via Codex CLI:
+- **Else** → implement directly (Claude-native):
+  - Use `claude_model` hint as reasoning depth guide when provided
+  - Make minimal, requirement-aligned changes using Write tool
+  - Follow repository conventions and existing patterns
+- **If Claude-native execution is unavailable or repeatedly terminated/overloaded and Codex CLI is available** (`$CODEX_BIN` non-empty) → delegate via Codex CLI:
 
 ```bash
 "$CODEX_BIN" task --effort high "<goal + files + constraints + verification>"
 "$CODEX_BIN" result
 ```
-
-- **Else** → implement directly (Claude-native):
-  - Use `claude_model` hint as reasoning depth guide when provided
-  - Make minimal, requirement-aligned changes using Write tool
-  - Follow repository conventions and existing patterns
 
 4. After changes (regardless of backend):
    - Re-read changed files to verify correctness

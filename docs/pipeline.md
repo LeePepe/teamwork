@@ -94,7 +94,7 @@ Templates are defined in `templates/flow-*.yaml`.
 | Template | Use Case | Core Path |
 |----------|----------|-----------|
 | `standard` | Default full governance | plan -> plan-review -> execute -> verify -> pm-review -> final-review -> ship |
-| `build-verify` | Compact but still gated | plan -> execute -> verify -> pm-review -> final-review -> ship |
+| `build-verify` | Compact but still fully gated | plan -> plan-review -> execute -> verify -> pm-review -> final-review -> ship |
 | `pre-release` | Stricter release checks | standard with tighter cycle budget |
 | `review` | Existing code/PR review | research -> final-review -> verdict |
 

@@ -64,10 +64,11 @@ From this point, only orchestrate + summarize.
 - Do not implement `${ARGUMENTS}` locally.
 - Do not use file-mutating tools in this handler.
 - If delegation fails, stop and report the failure.
+- If delegation is interrupted or returns partial progress, stop and report resumable state. Never implement remaining tasks in this handler.
 
 ## Step 3 — Delegate to `team-lead`
 
-Executor: `fullstack-engineer` auto-selects backend with priority (Copilot → Claude-native → Codex).
+Executor: `fullstack-engineer` auto-selects backend with priority (Copilot CLI → Claude-native → Codex tertiary fallback).
 
 Spawn `team-lead` with:
 
@@ -75,13 +76,18 @@ Spawn `team-lead` with:
 Task: ${ARGUMENTS}
 Routing preferences: <.claude/team.md or "use defaults">
 CLI availability: codex_available=<step1> copilot_available=<step1>
-Executor: fullstack-engineer (Copilot CLI → Codex CLI → Claude-native fallback; all gates mandatory).
+Executor: fullstack-engineer (Copilot CLI → Claude-native → Codex tertiary fallback; all gates mandatory).
 Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
 Planning policy: `plan-lead` may dispatch `designer` and `linter` before execution
 Model config: <from .claude/team.md ## Model Config, or "no model overrides">
 ```
 
-Wait for `team-lead` completion. Do not run independent implementation in this command.
+Wait for `team-lead` completion.
+If `team-lead` ends with interrupted/terminated/rate-limited/partial status:
+- Do not spawn any implementation agent from this command handler.
+- Do not implement code locally.
+- Return the partial summary and explicit resume instruction (`/teamwork:task <same task>` to resume from pipeline state).
+Only proceed to normal Step 4 success reporting when `team-lead` returns a completed pipeline result.
 
 ## Step 4 — Report
 
