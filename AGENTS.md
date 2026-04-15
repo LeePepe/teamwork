@@ -32,6 +32,11 @@ CLI/Codex fallback: run `bash scripts/setup.sh --check`.
 Claude Code: run `/teamwork:setup` to install into the current repo (creates `.claude/team.md` if missing).  
 CLI/Codex fallback: run `bash scripts/setup.sh --repo`.
 
+Before push/PR actions, ensure GitHub CLI is using the `LeePepe` account:  
+`gh auth status`  
+If the active account is not `LeePepe`, switch first:  
+`gh auth switch --user LeePepe`
+
 ## Completion Rule
 
 When work is completed:
