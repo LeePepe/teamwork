@@ -49,6 +49,7 @@ class RetroState:
         self.session_tools: set[str] = set()
         self.session_skills: set[str] = set()
         self.stage_mentions: set[str] = set()
+        self.explicit_missing_stages: set[str] = set()
         self.raw_text_by_path: dict[str, str] = {}
 
     def upsert_agent(self, key: str) -> AgentRecord:
@@ -156,10 +157,56 @@ def parse_markdown_log(path: str, text: str, state: RetroState) -> None:
             state.session_tools.add(token)
 
     # Stage mentions (for compliance checks)
-    all_lines = role_lines + delegation_lines + sections.get("Outcome Summary", [])
-    scan_blob = "\n".join(all_lines + [text]).lower()
+    stage_signal_sections = [
+        "Flow",
+        "Roles / Agents / Models",
+        "Execution Ledger",
+        "Stage Execution Ledger",
+        "Execution Evidence Contract",
+    ]
+    scan_lines: list[str] = []
+    for sec in stage_signal_sections:
+        scan_lines.extend(sections.get(sec, []))
+    scan_blob = "\n".join(scan_lines).lower()
     for stage in ["team-lead"] + MANDATORY_STAGES + ["git-monitor"]:
         if stage in scan_blob:
+            state.stage_mentions.add(stage)
+
+    # Parse explicit missing evidence matrix rows (if provided)
+    for ln in sections.get("Missing Evidence Matrix", []):
+        if "|" not in ln:
+            continue
+        if re.match(r"^\|\s*-+\s*\|", ln):
+            continue
+        cols = [c.strip() for c in ln.strip().strip("|").split("|")]
+        if len(cols) < 2:
+            continue
+        stage = cols[0].lower()
+        if stage in {"stage", ""}:
+            continue
+        row_blob = " ".join(cols).lower()
+        if "not captured" in row_blob or row_blob.count("unknown") >= 3:
+            state.explicit_missing_stages.add(stage)
+
+    # Parse explicit execution ledger rows to capture stage evidence
+    for sec in ("Execution Ledger", "Stage Execution Ledger", "Execution Evidence Contract"):
+        for ln in sections.get(sec, []):
+            if "|" not in ln:
+                continue
+            if re.match(r"^\|\s*-+\s*\|", ln):
+                continue
+            cols = [c.strip() for c in ln.strip().strip("|").split("|")]
+            if len(cols) < 2:
+                continue
+            stage = cols[0].lower()
+            if stage in {"stage", ""}:
+                continue
+            row_blob = " ".join(cols).lower()
+            if "not captured" in row_blob:
+                state.explicit_missing_stages.add(stage)
+                continue
+            if row_blob.count("unknown") >= 3:
+                continue
             state.stage_mentions.add(stage)
 
 
@@ -267,7 +314,11 @@ def compliance_checks(state: RetroState, paths: list[str]) -> list[dict[str, str
     )
 
     # mandatory stages
-    missing = [stage for stage in MANDATORY_STAGES if stage not in state.stage_mentions]
+    missing = [
+        stage
+        for stage in MANDATORY_STAGES
+        if stage not in state.stage_mentions or stage in state.explicit_missing_stages
+    ]
     findings.append(
         {
             "check": "Mandatory stages present in logs",
