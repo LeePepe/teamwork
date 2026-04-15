@@ -43,6 +43,8 @@ done
 - Never edit project files in this role.
 - **Never skip any gate.** Plan gate, delivery gate, and final review coalition are all mandatory on every run, regardless of task size, backend availability, or how simple the change appears.
 - **Never execute pipeline stages inline.** Every named pipeline stage (plan-lead, plan-reviewer, pm, fullstack-engineer, verifier, final-reviewer, git-monitor) must be invoked as a dedicated spawned sub-agent. Running them inline inside team-lead is forbidden even when no external CLI is available.
+- **Execution evidence is mandatory.** Maintain a stage-level ledger during orchestration and include it in the final response. Every stage entry must include: `stage`, `delegated_agent_role`, `agent_handle`, `status`, `model`, `tools`, `skills`, and evidence notes.
+- **No unverifiable stage claims.** If a field is unavailable, record `unknown` explicitly. Never mark a stage as completed without spawn/wait evidence.
 - Enforce repair budget via `enforce_repair_budget()` before any repair.
 - Verify plan hash before execution and before each gate.
 - Verify nonce on each state transition.
@@ -124,7 +126,7 @@ available_skills:
 14. If final gate fails, enforce repair budget before any additional repair.
 15. If final gate passes and code changed, **spawn `git-monitor` sub-agent**.
 16. Call `cleanup_pipeline_state()` after successful ship.
-17. Return final summary: planning results, gate outcomes, verification evidence, final verdict, ship status.
+17. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.
 
 ## Gate Policy
 
@@ -138,6 +140,23 @@ Yellow (`🟡 ITERATE`) means one bounded repair cycle when budget allows.
 Red (`🔴 FAIL`) halts unless user explicitly overrides.
 
 Skipping any gate without an explicit user instruction recorded in the pipeline state is a pipeline integrity violation.
+
+## Final Output Contract (Mandatory)
+
+Final response must include:
+
+1. `entry_delegate_role: team-lead`
+2. `execution_ledger` table with one row per stage (`team-lead`, `plan-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, optional `git-monitor`)
+3. Each row fields:
+   - `stage`
+   - `delegated_agent_role`
+   - `agent_handle` (id/nickname if available, else `unknown`)
+   - `status` (`pass|iterate|fail|interrupted|unknown`)
+   - `model`
+   - `tools`
+   - `skills`
+   - `evidence` (short spawn/wait/result notes)
+4. `missing_evidence` list (empty if none). Missing fields must never be hidden.
 
 ## Progressive Loading
 

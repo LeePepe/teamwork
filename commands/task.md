@@ -62,6 +62,7 @@ If `team_lead=missing`, stop and ask user to run `/teamwork:setup` (or `bash scr
 From this point, only orchestrate + summarize.
 - Next action must be spawning `team-lead`.
 - Do not implement `${ARGUMENTS}` locally.
+- Do not run independent post-delegation verification in this handler.
 - Do not use file-mutating tools in this handler.
 - If delegation fails, stop and report the failure.
 - If delegation is interrupted or returns partial progress, stop and report resumable state. Never implement remaining tasks in this handler.
@@ -89,6 +90,11 @@ If `team-lead` ends with interrupted/terminated/rate-limited/partial status:
 - Return the partial summary and explicit resume instruction (`/teamwork:task <same task>` to resume from pipeline state).
 Only proceed to normal Step 4 success reporting when `team-lead` returns a completed pipeline result.
 
+Require `team-lead` final output to include:
+- `entry_delegate_role: team-lead`
+- `execution_ledger` with stage-level `role/model/tools/skills/status/evidence`
+- `missing_evidence` list (empty or explicit gaps)
+
 ## Step 4 — Report
 
 Before return: if Step 2.5 had `temp=true`, run `rm -f "<path>"`.
@@ -106,3 +112,5 @@ Return:
 - boundary violations (if any)
 - suggested follow-up actions
 - model config applied (role → model mappings used, or "no overrides")
+- execution ledger (stage → delegated role/agent/model/tools/skills/status/evidence)
+- missing evidence list (if any)

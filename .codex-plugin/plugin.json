@@ -1,6 +1,6 @@
 {
   "name": "teamwork",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Install and maintain the teamwork multi-agent pipeline for Claude repositories from Codex.",
   "author": {
     "name": "LeePepe",

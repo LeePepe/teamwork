@@ -73,9 +73,11 @@ Gate policy:
 
 - Skill entry must not edit files.
 - Always delegate to `team-lead` for real work.
+- Do not run independent post-delegation verification in the entry handler.
 - Require plan gate, verification, PM delivery gate, and final-review gate unless user explicitly overrides.
 - Enforce bounded repair loops (single automatic repair budget).
 - Re-run gates after any code-changing repair.
+- Require `team-lead` final output to include stage-level execution ledger with `role/model/tools/skills/status/evidence`.
 - Never commit `.claude/pipeline-state.json`.
 
 ## Shipped Agents

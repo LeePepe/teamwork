@@ -115,3 +115,14 @@ Implemented by `scripts/pipeline-lib.sh`:
 - Repair budget enforcement
 - Oscillation detection
 - Persisted state in `.claude/pipeline-state.json`
+
+## Execution Evidence Contract
+
+`team-lead` final output must include:
+
+- `entry_delegate_role: team-lead`
+- `execution_ledger` with one row per stage (`team-lead`, `plan-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, optional `git-monitor`)
+- Per-row fields: `stage`, `delegated_agent_role`, `agent_handle`, `status`, `model`, `tools`, `skills`, `evidence`
+- `missing_evidence` list (must be explicit; never silently omit unknowns)
+
+Command handlers must not perform post-delegation implementation or verification takeover. They only orchestrate delegation and summarize `team-lead` evidence.

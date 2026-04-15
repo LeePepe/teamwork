@@ -10,6 +10,7 @@ This document describes the active agent topology after the plan-lead governance
 **Role**: Pipeline orchestrator (no file edits)
 
 Owns stage transitions, gate policy, repair budget, and final summary.
+Must emit a stage-level execution ledger with per-stage role/model/tools/skills/status evidence and an explicit missing-evidence list.
 
 ### plan-lead
 

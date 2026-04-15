@@ -65,6 +65,7 @@ From this point onward, this command handler must only orchestrate and summarize
 
 - **Immediately spawn `team-lead` via `Agent` in Step 3. This is the only valid next action.**
 - Do not implement mapping tasks directly in the main agent — not before, during, or after team-lead runs.
+- Do not run independent post-delegation verification in this command handler.
 - Do not use `Write`, `Edit`, `MultiEdit`, or any file-mutating tool in this command handler.
 - If `Agent` delegation fails, stop and report the failure — never fall back to local implementation.
 - If delegation is interrupted or returns partial progress, stop and report resumable state. Never implement remaining work in this handler.
@@ -106,6 +107,11 @@ Wait for `team-lead` completion and use its output as the only execution result 
 If `team-lead` returns interrupted/terminated/rate-limited/partial status, stop and report resumable state only.
 Do not run independent implementation steps in this command handler.
 
+Require `team-lead` final output to include:
+- `entry_delegate_role: team-lead`
+- `execution_ledger` with stage-level `role/model/tools/skills/status/evidence`
+- `missing_evidence` list (empty or explicit gaps)
+
 ## Step 4 — Report outcome
 
 Before returning the summary:
@@ -124,3 +130,5 @@ Return:
 - PM delivery supervision result
 - Final review result and key findings
 - Suggested follow-up actions
+- Execution ledger (stage → delegated role/agent/model/tools/skills/status/evidence)
+- Missing evidence list (if any)

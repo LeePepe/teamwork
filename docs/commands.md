@@ -25,8 +25,9 @@ Runs a full pipeline for a task: plugin check → team config read → team-lead
 2. **Read team config** — reads `.claude/team.md` for executor routing, review mode, verification commands, and model config.
 3. **Ensure team-lead** — copies `team-lead.md` from the skill bundle to `.claude/agents/` if missing. Stops if team-lead cannot be found (run `/teamwork:setup` or `bash scripts/setup.sh --repo` to fix).
 4. **Delegate to team-lead** — spawns `team-lead` with task, routing preferences, plugin availability, verification preferences, planning policy, and model config.
-5. **Report** — returns plan-lead summary (`research_status`/`design_status`/`lint_contract_summary`), plan gate result, PM delivery gate result, modified files, failed/skipped tasks, verifier result (with lint evidence), final review coalition result, boundary violations, suggested follow-up actions, model config applied.
-6. **Interruption policy** — if `team-lead` is interrupted/terminated/rate-limited, the command must stop and return resumable state only; it must not implement remaining tasks inline in the handler.
+5. **Evidence contract** — requires `team-lead` output to include `entry_delegate_role: team-lead`, plus stage-level `execution_ledger` (`stage`, `role`, `agent`, `status`, `model`, `tools`, `skills`, `evidence`) and `missing_evidence`.
+6. **Report** — returns plan-lead summary (`research_status`/`design_status`/`lint_contract_summary`), plan gate result, PM delivery gate result, modified files, failed/skipped tasks, verifier result (with lint evidence), final review coalition result, boundary violations, suggested follow-up actions, model config applied, and execution ledger.
+7. **Interruption policy** — if `team-lead` is interrupted/terminated/rate-limited, the command must stop and return resumable state only; it must not implement remaining tasks inline in the handler.
 
 If the argument is empty, the command stops and asks for a task description.
 
@@ -102,8 +103,9 @@ Maps and documents the repository architecture using the full pipeline. Produces
 4. **Delegate to team-lead** — spawns `team-lead` with the mapping task specification:
    - Full mapping: produce `ARCHITECTURE.md`, all `docs/` topic files, and simplified `AGENTS.md`
    - Update mode: refresh docs based on current repo state, preserve existing structure where valid
-5. **Report** — files produced, research summary, plan path, modified files, verification result, final review result
-6. **Interruption policy** — if `team-lead` is interrupted/terminated/rate-limited, the command must stop and return resumable state only; no inline fallback implementation is allowed.
+5. **Evidence contract** — requires `team-lead` output to include `entry_delegate_role: team-lead`, plus stage-level `execution_ledger` and `missing_evidence`.
+6. **Report** — files produced, research summary, plan path, modified files, verification result, final review result, and execution ledger.
+7. **Interruption policy** — if `team-lead` is interrupted/terminated/rate-limited, the command must stop and return resumable state only; no inline fallback implementation is allowed.
 
 ---
 
