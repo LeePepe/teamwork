@@ -147,6 +147,7 @@ For use with Codex's native skill system (without the Claude Code plugin system)
 git clone https://github.com/LeePepe/teamwork.git ~/.codex/teamwork
 mkdir -p ~/.agents/skills
 ln -sfn ~/.codex/teamwork/skills/teamwork ~/.agents/skills/teamwork
+ln -sfn ~/.codex/teamwork/skills/teamwork-retro ~/.agents/skills/teamwork-retro
 ```
 
 Then restart Codex.

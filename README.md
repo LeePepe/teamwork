@@ -89,6 +89,7 @@ bash scripts/setup.sh --global
 This repository now includes Codex plugin metadata and skill entrypoints:
 - `.codex-plugin/plugin.json`
 - `skills/teamwork/SKILL.md`
+- `skills/teamwork-retro/SKILL.md`
 
 Install for Codex via native skill discovery:
 
@@ -96,6 +97,7 @@ Install for Codex via native skill discovery:
 git clone https://github.com/LeePepe/teamwork.git ~/.codex/teamwork
 mkdir -p ~/.agents/skills
 ln -sfn ~/.codex/teamwork/skills/teamwork ~/.agents/skills/teamwork
+ln -sfn ~/.codex/teamwork/skills/teamwork-retro ~/.agents/skills/teamwork-retro
 ```
 
 Then restart Codex.
