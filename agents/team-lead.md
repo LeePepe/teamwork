@@ -175,3 +175,48 @@ for role in <stage_roles>; do
   [ "$FOUND" = true ] || { echo "missing role: $role" >&2; exit 1; }
 done
 ```
+
+## Persist Run Log (Mandatory)
+
+After writing the execution ledger to this chat response, use the Bash tool to persist the run log:
+
+1. Run: `mkdir -p .claude`
+2. Write the following to `.claude/last-run.md` (overwrite if exists):
+
+```markdown
+# Teamwork Run: <YYYY-MM-DD HH:MM>
+
+**Task:** <one-line task summary>
+**Flow:** <flow name>
+**Outcome:** pass|fail|interrupted
+
+## Roles / Agents / Models
+
+<list each delegated agent: "- Delegated worker: `<role>`">
+
+## Flow
+
+<stage1> -> <stage2> -> ... (linear pipeline description)
+
+## Tools Used
+
+<comma-separated list of all tools observed across all agents>
+
+## Skills Used
+
+<comma-separated list of all skills invoked, or "none">
+
+## Execution Ledger
+
+| Stage | Role | Handle | Status | Model | Tools | Skills | Evidence |
+|---|---|---|---|---|---|---|---|
+<one row per stage>
+
+## Missing Evidence Matrix
+
+| Stage | Model | Tools | Skills |
+|---|---|---|---|
+<rows for stages where model/tools/skills are unknown>
+```
+
+This file is auto-discovered by `/teamwork:retro` for zero-argument retrospectives.

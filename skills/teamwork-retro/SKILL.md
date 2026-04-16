@@ -25,15 +25,26 @@ Review this teamwork run and show each agent's role/model/tool/skill usage.
 
 ## Inputs
 
-- Required: at least one log path (markdown retrospective or json/jsonl session log).
-- Optional: multiple log files from one run.
+- Optional: log path(s) (markdown retrospective or json/jsonl session log).
+- If no path is provided, `.claude/last-run.md` in the repo root is auto-discovered.
+- Multiple log files from one run may be provided.
 
 ## Workflow
 
 1. Validate paths exist and are readable.
-2. Parse logs with:
+2. Resolve log path(s) and parse logs with:
    ```bash
-   python3 skills/teamwork-retro/scripts/teamwork_retro.py <log-path> [more-paths...]
+   # Auto-discover last run log if no path provided
+   LOG_PATH="${1:-}"
+   if [ -z "$LOG_PATH" ]; then
+     REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
+     CANDIDATE="$REPO_ROOT/.claude/last-run.md"
+     if [ -f "$CANDIDATE" ]; then
+       LOG_PATH="$CANDIDATE"
+       echo "Auto-discovered run log: $LOG_PATH"
+     fi
+   fi
+   python3 skills/teamwork-retro/scripts/teamwork_retro.py $LOG_PATH
    ```
 3. Return:
    - Per-agent table: `agent`, `role`, `model`, `tools`, `skills`, `evidence`.
