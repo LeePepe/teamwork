@@ -180,8 +180,8 @@ done
 
 After writing the execution ledger to this chat response, use the Bash tool to persist the run log:
 
-1. Run: `mkdir -p .claude`
-2. Write the following to `.claude/last-run.md` (overwrite if exists):
+1. Run: `mkdir -p .claude && SESSION_ID=$(date +%Y%m%d-%H%M%S)`
+2. Write the following to `.claude/last-run-${SESSION_ID}.md` (new file per run, SESSION_ID from step 1):
 
 ```markdown
 # Teamwork Run: <YYYY-MM-DD HH:MM>

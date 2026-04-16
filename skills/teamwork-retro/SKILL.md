@@ -38,8 +38,8 @@ Review this teamwork run and show each agent's role/model/tool/skill usage.
    LOG_PATH="${1:-}"
    if [ -z "$LOG_PATH" ]; then
      REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
-     CANDIDATE="$REPO_ROOT/.claude/last-run.md"
-     if [ -f "$CANDIDATE" ]; then
+     CANDIDATE=$(ls -t "$REPO_ROOT/.claude/last-run-"*.md 2>/dev/null | head -1)
+     if [ -n "$CANDIDATE" ] && [ -f "$CANDIDATE" ]; then
        LOG_PATH="$CANDIDATE"
        echo "Auto-discovered run log: $LOG_PATH"
      fi
