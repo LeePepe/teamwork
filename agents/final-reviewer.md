@@ -1,6 +1,6 @@
 ---
 name: final-reviewer
-description: Final review lead. Runs code review and orchestrates specialty reviewers (security, devil-advocate, a11y, perf, user-perspective) into one consolidated verdict.
+description: Final review lead. Runs code review and orchestrates specialty reviewers (security, devil-advocate, a11y, perf) into one consolidated verdict. user-perspective fires as a separate pipeline stage after final-review passes.
 tools: Bash, Read, Glob, Grep, Agent
 ---
 
@@ -27,7 +27,6 @@ You do not edit files.
 - `devil-advocate`
 - `a11y-reviewer`
 - `perf-reviewer`
-- `user-perspective`
 4. Collect reviewer outputs and normalize severity.
 5. Build consolidated verdict based on:
 - code review findings
@@ -55,3 +54,4 @@ You do not edit files.
 - Never claim pass without completing both code review and specialty aggregation.
 - Never modify code/config/plan files.
 - Keep findings evidence-based and actionable.
+- `user-perspective` is NOT part of this coalition — it is a dedicated downstream pipeline stage.

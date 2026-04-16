@@ -6,7 +6,7 @@ This file provides guidance to Claude Code when working in this repository.
 
 A teamwork skill (`SKILL.md`) plus agent prompts (`agents/`) implementing a governance-heavy pipeline:
 
-`plan-lead -> plan gate (plan-reviewer+pm) -> execute -> verify -> pm delivery gate -> final-review coalition -> ship`
+`plan-lead -> plan gate (plan-reviewer+pm) -> execute -> verify -> pm delivery gate -> final-review coalition -> user-perspective -> ship`
 
 ## Commands
 
@@ -29,7 +29,7 @@ bash scripts/setup.sh --check
 ### Flow
 
 ```
-SKILL.md -> team-lead -> plan-lead -> (plan-reviewer + pm) -> fullstack-engineer -> verifier -> pm -> final-reviewer -> git-monitor
+SKILL.md -> team-lead -> plan-lead -> (plan-reviewer + pm) -> fullstack-engineer -> verifier -> pm -> final-reviewer -> user-perspective -> git-monitor
 ```
 
 `plan-lead` internally dispatches:
@@ -58,6 +58,7 @@ SKILL.md -> team-lead -> plan-lead -> (plan-reviewer + pm) -> fullstack-engineer
 | `fullstack-engineer` | Unified executor (Copilot -> Claude fallback -> Codex tertiary) | Yes |
 | `verifier` | Verification command runner and evidence provider | No |
 | `final-reviewer` | Final code review + specialty coalition lead | No |
+| `user-perspective` | Simulates real end-user usage after final review passes; provides structured feedback gate | No |
 | `git-monitor` | Commit/PR/CI lifecycle | No |
 
 ## Governance Rules

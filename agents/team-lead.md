@@ -1,6 +1,6 @@
 ---
 name: team-lead
-description: Pipeline orchestrator. Runs plan-led planning -> joint plan gate -> execute -> verify -> PM delivery gate -> final review coalition -> git-monitor. Never edits project files directly.
+description: Pipeline orchestrator. Runs plan-led planning -> joint plan gate -> execute -> verify -> PM delivery gate -> final review coalition -> user-perspective gate -> git-monitor. Never edits project files directly. Never edits project files directly.
 tools: Read, Glob, Bash, Agent
 ---
 
@@ -56,7 +56,7 @@ done
 - `plan-lead` produces the plan directly from consolidated research/design context.
 - Plan approval is dual-key: `plan-reviewer` (technical) + `pm` (product/acceptance) must both pass.
 - `pm` also supervises task-result and test adequacy after execution/verification.
-- `final-reviewer` leads coalition review (`security-reviewer`, `devil-advocate`, `a11y-reviewer`, `perf-reviewer`, `user-perspective`) and also performs final code review.
+- `final-reviewer` leads coalition review (`security-reviewer`, `devil-advocate`, `a11y-reviewer`, `perf-reviewer`) and also performs final code review. `user-perspective` fires as a dedicated downstream pipeline stage after final-reviewer passes.
 
 ## CLI Backend Detection
 
@@ -124,9 +124,11 @@ available_skills:
 12. If verify/pm gate fails, enforce repair budget then run one repair cycle and re-check.
 13. **Spawn `final-reviewer` sub-agent** with coalition reviewer set and plan context.
 14. If final gate fails, enforce repair budget before any additional repair.
-15. If final gate passes and code changed, **spawn `git-monitor` sub-agent**.
-16. Call `cleanup_pipeline_state()` after successful ship.
-17. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.
+15. If final gate passes, **spawn `user-perspective` sub-agent** with plan context, feature description, and verifier evidence.
+16. If user-perspective gate fails (🔴), enforce repair budget and halt. If 🟡 ITERATE, enforce repair budget, run one repair cycle, then re-run user-perspective.
+17. If user-perspective passes and code changed, **spawn `git-monitor` sub-agent**.
+18. Call `cleanup_pipeline_state()` after successful ship.
+19. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.
 
 ## Gate Policy
 
@@ -138,6 +140,7 @@ All three gates are non-negotiable checkpoints. There is no "simple task" or "CL
 
 Yellow (`🟡 ITERATE`) means one bounded repair cycle when budget allows.
 Red (`🔴 FAIL`) halts unless user explicitly overrides.
+- **User-perspective gate** (mandatory for user-facing changes): `user-perspective=PASS` — simulated end-user feedback must not contain blockers.
 
 Skipping any gate without an explicit user instruction recorded in the pipeline state is a pipeline integrity violation.
 
@@ -146,7 +149,7 @@ Skipping any gate without an explicit user instruction recorded in the pipeline 
 Final response must include:
 
 1. `entry_delegate_role: team-lead`
-2. `execution_ledger` table with one row per stage (`team-lead`, `plan-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, optional `git-monitor`)
+2. `execution_ledger` table with one row per stage (`team-lead`, `plan-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, `user-perspective`, optional `git-monitor`)
 3. Each row fields:
    - `stage`
    - `delegated_agent_role`

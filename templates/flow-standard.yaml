@@ -1,6 +1,6 @@
 name: standard
-description: Plan-led pipeline with dual plan gate, PM delivery supervision, and coalition final review
-max_pipeline_steps: 16
+description: Plan-led pipeline with dual plan gate, PM delivery supervision, coalition final review, and user-perspective gate
+max_pipeline_steps: 18
 max_review_loops: 3
 red_behavior: halt
 nodes:
@@ -24,6 +24,10 @@ nodes:
   - id: final-review
     type: review
     label: "Final Review Coalition"
+  - id: user-perspective
+    type: review
+    label: "User Perspective Gate"
+    max_cycles: 1
   - id: ship
     type: gate
     label: "Ship"
@@ -54,9 +58,16 @@ edges:
     condition: "yellow"
     max_cycles: 1
   - from: final-review
-    to: ship
+    to: user-perspective
     condition: "green"
   - from: final-review
+    to: execute
+    condition: "yellow"
+    max_cycles: 1
+  - from: user-perspective
+    to: ship
+    condition: "green"
+  - from: user-perspective
     to: execute
     condition: "yellow"
     max_cycles: 1

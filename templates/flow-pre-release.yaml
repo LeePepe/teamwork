@@ -1,6 +1,6 @@
 name: pre-release
-description: Pre-release flow with stricter PM and final coalition gates
-max_pipeline_steps: 20
+description: Pre-release flow with stricter PM, final coalition gates, and mandatory user-perspective gate
+max_pipeline_steps: 22
 max_review_loops: 3
 red_behavior: halt
 nodes:
@@ -24,6 +24,10 @@ nodes:
   - id: final-review
     type: review
     label: "Final Review Coalition"
+    max_cycles: 2
+  - id: user-perspective
+    type: review
+    label: "User Perspective Gate"
     max_cycles: 2
   - id: ship
     type: gate
@@ -55,9 +59,16 @@ edges:
     condition: "yellow"
     max_cycles: 1
   - from: final-review
-    to: ship
+    to: user-perspective
     condition: "green"
   - from: final-review
+    to: execute
+    condition: "yellow"
+    max_cycles: 1
+  - from: user-perspective
+    to: ship
+    condition: "green"
+  - from: user-perspective
     to: execute
     condition: "yellow"
     max_cycles: 1
