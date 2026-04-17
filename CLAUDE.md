@@ -6,7 +6,7 @@ This file provides guidance to Claude Code when working in this repository.
 
 A teamwork skill (`SKILL.md`) plus agent prompts (`agents/`) implementing a governance-heavy pipeline:
 
-`plan-lead -> plan gate (plan-reviewer+pm) -> execute -> verify -> pm delivery gate -> final-review coalition -> user-perspective -> ship`
+`planner-lead -> plan gate (plan-reviewer+pm) -> execute -> verify -> pm delivery gate -> final-review coalition -> user-perspective -> ship`
 
 ## Commands
 
@@ -29,10 +29,10 @@ bash scripts/setup.sh --check
 ### Flow
 
 ```
-SKILL.md -> team-lead -> plan-lead -> (plan-reviewer + pm) -> fullstack-engineer -> verifier -> pm -> final-reviewer -> user-perspective -> git-monitor
+SKILL.md -> team-lead -> planner-lead -> (plan-reviewer + pm) -> fullstack-engineer -> verifier -> pm -> final-reviewer -> user-perspective -> git-monitor
 ```
 
-`plan-lead` internally dispatches:
+`planner-lead` internally dispatches:
 - `researcher` (scoped research)
 - `designer` (only when design output is required)
 - `linter` (strict layer-dependency lint contract + CI gate requirements)
@@ -49,10 +49,10 @@ SKILL.md -> team-lead -> plan-lead -> (plan-reviewer + pm) -> fullstack-engineer
 | Agent | Role | May modify project files? |
 |-------|------|--------------------------|
 | `team-lead` | Orchestrates entire pipeline | No |
-| `plan-lead` | Unified planning owner (research + design coordination + plan output) | Plan/design files only |
+| `planner-lead` | Unified planning owner (research + design coordination + plan output) | Plan/design files only |
 | `linter` | Defines strict architecture lint rules and diagnostic contract | No |
 | `researcher` | Scoped research worker | No |
-| `designer` | Design artifact specialist (dispatched by plan-lead) | Plan/design files only |
+| `designer` | Design artifact specialist (dispatched by planner-lead) | Plan/design files only |
 | `plan-reviewer` | Technical plan gate | Plan files only |
 | `pm` | Product plan gate + delivery supervision | No |
 | `fullstack-engineer` | Unified executor (Copilot -> Claude fallback -> Codex tertiary) | Yes |
@@ -83,7 +83,7 @@ Managed by `scripts/pipeline-lib.sh`:
 ## Important Paths
 
 - `agents/team-lead.md`
-- `agents/plan-lead.md`
+- `agents/planner-lead.md`
 - `agents/plan-reviewer.md`
 - `agents/pm.md`
 - `agents/final-reviewer.md`

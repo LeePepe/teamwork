@@ -14,7 +14,7 @@ from typing import Any
 
 
 MANDATORY_STAGES = [
-    "plan-lead",
+    "planner-lead",
     "plan-reviewer",
     "pm",
     "fullstack-engineer",

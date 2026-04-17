@@ -1,6 +1,6 @@
 # Agents
 
-This document describes the active agent topology after the plan-lead governance refactor.
+This document describes the active agent topology after the role consolidation refactor.
 
 ## Core Orchestration
 
@@ -12,16 +12,17 @@ This document describes the active agent topology after the plan-lead governance
 Owns stage transitions, gate policy, repair budget, and final summary.
 Must emit a stage-level execution ledger with per-stage role/model/tools/skills/status evidence and an explicit missing-evidence list.
 
-### plan-lead
+### planner-lead
 
-**Source**: `agents/plan-lead.md`  
+**Source**: `agents/planner-lead.md`  
 **Role**: Unified planning owner
 
-Combines research orchestration and planning into one role:
+Combines research orchestration, planning, and optional superpower skill invocation into one role:
 - dispatches `researcher`
 - dispatches `designer` when required
 - dispatches `linter` for strict architecture lint contracts
 - produces the plan directly
+- can invoke superpower skills (brainstorming, TDD, parallel dispatch) when enabled by team-lead
 
 ### linter
 
@@ -33,6 +34,22 @@ Defines deterministic lint policy for strict layered dependency enforcement:
 - lower layers cannot reverse-depend on upper layers
 - lint diagnostics must explain why the rule exists and how to fix violations
 - violations are CI-blocking regardless of human/AI code authorship
+
+## Research and Design
+
+### researcher
+
+**Source**: `agents/researcher.md`  
+**Role**: Scoped research worker
+
+Single-scope research agent dispatched by `planner-lead`. Gathers code context, API docs, or web research within a defined scope and returns a structured brief.
+
+### designer
+
+**Source**: `agents/designer.md`  
+**Role**: Design artifact specialist
+
+Dispatched by `planner-lead` when design output is required. Produces design documents, diagrams, and interface specifications.
 
 ## Planning and Governance Gates
 
@@ -97,7 +114,3 @@ Runs code review and orchestrates specialty reviewers:
 **Role**: Commit/PR/CI lifecycle
 
 Runs after final gate pass when code changed.
-
-## Legacy Roles
-
-`research-lead` and `planner` remain in `agents/` for compatibility/history but are superseded by `plan-lead` in the active pipeline.

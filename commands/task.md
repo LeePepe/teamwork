@@ -79,7 +79,7 @@ Routing preferences: <.claude/team.md or "use defaults">
 CLI availability: codex_available=<step1> copilot_available=<step1>
 Executor: fullstack-engineer (Copilot CLI → Claude-native → Codex tertiary fallback; all gates mandatory).
 Verification preferences: <.claude/team.md ## Verification or "use plan task verification">
-Planning policy: `plan-lead` may dispatch `designer` and `linter` before execution
+Planning policy: `planner-lead` may dispatch `designer` and `linter` before execution
 Model config: <from .claude/team.md ## Model Config, or "no model overrides">
 ```
 
@@ -100,7 +100,7 @@ Require `team-lead` final output to include:
 Before return: if Step 2.5 had `temp=true`, run `rm -f "<path>"`.
 
 Return:
-- plan-lead planning summary (`research_status`, `design_status`, `lint_contract_summary`)
+- planner-lead planning summary (`research_status`, `design_status`, `lint_contract_summary`)
 - fallback strategy + selected model (if Claude fallback)
 - plan path
 - plan gate result (`plan-reviewer` + `pm`)

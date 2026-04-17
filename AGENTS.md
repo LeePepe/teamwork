@@ -7,12 +7,11 @@ Agent definitions live in `agents/<name>.md`. For repo conventions, style rules,
 | Agent | Role | May Edit Files? | Source Path | Purpose |
 |-------|------|----------------|-------------|---------|
 | `team-lead` | Orchestration | No | `agents/team-lead.md` | Pipeline orchestrator; delegates to all other agents |
-| `plan-lead` | Planning | Plan/design files only | `agents/plan-lead.md` | Unified planning lead: orchestrates researcher/designer/linter and writes plan |
-| `planner` | Planning | Plan files only | `agents/planner.md` | Standalone planning agent; converts requirements into executable plan files; can invoke superpower skills when enabled by team-lead |
+| `planner-lead` | Planning | Plan/design files only | `agents/planner-lead.md` | Unified planning lead: orchestrates researcher/designer/linter and writes plan; can invoke superpower skills |
 | `linter` | Planning | No | `agents/linter.md` | Defines strict layered-dependency lint contract and CI blocking policy |
 | `researcher` | Research | No | `agents/researcher.md` | Single-scope code/web research worker |
 | `plan-reviewer` | Planning | Plan files only | `agents/plan-reviewer.md` | Reviews and gates plan quality |
-| `designer` | Design | Plan/design files only | `agents/designer.md` | Design specialist dispatched by `plan-lead` when required |
+| `designer` | Design | Plan/design files only | `agents/designer.md` | Design specialist dispatched by `planner-lead` when required |
 | `fullstack-engineer` | Execution | Yes | `agents/fullstack-engineer.md` | Unified executor — Codex → Copilot → Claude-native fallback |
 | `verifier` | Quality | No | `agents/verifier.md` | Runs post-execution verification commands |
 | `final-reviewer` | Quality | No | `agents/final-reviewer.md` | Leads specialty review coalition and performs final code review |

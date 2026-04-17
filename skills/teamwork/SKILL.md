@@ -31,7 +31,7 @@ Use teamwork to implement <feature>
 
 ```text
 team-lead
-  ├── plan-lead      → dispatches researcher/designer/linter, writes plan
+  ├── planner-lead      → dispatches researcher/designer/linter, writes plan
   │     ├── researcher(s) (parallel when useful)
   │     └── designer (only when design output required)
   │     └── linter (layered dependency lint contract)
@@ -83,7 +83,7 @@ Gate policy:
 ## Shipped Agents
 
 - `team-lead.md`
-- `plan-lead.md`
+- `planner-lead.md`
 - `linter.md`
 - `researcher.md`
 - `designer.md`

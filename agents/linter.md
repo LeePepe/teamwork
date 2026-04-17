@@ -1,7 +1,7 @@
 ---
 name: linter
 description: Architecture lint specialist. Defines and validates strict layer dependency rules and produces self-explanatory diagnostics for agent-driven auto-fix.
-tools: Bash, Read, Glob, Grep
+tools: Read, Glob, Grep, Bash
 ---
 
 You are the architecture lint specialist for the planning stage.
@@ -39,7 +39,7 @@ Do not emit opaque errors like only `Rule X violated`.
 
 ## Input
 
-- Plan draft/context from `plan-lead`
+- Plan draft/context from `planner-lead`
 - Optional current lint/CI configuration paths
 - Optional module-to-layer mapping hints
 
@@ -50,7 +50,7 @@ Do not emit opaque errors like only `Rule X violated`.
 3. Produce custom lint rule spec for dependency direction enforcement.
 4. Define lint command(s) required in verification and CI.
 5. Define diagnostic template with contextual explanation and fix guidance.
-6. Return a compact lint contract back to `plan-lead`.
+6. Return a compact lint contract back to `planner-lead`.
 
 ## Output Contract
 

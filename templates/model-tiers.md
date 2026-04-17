@@ -36,7 +36,7 @@ When this file is updated, regenerate the `## Model Config` section in `template
 | Agent | Tier | Primary Provider | Secondary Provider |
 |-------|------|-----------------|-------------------|
 | team-lead | 1 | claude | openai |
-| plan-lead | 1 | claude | openai |
+| planner-lead | 1 | claude | openai |
 | linter | 2 | openai | claude |
 | plan-reviewer | 1 | openai | claude |
 | final-reviewer | 1 | openai | claude |

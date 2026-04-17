@@ -11,7 +11,7 @@ The `fullstack-engineer` executor uses backend priority: Copilot → Claude-nati
         │
         ▼
    team-lead (orchestrates only — never modifies files directly)
-        ├── plan-lead → orchestrates researcher + designer + linter and writes plan directly
+        ├── planner-lead → orchestrates researcher + designer + linter and writes plan directly
         │    ├── researcher(s) → scoped parallel research workers
         │    └── designer      → design output when required
         │    └── linter        → layered dependency lint contract + CI gate
@@ -60,7 +60,7 @@ Fallback policy:
 - Copilot available: prioritize Copilot-backed role execution
 - Copilot unavailable: use Claude-native role execution
 - Codex is tertiary fallback (used when prior options are unavailable or explicitly disallowed)
-- Plan phase ownership: `plan-lead` owns research consolidation, design handoff, and plan generation
+- Plan phase ownership: `planner-lead` owns research consolidation, design handoff, and plan generation
 
 ## Install This Skill
 
@@ -105,13 +105,13 @@ Then restart Codex.
 Setup now uses a lightweight default:
 - Does not preload runtime agents by default
 - Loads agents progressively by stage from the skill bundle/plugin assets:
-  - planning stage: `plan-lead` (dispatches `researcher`, `designer`, `linter` when needed)
+  - planning stage: `planner-lead` (dispatches `researcher`, `designer`, `linter` when needed)
   - plan gate stage: `plan-reviewer` + `pm`
   - execution stage: `fullstack-engineer`, `verifier`, `pm`, `final-reviewer`, optional `git-monitor`
 
 Planning policy:
-- `plan-lead` consolidates scoped research and directly produces plan
-- `designer` is dispatched by `plan-lead` when design output is required
+- `planner-lead` consolidates scoped research and directly produces plan
+- `designer` is dispatched by `planner-lead` when design output is required
 - plan gate is dual-key: `plan-reviewer` (technical) + `pm` (product)
 
 Delivery policy:
@@ -226,7 +226,7 @@ default: adversarial-review
 Add repo-aware agent definitions to `.claude/agents/` in your repo:
 
 - `.claude/agents/fullstack-engineer.md` — unified executor, knows your project conventions and test setup
-- `.claude/agents/plan-lead.md` — unified planning owner (research + design + plan)
+- `.claude/agents/planner-lead.md` — unified planning owner (research + design + plan)
 - `.claude/agents/researcher.md` — gathers repo/external context and writes planning briefs
 - `.claude/agents/designer.md` — produces design plan artifacts for design-heavy requests
 - `.claude/agents/pm.md` — co-approves plan and supervises task/test delivery

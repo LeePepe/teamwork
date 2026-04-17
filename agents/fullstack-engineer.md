@@ -1,7 +1,7 @@
 ---
 name: fullstack-engineer
 description: Unified executor agent. Uses Copilot-first execution (CLI), then Claude-native, with Codex CLI as tertiary fallback. Handles all coding tasks regardless of complexity.
-tools: Bash, Read, Write, Glob, Grep
+tools: Read, Write, Glob, Grep, Bash
 ---
 
 You execute coding tasks using the best available backend. You never orchestrate other agents.

@@ -5,16 +5,16 @@ The teamwork pipeline is a directed graph that transforms a user task into shipp
 ## Stage Overview
 
 ```
-plan (plan-lead) -> plan-review (tech+pm) -> execute -> verify -> pm-review -> final-review -> ship
+plan (planner-lead) -> plan-review (tech+pm) -> execute -> verify -> pm-review -> final-review -> ship
 ```
 
 ## Stages
 
-### 1. Plan (Unified by `plan-lead`)
+### 1. Plan (Unified by `planner-lead`)
 
-**Primary agent**: `plan-lead`
+**Primary agent**: `planner-lead`
 
-`plan-lead` is the single owner of the planning phase:
+`planner-lead` is the single owner of the planning phase:
 - Dispatches `researcher` workers for scoped research (parallel when independent)
 - Consolidates findings
 - Dispatches `designer` when design output is required
@@ -121,7 +121,7 @@ Implemented by `scripts/pipeline-lib.sh`:
 `team-lead` final output must include:
 
 - `entry_delegate_role: team-lead`
-- `execution_ledger` with one row per stage (`team-lead`, `plan-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, optional `git-monitor`)
+- `execution_ledger` with one row per stage (`team-lead`, `planner-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, optional `git-monitor`)
 - Per-row fields: `stage`, `delegated_agent_role`, `agent_handle`, `status`, `model`, `tools`, `skills`, `evidence`
 - `missing_evidence` list (must be explicit; never silently omit unknowns)
 

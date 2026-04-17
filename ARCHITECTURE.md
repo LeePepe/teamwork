@@ -4,7 +4,7 @@
 
 ```
 team-lead
-  -> plan-lead (dispatches researcher/designer/linter, outputs plan)
+  -> planner-lead (dispatches researcher/designer/linter, outputs plan)
   -> plan gate: plan-reviewer + pm (both must pass)
   -> fullstack-engineer (execution)
   -> verifier (test/command evidence)
@@ -21,8 +21,8 @@ Default flow template (`standard`):
 
 | Stage | Entering Roles |
 |-------|----------------|
-| Plan | `plan-lead` (internally: `researcher`, optional `designer`) |
-| Plan Lint Contract | `linter` (dispatched by `plan-lead`) |
+| Plan | `planner-lead` (internally: `researcher`, optional `designer`) |
+| Plan Lint Contract | `linter` (dispatched by `planner-lead`) |
 | Plan Gate | `plan-reviewer`, `pm` |
 | Execute | `fullstack-engineer` |
 | Verify | `verifier` |
@@ -36,7 +36,7 @@ Default flow template (`standard`):
 |-----------|------|------|---------|
 | Skill entry | Skill | `SKILL.md` | Activates teamwork and delegates to `team-lead` |
 | Team orchestrator | Agent | `agents/team-lead.md` | Stage orchestration and gate control |
-| Unified planning | Agent | `agents/plan-lead.md` | Research/design coordination + plan generation |
+| Unified planning | Agent | `agents/planner-lead.md` | Research/design coordination + plan generation |
 | Planning lint specialist | Agent | `agents/linter.md` | Encodes strict layer dependency rules and lint diagnostics |
 | Technical plan gate | Agent | `agents/plan-reviewer.md` | Feasibility/dependency/risk review |
 | Product gate | Agent | `agents/pm.md` | Plan co-approval + delivery supervision |
@@ -64,7 +64,7 @@ Default flow template (`standard`):
 planning-team-skill/
 ├── agents/
 │   ├── team-lead.md
-│   ├── plan-lead.md
+│   ├── planner-lead.md
 │   ├── plan-reviewer.md
 │   ├── pm.md
 │   ├── fullstack-engineer.md

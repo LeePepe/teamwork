@@ -153,7 +153,7 @@ Add the new plugin to `## Routing Policy` → execution fallback table:
 
 If the new backend needs its own `executor:` annotation value in plan tasks, add it to:
 - The `## Plan File Format` section in `CLAUDE.md`
-- The `plan-lead.md` annotation guidance
+- The `planner-lead.md` annotation guidance
 - The `team-lead.md` routing policy
 
 Currently only two valid executor values are `codex` and `copilot`. Adding a third value requires updates in all places that parse `executor:` fields.
