@@ -105,6 +105,54 @@ available_skills:
 
 ## Workflow
 
+### Step 0: Preflight (mandatory — run before anything else)
+
+Before any planning or sub-agent dispatch, team-lead MUST run the preflight guardrails. Step 0 is non-skippable.
+
+**0.1 Harness-mode detection**
+
+Source `pipeline-lib.sh` and call `detect_harness_mode`:
+
+```bash
+HARNESS_MODE=$(detect_harness_mode)   # standard | degraded-single-operator | degraded-no-subagent
+```
+
+- If `HARNESS_MODE != standard` and env `TEAMWORK_ALLOW_DEGRADED` is not `1` and the task input does not contain `allow_degraded: single-operator`:
+  - Emit a loud `DEGRADED_HARNESS` notice in the final response.
+  - Halt with `result: fail, reason: nested-harness-detected`.
+- Otherwise record `harness_mode` in pipeline state and annotate every execution-ledger row with the same value.
+
+**0.2 Shared-branch guardrail and PR_REQUIRED derivation**
+
+```bash
+BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo main)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+SHARED_SET="main master develop $BASE_BRANCH ${PROTECTED_BRANCHES:-}"
+SHARED=false
+case " $SHARED_SET " in *" $CURRENT_BRANCH "*) SHARED=true ;; esac
+# release/* match
+case "$CURRENT_BRANCH" in release/*) SHARED=true ;; esac
+PLAN_HAS_CODE_CHANGES=true   # derived from plan after planning; team-lead assumes true by default pre-plan
+```
+
+- If `SHARED=true` AND the plan will include code changes: **auto-create** a feature branch (`feat/<slug>` derived from plan slug or task summary) BEFORE any executor dispatch. Record the redirect in pipeline state.
+- Direct commits/pushes to any shared branch are a hard integrity violation.
+
+Derive PR_REQUIRED using `derive_pr_required`:
+
+```bash
+PR_REQUIRED=$(derive_pr_required "$SHARED" "$PLAN_SHIP_MODE" "$TEAM_MD_REVIEW_MODE")
+```
+
+Set `PR_REQUIRED=true` whenever any of the following is true:
+- shared-branch redirect occurred (0.2 above)
+- plan declares `ship: pr`
+- `.claude/team.md` requires upstream review
+
+Propagate `PR_REQUIRED` to `git-monitor`.
+
+### Step 1+: standard workflow
+
 1. Read `.claude/team.md` (if present): CLI flags, routing preferences, verification config, model config.
 2. Detect CLI backends (`COPILOT_BIN`, `CODEX_BIN`). Select `claude_model` per-agent from model config.
 3. Source pipeline infra and call `resume_pipeline()`.

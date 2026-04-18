@@ -64,12 +64,19 @@ CODEX_BIN=$(which codex 2>/dev/null)
    - Run verification commands when specified
    - Confirm files compile/lint if applicable
 
-5. Report:
+5. Unit-test enforcement (HARD RULE):
+   - Tests ship with code in the SAME commit. Never defer tests to a later task.
+   - For every task whose type is not in `{docs, chore, config}`, produce at least one test file (new or modified) that exercises the code change.
+   - If you cannot write a viable test, return `status: fail, reason: ut-required` and stop — do NOT hand the task off to verifier to catch the gap.
+
+6. Report (HARD output contract):
    - Backend used (`copilot|claude-native|codex`)
    - `worktree_path`: absolute path to the worktree
    - `worktree_branch`: new branch created for this task
    - `task_branch`: original branch before worktree creation
    - Files changed (relative paths from repo root)
+   - `tests_added: [paths]`  — test files added this task (may be empty ONLY for `docs|chore|config`)
+   - `tests_run: {passed: N, failed: N, skipped: N}`  — the unit-test command results; `{0,0,0}` only when genuinely not runnable, with an explanation note
    - Verification commands run and outcomes
    - Unresolved risks or TODOs
 

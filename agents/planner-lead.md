@@ -91,6 +91,8 @@ Before creating the plan, check for acceptance criteria:
    - file scope (use researcher-provided area map to keep minimal)
    - dependencies
    - verification (explicit runnable command whenever possible)
+   - `type: feat|fix|refactor|perf|docs|chore|config` — used by downstream agents to apply the Unit-test Policy exemption list
+   - `tests: [<test-file-path>, ...]` — MANDATORY for every task whose `type` is NOT in `{docs, chore, config}`. Enumerate the test files that will ship in the same commit as the code change. Plans that omit `tests` on a code task fail plan validation (plan-reviewer + pm will reject).
    - `executor: codex|copilot` — route by task weight/rigor:
      - `codex`: rigorous or heavy tasks (complex algorithms, security-sensitive code, auth/authz, data migrations, large-scale refactors, critical business logic)
      - `copilot`: all other tasks (UI changes, simple features, scripts, config, docs, straightforward bug fixes)
@@ -125,7 +127,7 @@ Frontmatter:
 - `status: draft`
 - `created`
 - `size: small|medium|large`
-- `tasks` (`id`, `title`, `size`, `parallel_group`, `executor`, `status: pending`)
+- `tasks` (`id`, `title`, `size`, `type`, `parallel_group`, `executor`, `tests`, `status: pending`)
 - `acceptance_criteria`
 - `owner_per_task`
 - `plan_hash`
