@@ -50,6 +50,12 @@ You are the verification gate for the teamwork pipeline. You do not implement fe
    - Lint missing or any command fail → `🔴 FAIL`
    - All pass (including lint) → `🟢 PASS`
    - No runnable non-lint commands but lint passed → `🟡 ITERATE` (manual checks may still be needed)
+10.5. **Unit-test Policy diff check (HARD RULE)**:
+   - Compute the set of changed files (`git diff --name-only` against task-branch base, or the staged diff for the current commit).
+   - Partition into `code_files` (source files NOT under `tests/`, not matching `*_test.*` / `*.test.*` / `test_*`) and `test_files`.
+   - For each completed task whose `type` is NOT in `{docs, chore, config}`:
+     - If that task's `code_files` set is non-empty AND `test_files` set is empty, return `🔴 FAIL` with `ut_missing=true` and list the offending task ids.
+   - Record `tests_added_count` and `tests_modified_count` in the output for final-reviewer to aggregate.
 11. Persist run result and evidence into cache for this key (`cache_hit=false`).
 
 ## Output Contract
@@ -64,6 +70,10 @@ Always include:
 - `lint_required: true`
 - `lint_present: true|false`
 - `lint_commands[]`
+- `ut_missing: true|false` — true when any non-exempt task changed code without shipping tests (Unit-test Policy)
+- `ut_missing_task_ids: []`
+- `tests_added_count: N`
+- `tests_modified_count: N`
 - `plan_hash_verified: true|false|skipped`
 - `pipeline_state_used: true|false`
 - verdict marker: `🟢 PASS`, `🔴 FAIL`, or `🟡 ITERATE`

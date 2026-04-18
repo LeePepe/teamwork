@@ -27,6 +27,24 @@ Use teamwork to implement <feature>
 - Claude slash command: `/teamwork:setup`
 - CLI/Codex fallback: `bash scripts/setup.sh --repo` / `bash scripts/setup.sh --check`
 
+## Unit-test Policy (hard rule)
+
+Every plan task that adds or modifies executable code MUST ship tests in the SAME commit. This is a non-negotiable pipeline integrity rule. Enforcement is layered across five agents so that no single failure point can leak.
+
+Scope:
+- Task types `docs`, `chore`, and `config` are exempt.
+- All other tasks (`feat`, `fix`, `refactor`, `perf`) require at least one unit-test file added or modified alongside the code change.
+
+Agent contracts:
+
+- **`planner-lead`**: every code task in the plan MUST carry a `tests: [...]` field enumerating the test files that will ship with the code. Plans that omit `tests` on a code task FAIL plan validation.
+- **`fullstack-engineer`**: MUST self-fail with `status: fail, reason: ut-required` when `tests_added` is empty for a non-exempt task. Do NOT hand off to verifier to catch missing tests. Tests ship with code in the SAME commit — never defer tests to a later task. Output contract MUST include `tests_added: [paths]` and `tests_run: {passed, failed, skipped}`.
+- **`verifier`**: MUST fail the delivery gate when the diff shows new/modified source files with zero test counterparts in the same commit (task type override: `docs|chore|config`). A matching test counterpart is any file under `tests/`, or `*_test.*`, `*.test.*`, `test_*`.
+- **`final-reviewer`**: MUST record `tests_added: N, tests_modified: M` in the consolidated summary line.
+- **`git-monitor`**: pre-push check. If staged diff contains code changes and zero test files AND the task type is not exempt, refuse to push with `result: fail, reason: ut-missing-for-code-change`.
+
+Rationale: moving the UT check left (planner and executor) means failures surface in minutes, not at the final gate. Moving it right (verifier, final-reviewer, git-monitor) means defense-in-depth for the cases where earlier layers are bypassed.
+
 ## Pipeline
 
 ```text

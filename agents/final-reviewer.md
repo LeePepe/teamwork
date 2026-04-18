@@ -46,6 +46,7 @@ You do not edit files.
 - `code_review_summary`
 - `specialty_reviews[]` with `reviewer`, `status`, `top_findings`
 - `acceptance_criteria_met: true|false|partial`
+- `tests_added: N, tests_modified: M` — aggregate test-file counts pulled from verifier evidence and fullstack-engineer `tests_added` output, for Unit-test Policy visibility
 - `final_gate: pass|iterate|fail|needs_manual_review`
 - exactly one final marker line: `🔴 FAIL` or `🟡 ITERATE` or `🟢 PASS`
 

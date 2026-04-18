@@ -575,3 +575,45 @@ get_current_stage() {
   fi
   get_pipeline_field "$state_file" "current_stage"
 }
+
+# ── Harness Mode Detection ──────────────────────────────────────────────────
+# Prints one of: standard | degraded-single-operator | degraded-no-subagent
+# Heuristics (any trigger downgrades):
+#   - non-TTY stdin (e.g. `claude -p` piped) → degraded-single-operator
+#   - CLAUDE_P_NONINTERACTIVE env flag        → degraded-single-operator
+#   - CI env flag                             → degraded-single-operator
+#   - ALLOWED_TOOLS set but lacks "Agent"     → degraded-no-subagent
+# Override: TEAMWORK_ALLOW_DEGRADED=1 does NOT change the reported mode;
+#   callers (team-lead Step 0) decide whether to proceed anyway.
+detect_harness_mode() {
+  # Tool-list probe — most specific signal
+  if [ -n "${ALLOWED_TOOLS:-}" ]; then
+    case ",$ALLOWED_TOOLS," in
+      *,Agent,*) : ;;
+      *) echo "degraded-no-subagent"; return 0 ;;
+    esac
+  fi
+  # Non-interactive harness probes
+  if [ -n "${CLAUDE_P_NONINTERACTIVE:-}" ] || [ -n "${CI:-}" ] || [ ! -t 0 ]; then
+    echo "degraded-single-operator"
+    return 0
+  fi
+  echo "standard"
+}
+
+# ── Derive PR_REQUIRED ───────────────────────────────────────────────────────
+# Args: <shared_branch_bool> <plan_ship_mode> <team_md_review_mode>
+#   shared_branch_bool: "true"|"false"
+#   plan_ship_mode:     e.g. "pr"|"local"|"" (empty ok)
+#   team_md_review_mode: e.g. "pr"|"local"|"" (empty ok)
+# Prints "true" if any of: shared==true, plan==pr, team_md==pr; else "false".
+derive_pr_required() {
+  local shared="${1:-false}"
+  local plan_ship="${2:-}"
+  local team_review="${3:-}"
+  if [ "$shared" = "true" ] || [ "$plan_ship" = "pr" ] || [ "$team_review" = "pr" ]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}

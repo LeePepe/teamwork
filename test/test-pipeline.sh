@@ -357,6 +357,42 @@ assert_exit_code "0" "$RESULT" "10.2 setup.sh passes syntax check"
 # ═══════════════════════════════════════════════════════════════════════════════
 
 echo ""
+echo "=== Group 11: New Helpers (detect_harness_mode, derive_pr_required) ==="
+
+if [ -x "$SCRIPT_DIR/test-pipeline-lib.sh" ] || [ -f "$SCRIPT_DIR/test-pipeline-lib.sh" ]; then
+  if bash "$SCRIPT_DIR/test-pipeline-lib.sh" >/tmp/test-pipeline-lib.out 2>&1; then
+    PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1))
+    echo "  ✅ 11.1 test-pipeline-lib.sh passed"
+  else
+    FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1))
+    echo "  ❌ 11.1 test-pipeline-lib.sh failed — see /tmp/test-pipeline-lib.out"
+    cat /tmp/test-pipeline-lib.out | sed 's/^/      /'
+  fi
+else
+  FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1))
+  echo "  ❌ 11.1 test-pipeline-lib.sh not found"
+fi
+
+echo ""
+echo "=== Group 12: Retro Template Validator ==="
+
+if [ -f "$SCRIPT_DIR/test-retro-template.sh" ]; then
+  if bash "$SCRIPT_DIR/test-retro-template.sh" >/tmp/test-retro-template.out 2>&1; then
+    PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1))
+    echo "  ✅ 12.1 test-retro-template.sh self-test passed"
+  else
+    FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1))
+    echo "  ❌ 12.1 test-retro-template.sh self-test failed — see /tmp/test-retro-template.out"
+    cat /tmp/test-retro-template.out | sed 's/^/      /'
+  fi
+else
+  FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1))
+  echo "  ❌ 12.1 test-retro-template.sh not found"
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+
+echo ""
 echo "==============================="
 echo "Results: $PASS/$TOTAL passed, $FAIL failed"
 echo "==============================="

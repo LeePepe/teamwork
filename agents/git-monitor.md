@@ -68,13 +68,19 @@ fi
    c. Ensure `.claude/pipeline-state.json` is NOT included in the commit (it is ephemeral runtime state, not source code).
    d. If `.claude/plan/<slug>.md` has `status: approved` and all tasks are done, the plan file cleanup also applies (existing behavior from step 4).
 
-6. Create PR only when a remote exists — check first:
+6. PR creation policy (HARD RULE — respects `PR_REQUIRED` flag passed from team-lead Step 0):
 
 ```bash
 HAS_REMOTE=$(git remote 2>/dev/null | head -1)
 ```
 
-If `$HAS_REMOTE` is empty, skip PR creation, set `pr_url: null`, and add note `no remote configured`.
+**Shared-branch block (hard fail):** if `$CURRENT_BRANCH` is in `{main, master, develop}` or matches `release/*` or the detected default branch, HARD FAIL with `result: fail, reason: shared-branch-push-attempted`. Reference team-lead Step 0 in `notes`. Never push directly to a shared branch — team-lead must redirect into a feature branch in Step 0; if the worktree lands on a shared branch at this stage, this is a pipeline integrity violation.
+
+**Remote-required block (hard fail):** if `PR_REQUIRED=true` and `$HAS_REMOTE` is empty, HARD FAIL with `result: fail, reason: remote-required-missing`. Do NOT return ok. Do NOT silently skip PR creation.
+
+**Code-without-tests block (hard fail):** if the staged diff contains new/modified non-test source files AND contains no test files (no path under `tests/`, no `*_test.*`, no `*.test.*`, no `test_*`), AND the task type is not in `{docs, chore, config}`, HARD FAIL with `result: fail, reason: ut-missing-for-code-change`. Reference the Unit-test Policy hard rule in `notes`.
+
+If `PR_REQUIRED=false` and `$HAS_REMOTE` is empty, skip PR creation, set `pr_url: null`, and add note `no remote configured; PR not required`.
 
 Otherwise create PR using `gh` CLI targeting the detected base branch:
 
