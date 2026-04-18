@@ -68,7 +68,15 @@ fi
    c. Ensure `.claude/pipeline-state.json` is NOT included in the commit (it is ephemeral runtime state, not source code).
    d. If `.claude/plan/<slug>.md` has `status: approved` and all tasks are done, the plan file cleanup also applies (existing behavior from step 4).
 
-6. Create PR using `gh` CLI targeting the detected base branch:
+6. Create PR only when a remote exists — check first:
+
+```bash
+HAS_REMOTE=$(git remote 2>/dev/null | head -1)
+```
+
+If `$HAS_REMOTE` is empty, skip PR creation, set `pr_url: null`, and add note `no remote configured`.
+
+Otherwise create PR using `gh` CLI targeting the detected base branch:
 
 ```bash
 gh pr create \

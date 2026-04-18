@@ -106,7 +106,7 @@ The user wants the `planner` agent to be able to leverage these skills — invok
      - User explicitly requests "use superpowers" or "use skills" → always enable
      - Task involves creating plans for multi-phase features → enable
      - Simple single-file patches or docs-only changes → disable (keep planning lean)
-   - How to pass the flag: include `skill_invocation: enabled` and `available_skills: [list]` in the plan-lead/planner spawn input
+   - How to pass the flag: include `skill_invocation: enabled` and `available_skills: [list]` in the planner-lead spawn input
    - Default: disabled (lean planning) unless criteria above met
 
 **Verification:** Read the modified file and confirm section exists.
