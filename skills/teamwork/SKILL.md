@@ -61,13 +61,79 @@ Gate policy:
 - Delivery gate uses `verifier` evidence plus `pm(delivery-gate)` supervision.
 - Final gate is owned by `final-reviewer` consolidated verdict.
 
+## Preflight Guardrails (Mandatory)
+
+Team-lead MUST run these preflight checks before starting planning. Each failed check halts the pipeline unless the user provides an explicit override recorded in `.claude/pipeline-state.json`.
+
+### 1. Nested-harness / subagent-availability check
+
+Sub-agent dispatch fails silently when `team-lead` is invoked inside a non-interactive harness (e.g. `claude -p` with piped stdin, CI runners without the Agent tool, or nested spawn contexts where the inner invocation loses tool permissions). Left undetected, the pipeline collapses into single-operator inline execution and violates the "Never execute pipeline stages inline" hard rule.
+
+Detection (team-lead, at pipeline start):
+
+```bash
+# Heuristics — any one triggering means degraded mode likely
+NESTED_HARNESS=false
+[ ! -t 0 ]                          && NESTED_HARNESS=true    # non-TTY stdin (claude -p pipe)
+[ -n "$CLAUDE_P_NONINTERACTIVE" ]   && NESTED_HARNESS=true    # explicit flag
+[ -n "$CI" ]                        && NESTED_HARNESS=true    # CI runner
+# Tool availability probe — if the running agent cannot see "Agent" in its
+# granted tool list, it cannot spawn sub-agents.
+case ",$ALLOWED_TOOLS," in *,Agent,*) : ;; *) NESTED_HARNESS=true ;; esac
+```
+
+Required response:
+- **Default:** emit a loud `DEGRADED_HARNESS` notice to the final output and **halt**. Do not start planning. Return `result: fail, reason: nested-harness-detected`.
+- **User override:** only proceed when the user (or the invoking command) explicitly passes `allow_degraded: single-operator` in the task input. In that case, record the override in pipeline state, annotate every stage in the execution ledger with `harness_mode: degraded-single-operator`, and follow the documented degraded path (see below).
+- The final response and the persisted run log MUST include `harness_mode` so `teamwork-retro` can flag the run.
+
+Documented degraded single-operator path (only when user override granted):
+- Hard rules "Never edit project files" and "Never execute pipeline stages inline" are **explicitly waived for this run only**.
+- Every normally-spawned stage becomes an inline checklist item; the operator must still produce the same evidence the stage would have produced (plan artefact, verifier command output, etc.).
+- Gate decisions must be captured as explicit self-reviews against the same criteria; never mark a gate "pass" without recording the evidence inline.
+
+### 2. Shared-branch guardrail
+
+If the repo's current branch is the shared base (`main`, `master`, the detected default branch, or any branch listed in `PROTECTED_BRANCHES` / `team.md`), team-lead MUST NOT run execution stages that produce commits on that branch. Required action:
+
+```bash
+BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo main)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+SHARED_SET="main master $BASE_BRANCH ${PROTECTED_BRANCHES:-}"
+case " $SHARED_SET " in *" $CURRENT_BRANCH "*) SHARED=true ;; *) SHARED=false ;; esac
+```
+
+- If `SHARED=true`: instruct `fullstack-engineer` / `git-monitor` to **create a feature branch** (`<type>/<plan-slug>`) before any commit, and **never direct-push** to the shared base. The plan MUST declare branch+PR as the shipping mechanism.
+- A direct push to a shared base by any agent is a pipeline integrity violation, even when no remote protection rule exists locally.
+- User override: accept `allow_shared_branch_push: true` only when explicitly set in task input; record in state.
+
+### 3. Remote-required operations
+
+When the plan declares PR creation, or `team.md` requires upstream review, the absence of a git remote is a hard failure, not a silent skip.
+
+`git-monitor` contract:
+
+```bash
+HAS_REMOTE=$(git remote 2>/dev/null | head -1)
+if [ -z "$HAS_REMOTE" ] && [ "$PR_REQUIRED" = "true" ]; then
+  # FAIL — do not return ok
+  echo "result: fail, reason: remote-required-but-missing"
+  exit 1
+fi
+```
+
+- `PR_REQUIRED` is derived from the plan (explicit `ship: pr`) OR from shared-branch guardrail (Theme 2) OR from `.claude/team.md` review mode.
+- When `PR_REQUIRED=false` (e.g. solo repo, local-only ship), `git-monitor` may return `result: ok, pr_url: null, notes: "no remote configured; PR not required"`.
+- PM's delivery gate MUST reject a run whose plan required a PR but `git-monitor` returned no `pr_url`.
+
 ## Workflow
 
 1. Validate plugin readiness (Codex/Copilot optional).
 2. Read `.claude/team.md` for routing/review/verification/model overrides.
-3. Delegate immediately to `team-lead`.
-4. `team-lead` runs plan-led pipeline and returns evidence.
-5. Report outcome only; never implement directly in this skill entry.
+3. **Run Preflight Guardrails** (nested-harness, shared-branch, remote-required).
+4. Delegate immediately to `team-lead`.
+5. `team-lead` runs plan-led pipeline and returns evidence.
+6. Report outcome only; never implement directly in this skill entry.
 
 ## Hard Constraints
 
@@ -79,6 +145,9 @@ Gate policy:
 - Re-run gates after any code-changing repair.
 - Require `team-lead` final output to include stage-level execution ledger with `role/model/tools/skills/status/evidence`.
 - Never commit `.claude/pipeline-state.json`.
+- Final output MUST include `harness_mode` (`standard|degraded-single-operator|degraded-no-subagent`).
+- Never direct-push to a shared base branch; always branch+PR unless explicit user override is recorded.
+- `PR_REQUIRED` plans with no git remote are a git-monitor failure, not a silent skip.
 
 ## Shipped Agents
 
