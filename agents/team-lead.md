@@ -120,6 +120,18 @@ available_skills:
    - Proceed only when both return pass/green
 9. Verify plan hash and **spawn `fullstack-engineer` sub-agent(s)** by dependency/parallel group.
 10. **Spawn `verifier` sub-agent** with command set + completed tasks; require lint command evidence as mandatory.
+10.5. After verifier returns `🟢 PASS`: **merge each worktree back to the task branch and remove it**:
+
+```bash
+# For each fullstack-engineer output that returned a worktree_path/worktree_branch/task_branch:
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+git -C "$REPO_ROOT" checkout "$TASK_BRANCH"
+git -C "$REPO_ROOT" merge --no-ff "$WORKTREE_BRANCH" -m "chore: merge task worktree $WORKTREE_BRANCH into $TASK_BRANCH"
+git -C "$REPO_ROOT" worktree remove "$WORKTREE_PATH" --force
+git -C "$REPO_ROOT" branch -d "$WORKTREE_BRANCH" 2>/dev/null || true
+```
+
+If verifier fails, keep worktrees intact for the repair cycle; remove them only after the re-run passes.
 11. **Spawn `pm` sub-agent** for delivery supervision with execution evidence + verifier results.
 12. If verify/pm gate fails, enforce repair budget then run one repair cycle and re-check.
 13. **Spawn `final-reviewer` sub-agent** with coalition reviewer set and plan context.
