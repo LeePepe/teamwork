@@ -135,14 +135,103 @@ EOF
 PR_URL=$(gh pr view --json url -q .url)
 ```
 
-7. Check CI status and read open comments:
+7. Start PR monitor after PR URL is confirmed:
+
+Locate `pr-monitor.sh`:
 
 ```bash
-gh pr checks
-gh pr view --json comments -q '.comments[] | .body'
+PR_MONITOR=""
+for src in \
+  "$REPO_ROOT/scripts/pr-monitor.sh" \
+  "$REPO_ROOT/.claude/skills/teamwork/scripts/pr-monitor.sh" \
+  "$HOME/.claude/skills/teamwork/scripts/pr-monitor.sh" \
+  "$HOME/.claude/plugins/cache/teamwork/scripts/pr-monitor.sh"; do
+  [ -f "$src" ] && PR_MONITOR="$src" && break
+done
 ```
 
-8. Return structured result.
+Extract PR number from `$PR_URL`:
+
+```bash
+PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+```
+
+Start the monitor writing to a log file:
+
+```bash
+MONITOR_LOG="$REPO_ROOT/.claude/pr-monitor-${PR_NUMBER}.log"
+mkdir -p "$(dirname "$MONITOR_LOG")"
+nohup bash "$PR_MONITOR" "$PR_NUMBER" 60 7200 >> "$MONITOR_LOG" 2>&1 &
+MONITOR_PID=$!
+echo "[git-monitor] PR monitor started (PID $MONITOR_PID), log: $MONITOR_LOG"
+```
+
+Then **poll the log** at 60-second intervals (up to 30 minutes) watching for terminal events:
+
+```bash
+WATCH_ELAPSED=0
+WATCH_MAX=1800  # 30 min initial watch window before handing back to team-lead
+while [ "$WATCH_ELAPSED" -lt "$WATCH_MAX" ]; do
+  sleep 60
+  WATCH_ELAPSED=$((WATCH_ELAPSED + 60))
+  # Read any new events
+  NEW_EVENTS=$(tail -20 "$MONITOR_LOG" 2>/dev/null | grep -E '"event":"(ci_fail|ci_pass|comment|review_requested_changes|timeout|error)"' || true)
+  [ -z "$NEW_EVENTS" ] && continue
+
+  # Parse terminal events
+  HAS_FAIL=$(echo "$NEW_EVENTS"   | grep -c '"event":"ci_fail"'                  || true)
+  HAS_PASS=$(echo "$NEW_EVENTS"   | grep -c '"event":"ci_pass"'                  || true)
+  HAS_REVIEW=$(echo "$NEW_EVENTS" | grep -c '"event":"review_requested_changes"' || true)
+  HAS_COMMENT=$(echo "$NEW_EVENTS"| grep -c '"event":"comment"'                  || true)
+
+  if [ "$HAS_FAIL" -gt 0 ] || [ "$HAS_REVIEW" -gt 0 ]; then
+    # Actionable — break and report to team-lead
+    break
+  fi
+  if [ "$HAS_PASS" -gt 0 ] && [ "$HAS_COMMENT" -eq 0 ] && [ "$HAS_REVIEW" -eq 0 ]; then
+    echo "[git-monitor] CI passed, no blocking comments. Monitor continues in background."
+    break
+  fi
+done
+```
+
+8. Parse and report findings back to team-lead.
+
+After the watch loop, read the full log and extract events:
+
+```bash
+ALL_EVENTS=$(cat "$MONITOR_LOG" 2>/dev/null || true)
+
+CI_FAILURES=$(echo "$ALL_EVENTS" | grep '"event":"ci_fail"'                  | tail -1 || true)
+REVIEW_CHANGES=$(echo "$ALL_EVENTS" | grep '"event":"review_requested_changes"' || true)
+NEW_COMMENTS=$(echo "$ALL_EVENTS"   | grep '"event":"comment"'                  || true)
+CI_PASS=$(echo "$ALL_EVENTS"        | grep '"event":"ci_pass"'                  | tail -1 || true)
+```
+
+**Feedback contract to team-lead** — return a `pr_monitor_findings` block:
+
+```yaml
+pr_monitor_findings:
+  pr_url: <PR_URL>
+  pr_number: <PR_NUMBER>
+  monitor_log: <MONITOR_LOG path>
+  monitor_pid: <MONITOR_PID>
+  ci_status: pass|fail|pending|unknown
+  ci_failures: [<check names>]            # empty if none
+  review_changes_requested: true|false
+  review_comments: [<{author, body}>]     # empty if none
+  new_comments: [<{author, body}>]        # empty if none
+  action_required: true|false             # true if ci_fail OR review_changes_requested
+  recommended_action: fix_ci|address_review|none
+```
+
+If `action_required: true`, team-lead **must**:
+- Spawn `fullstack-engineer` targeting the specific failures/review feedback
+- Re-run `verifier`
+- Re-run `final-reviewer`
+- Re-spawn `git-monitor` to commit the fix and push to the same branch (PR updates automatically)
+
+If `action_required: false` (CI pass, no blocking review), return `result: ok` and leave monitor running in background.
 
 ## Output Contract
 
@@ -150,6 +239,7 @@ Always return:
 - `result: ok|fail`
 - `commit_sha` (or `null` if nothing to commit)
 - `pr_url` (or `null` if PR creation was skipped or failed)
+- `pr_monitor_findings` (see Step 8 above; `null` if no PR was created or monitor could not start)
 - `open_comments[]`
 - `ci_failures[]`
 - `notes`: any warnings or issues encountered

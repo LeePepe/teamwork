@@ -187,8 +187,22 @@ If verifier fails, keep worktrees intact for the repair cycle; remove them only 
 15. If final gate passes, **spawn `user-perspective` sub-agent** with plan context, feature description, and verifier evidence.
 16. If user-perspective gate fails (🔴), enforce repair budget and halt. If 🟡 ITERATE, enforce repair budget, spawn `fullstack-engineer` for one repair cycle targeting the reported UX findings, then re-spawn `user-perspective` to re-run automated tests. **Do not spawn `git-monitor` until user-perspective returns 🟢 PASS.**
 17. If user-perspective passes and code changed, **spawn `git-monitor` sub-agent**.
-18. Call `cleanup_pipeline_state()` after successful ship.
-19. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.
+18. **Process `pr_monitor_findings` from git-monitor** (mandatory when `pr_url` is non-null):
+
+   Read `action_required` from the returned `pr_monitor_findings`:
+
+   - If `action_required: false` (CI pass, no blocking review): proceed to step 19.
+   - If `action_required: true`:
+     a. Enforce repair budget via `enforce_repair_budget()`. If budget exhausted, halt with `result: fail, reason: repair-budget-exhausted-on-pr-feedback`.
+     b. Build a targeted repair brief from `ci_failures` + `review_changes_requested` + `review_comments`.
+     c. **Spawn `fullstack-engineer`** with the repair brief targeting the same branch.
+     d. **Spawn `verifier`** — require lint evidence. If fails, halt.
+     e. **Spawn `final-reviewer`** — coalition review. If fails, enforce budget and halt.
+     f. **Re-spawn `git-monitor`** — commit fix, push to same branch (PR updates automatically), re-start PR monitor.
+     g. Repeat from step 18 with the new `pr_monitor_findings`. Each cycle consumes one repair budget unit.
+
+19. Call `cleanup_pipeline_state()` after successful ship.
+20. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.
 
 ## Gate Policy
 
@@ -209,7 +223,7 @@ Skipping any gate without an explicit user instruction recorded in the pipeline 
 Final response must include:
 
 1. `entry_delegate_role: team-lead`
-   - `execution_ledger` table with one row per stage (`team-lead`, `planner-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, `user-perspective`, optional `git-monitor`)
+   - `execution_ledger` table with one row per stage (`team-lead`, `planner-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, `user-perspective`, optional `git-monitor`, optional `pr-monitor-repair`)
 3. Each row fields:
    - `stage`
    - `delegated_agent_role`
