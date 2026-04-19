@@ -1,5 +1,5 @@
 name: build-verify
-description: Compact full-gate flow (dual plan gate + verify + PM delivery + final review)
+description: Compact full-gate flow (dual plan gate + verify + PM delivery + final review + mandatory user-perspective)
 max_pipeline_steps: 14
 max_review_loops: 2
 red_behavior: halt
@@ -23,6 +23,10 @@ nodes:
   - id: final-review
     type: review
     label: "Final Review Coalition"
+  - id: user-perspective
+    type: review
+    label: "User Perspective Gate"
+    max_cycles: 1
   - id: ship
     type: gate
     label: "Ship"
@@ -53,9 +57,16 @@ edges:
     condition: "yellow"
     max_cycles: 1
   - from: final-review
-    to: ship
+    to: user-perspective
     condition: "green"
   - from: final-review
+    to: execute
+    condition: "yellow"
+    max_cycles: 1
+  - from: user-perspective
+    to: ship
+    condition: "green"
+  - from: user-perspective
     to: execute
     condition: "yellow"
     max_cycles: 1

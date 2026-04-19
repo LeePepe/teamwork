@@ -104,4 +104,6 @@ Managed by `scripts/pipeline-lib.sh`:
 When a requested change is complete and verification passes:
 - Bump version using the policy in `docs/extending.md` (`SKILL.md` + `.claude-plugin/plugin.json`).
 - Commit the changes with a Conventional Commit message.
-- Push to the current remote branch.
+- Push to the current remote branch and create a PR targeting the base branch.
+  - If `.git/hooks/post-commit` (teamwork hook) is installed, push and PR are automatic after commit.
+  - Otherwise run `git push` and `gh pr create` explicitly.

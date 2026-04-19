@@ -185,10 +185,28 @@ If verifier fails, keep worktrees intact for the repair cycle; remove them only 
 13. **Spawn `final-reviewer` sub-agent** with coalition reviewer set and plan context.
 14. If final gate fails, enforce repair budget before any additional repair.
 15. If final gate passes, **spawn `user-perspective` sub-agent** with plan context, feature description, and verifier evidence.
-16. If user-perspective gate fails (🔴), enforce repair budget and halt. If 🟡 ITERATE, enforce repair budget, run one repair cycle, then re-run user-perspective.
+16. If user-perspective gate fails (🔴), enforce repair budget and halt. If 🟡 ITERATE, enforce repair budget, spawn `fullstack-engineer` for one repair cycle targeting the reported UX findings, then re-spawn `user-perspective` to re-run automated tests. **Do not spawn `git-monitor` until user-perspective returns 🟢 PASS.**
 17. If user-perspective passes and code changed, **spawn `git-monitor` sub-agent**.
-18. Call `cleanup_pipeline_state()` after successful ship.
-19. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.
+18. **Process `pr_monitor_findings` from git-monitor** (mandatory when `pr_url` is non-null):
+
+   Read `action_required` from the returned `pr_monitor_findings`:
+
+   - If `action_required: false` (CI pass, no blocking review): proceed to step 19.
+   - If `action_required: true`:
+     a. Enforce repair budget via `enforce_repair_budget()`. If budget exhausted, halt with `result: fail, reason: repair-budget-exhausted-on-pr-feedback`.
+     b. **If `recommended_action: rebase`** (merge conflict detected):
+        - Run `git fetch origin <base>` then `git rebase origin/<base>` on the feature branch.
+        - Resolve any conflicts (spawn `fullstack-engineer` if conflict resolution requires code judgment).
+        - Force-push with `git push origin <branch> --force-with-lease`.
+        - Re-spawn `git-monitor` to restart PR monitor.
+     c. **If `recommended_action: fix_ci` or `address_review`**:
+        - Build a targeted repair brief from `ci_failures` + `review_comments`.
+        - Spawn `fullstack-engineer` → `verifier` → `final-reviewer`.
+        - Re-spawn `git-monitor` to commit fix, push, and restart monitor.
+     d. Repeat from step 18 with the new `pr_monitor_findings`. Each cycle consumes one repair budget unit.
+
+19. Call `cleanup_pipeline_state()` after successful ship.
+20. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.
 
 ## Gate Policy
 
@@ -200,7 +218,7 @@ All three gates are non-negotiable checkpoints. There is no "simple task" or "CL
 
 Yellow (`🟡 ITERATE`) means one bounded repair cycle when budget allows.
 Red (`🔴 FAIL`) halts unless user explicitly overrides.
-- **User-perspective gate** (mandatory for user-facing changes): `user-perspective=PASS` — simulated end-user feedback must not contain blockers.
+- **User-perspective gate** (mandatory — non-skippable on every pipeline run with code changes): `user-perspective=PASS` — automated UX testing (Playwright for web, XCUITest/apple-ui-tester for iOS/macOS) must pass without blockers. `git-monitor` is gated behind this verdict. 🟡 ITERATE triggers a `fullstack-engineer` repair cycle and user-perspective re-run. 🔴 FAIL halts the pipeline until user explicitly overrides.
 
 Skipping any gate without an explicit user instruction recorded in the pipeline state is a pipeline integrity violation.
 
@@ -209,7 +227,7 @@ Skipping any gate without an explicit user instruction recorded in the pipeline 
 Final response must include:
 
 1. `entry_delegate_role: team-lead`
-   - `execution_ledger` table with one row per stage (`team-lead`, `planner-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, `user-perspective`, optional `git-monitor`)
+   - `execution_ledger` table with one row per stage (`team-lead`, `planner-lead`, `plan-reviewer`, `pm(plan-gate)`, `fullstack-engineer`, `verifier`, `pm(delivery-gate)`, `final-reviewer`, `user-perspective`, optional `git-monitor`, optional `pr-monitor-repair`)
 3. Each row fields:
    - `stage`
    - `delegated_agent_role`
