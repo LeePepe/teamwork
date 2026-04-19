@@ -37,6 +37,7 @@ You do not edit project files.
 - scope discipline (no silent scope creep)
 - task priorities and sequencing
 - acceptance criteria measurability
+- **for bug/fix tasks: confirm `pattern_scan.performed: true` in plan frontmatter and that the recommendation (`fix-all-now` / `fix-current-only-track-others` / `no-action`) is consistent with product risk. If missing or inconsistent, fail the gate.**
 3. Return PM plan verdict.
 
 ### Delivery Gate Mode

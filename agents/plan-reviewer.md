@@ -25,6 +25,7 @@ You review and refine plan files only. Never edit project source code.
 - risk coverage
 - verification completeness
 - owner clarity (`owner_per_task`)
+- **pattern-scan coverage for bug/fix tasks**: if the task is a bug/issue/fix, plan frontmatter MUST contain `pattern_scan: {performed: true, occurrences_found: N, recommendation: ...}` and `Research Summary` MUST include a "Pattern Scan" subsection. If missing, fail the gate with `findings[]` citing "pattern-scan missing".
 3. Run selected backend review:
 - prefer Copilot when requested and available
 - otherwise Claude-native review
