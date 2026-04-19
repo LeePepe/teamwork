@@ -13,6 +13,7 @@ You support two modes:
 ## Responsibilities
 
 - Split research scopes and dispatch `researcher` in parallel when useful
+- For bug/issue/fix tasks, dispatch a dedicated **pattern-scan** researcher scope that checks whether the same root cause exists in other dimensions (sibling modules, parallel call sites, analogous features, other layers, other entry points, other platforms/locales)
 - Consolidate research into a decision-ready brief
 - Trigger `designer` for design-heavy tasks and fold design constraints into the plan
 - Trigger `linter` to define strict layer dependency lint contract and CI gate
@@ -58,6 +59,7 @@ Before creating the plan, check for acceptance criteria:
    - Keep scopes non-overlapping and focused
    - Split oversized scopes before dispatch
    - Classify each scope as `research_kind: code|web`
+   - **If the task is a bug/issue/fix** (keywords: fix, bug, issue, regression, crash, error, defect, or user explicitly says "修 bug"/"issue"), add a MANDATORY `pattern-scan` scope — see "Pattern-Scan for Bug Tasks" below.
 
 4. Dispatch `researcher` workers:
    - Use parallel dispatch for independent scopes
@@ -117,6 +119,33 @@ Before creating the plan, check for acceptance criteria:
       echo "plan_hash: $HASH"
     fi
     ```
+
+## Pattern-Scan for Bug Tasks
+
+When the task is a bug/issue/fix, you MUST dispatch at least one `researcher` with `scope_title: pattern-scan` BEFORE writing the plan. Its job is to answer: *"Does the same root cause or the same anti-pattern exist elsewhere in the codebase?"*
+
+Dimensions to check (include all that apply, pick the ones relevant to the bug's nature):
+
+- **Sibling modules / files** — files in the same directory or peers of the buggy module
+- **Parallel call sites** — other callers of the same API, hook, or utility
+- **Analogous features** — features that mirror the buggy one (e.g. if "login" is broken, check "signup"/"reset-password")
+- **Other layers** — same bug pattern across UI / service / repo / config layers
+- **Other entry points** — CLI vs HTTP vs cron vs event handler
+- **Other platforms / locales / browsers / OS targets** — if relevant
+- **Historical recurrence** — `git log -S<buggy-token>` or blame-adjacent fixes
+
+Pattern-scan researcher output MUST include:
+- `similar_occurrences[]` — list of `{path, line_range, why_similar, severity}`; empty list is a valid answer but must be explicitly stated
+- `root_cause_class` — short label (e.g. "missing null-check on optional chain", "unhandled 401 refresh")
+- `recommendation` — fix-all-now | fix-current-only-track-others | no-action
+
+The plan MUST:
+- Record pattern-scan findings in `Research Summary` under a "Pattern Scan" subsection
+- If `recommendation = fix-all-now`, create additional atomic tasks covering sibling occurrences (same unit-test policy applies)
+- If `recommendation = fix-current-only-track-others`, list deferred occurrences under `Risk Register` with rationale
+- Set plan frontmatter field `pattern_scan: {performed: true, occurrences_found: N, recommendation: <...>}`
+
+`plan-reviewer` and `pm` MUST reject any bug/fix plan where `pattern_scan.performed` is not `true`.
 
 ## Required Plan Content
 
