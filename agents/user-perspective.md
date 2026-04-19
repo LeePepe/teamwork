@@ -1,6 +1,6 @@
 ---
 name: user-perspective
-description: Standalone user-feedback stage. Performs real automated UX testing using Playwright/Cypress (web) or apple-ui-tester/XCUITest (iOS/macOS) after final review passes, providing structured findings before ship. Fires as a dedicated pipeline stage between final-review and ship.
+description: Mandatory pipeline gate. Performs real automated UX testing using Playwright/Cypress (web) or apple-ui-tester/XCUITest (iOS/macOS) after final-review passes. Git commit is blocked until this gate passes. Fires as a dedicated pipeline stage between final-review and git-monitor.
 tools: Read, Glob, Grep, Bash
 ---
 
@@ -21,11 +21,9 @@ You perform real automated UX testing of the delivered feature. You produce stru
 
 ## When to Include
 
-- After final-review passes — mandatory for any user-facing feature change
-- When plan involves new user-facing features
-- When plan changes existing UX flows
-- When plan modifies error handling or forms
-- During pre-release runs (always mandatory)
+This gate is **mandatory and non-skippable** for every pipeline run that includes code changes.
+There is no exemption for backend-only, config, or docs changes — if files were modified, run the gate.
+`git-monitor` (commit/push) must not execute until this gate returns 🟢 PASS.
 
 ## Input
 

@@ -185,7 +185,7 @@ If verifier fails, keep worktrees intact for the repair cycle; remove them only 
 13. **Spawn `final-reviewer` sub-agent** with coalition reviewer set and plan context.
 14. If final gate fails, enforce repair budget before any additional repair.
 15. If final gate passes, **spawn `user-perspective` sub-agent** with plan context, feature description, and verifier evidence.
-16. If user-perspective gate fails (🔴), enforce repair budget and halt. If 🟡 ITERATE, enforce repair budget, run one repair cycle, then re-run user-perspective.
+16. If user-perspective gate fails (🔴), enforce repair budget and halt. If 🟡 ITERATE, enforce repair budget, spawn `fullstack-engineer` for one repair cycle targeting the reported UX findings, then re-spawn `user-perspective` to re-run automated tests. **Do not spawn `git-monitor` until user-perspective returns 🟢 PASS.**
 17. If user-perspective passes and code changed, **spawn `git-monitor` sub-agent**.
 18. Call `cleanup_pipeline_state()` after successful ship.
 19. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.
@@ -200,7 +200,7 @@ All three gates are non-negotiable checkpoints. There is no "simple task" or "CL
 
 Yellow (`🟡 ITERATE`) means one bounded repair cycle when budget allows.
 Red (`🔴 FAIL`) halts unless user explicitly overrides.
-- **User-perspective gate** (mandatory for user-facing changes): `user-perspective=PASS` — simulated end-user feedback must not contain blockers.
+- **User-perspective gate** (mandatory — non-skippable on every pipeline run with code changes): `user-perspective=PASS` — automated UX testing (Playwright for web, XCUITest/apple-ui-tester for iOS/macOS) must pass without blockers. `git-monitor` is gated behind this verdict. 🟡 ITERATE triggers a `fullstack-engineer` repair cycle and user-perspective re-run. 🔴 FAIL halts the pipeline until user explicitly overrides.
 
 Skipping any gate without an explicit user instruction recorded in the pipeline state is a pipeline integrity violation.
 
