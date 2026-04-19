@@ -194,12 +194,16 @@ If verifier fails, keep worktrees intact for the repair cycle; remove them only 
    - If `action_required: false` (CI pass, no blocking review): proceed to step 19.
    - If `action_required: true`:
      a. Enforce repair budget via `enforce_repair_budget()`. If budget exhausted, halt with `result: fail, reason: repair-budget-exhausted-on-pr-feedback`.
-     b. Build a targeted repair brief from `ci_failures` + `review_changes_requested` + `review_comments`.
-     c. **Spawn `fullstack-engineer`** with the repair brief targeting the same branch.
-     d. **Spawn `verifier`** — require lint evidence. If fails, halt.
-     e. **Spawn `final-reviewer`** — coalition review. If fails, enforce budget and halt.
-     f. **Re-spawn `git-monitor`** — commit fix, push to same branch (PR updates automatically), re-start PR monitor.
-     g. Repeat from step 18 with the new `pr_monitor_findings`. Each cycle consumes one repair budget unit.
+     b. **If `recommended_action: rebase`** (merge conflict detected):
+        - Run `git fetch origin <base>` then `git rebase origin/<base>` on the feature branch.
+        - Resolve any conflicts (spawn `fullstack-engineer` if conflict resolution requires code judgment).
+        - Force-push with `git push origin <branch> --force-with-lease`.
+        - Re-spawn `git-monitor` to restart PR monitor.
+     c. **If `recommended_action: fix_ci` or `address_review`**:
+        - Build a targeted repair brief from `ci_failures` + `review_comments`.
+        - Spawn `fullstack-engineer` → `verifier` → `final-reviewer`.
+        - Re-spawn `git-monitor` to commit fix, push, and restart monitor.
+     d. Repeat from step 18 with the new `pr_monitor_findings`. Each cycle consumes one repair budget unit.
 
 19. Call `cleanup_pipeline_state()` after successful ship.
 20. Return final summary with mandatory execution evidence contract (see below): planning results, gate outcomes, verification evidence, final verdict, ship status.

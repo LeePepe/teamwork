@@ -47,6 +47,19 @@ _json_escape() {
 }
 
 while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
+  # --- Merge conflict check ---
+  MERGE_STATUS=$(gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus \
+    --jq '[.mergeable,.mergeStateStatus] | join("|")' 2>/dev/null || true)
+  MERGEABLE=$(echo "$MERGE_STATUS" | cut -d'|' -f1)
+  MERGE_STATE=$(echo "$MERGE_STATUS" | cut -d'|' -f2)
+
+  if [ "$MERGEABLE" = "CONFLICTING" ] || [ "$MERGE_STATE" = "DIRTY" ]; then
+    BASE=$(gh pr view "$PR_NUMBER" --json baseRefName --jq '.baseRefName' 2>/dev/null || echo "main")
+    echo "{\"event\":\"merge_conflict\",\"pr\":$PR_NUMBER,\"mergeable\":\"$MERGEABLE\",\"merge_state\":\"$MERGE_STATE\",\"base\":\"$BASE\"}"
+    # Conflict is actionable — exit so team-lead can rebase immediately
+    exit 0
+  fi
+
   # --- CI checks ---
   SHA=$(gh pr view "$PR_NUMBER" --json headRefOid --jq '.headRefOid' 2>/dev/null || true)
 

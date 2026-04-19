@@ -179,12 +179,13 @@ while [ "$WATCH_ELAPSED" -lt "$WATCH_MAX" ]; do
   [ -z "$NEW_EVENTS" ] && continue
 
   # Parse terminal events
-  HAS_FAIL=$(echo "$NEW_EVENTS"   | grep -c '"event":"ci_fail"'                  || true)
-  HAS_PASS=$(echo "$NEW_EVENTS"   | grep -c '"event":"ci_pass"'                  || true)
-  HAS_REVIEW=$(echo "$NEW_EVENTS" | grep -c '"event":"review_requested_changes"' || true)
-  HAS_COMMENT=$(echo "$NEW_EVENTS"| grep -c '"event":"comment"'                  || true)
+  HAS_FAIL=$(echo "$NEW_EVENTS"     | grep -c '"event":"ci_fail"'                  || true)
+  HAS_PASS=$(echo "$NEW_EVENTS"     | grep -c '"event":"ci_pass"'                  || true)
+  HAS_REVIEW=$(echo "$NEW_EVENTS"   | grep -c '"event":"review_requested_changes"' || true)
+  HAS_COMMENT=$(echo "$NEW_EVENTS"  | grep -c '"event":"comment"'                  || true)
+  HAS_CONFLICT=$(echo "$NEW_EVENTS" | grep -c '"event":"merge_conflict"'           || true)
 
-  if [ "$HAS_FAIL" -gt 0 ] || [ "$HAS_REVIEW" -gt 0 ]; then
+  if [ "$HAS_FAIL" -gt 0 ] || [ "$HAS_REVIEW" -gt 0 ] || [ "$HAS_CONFLICT" -gt 0 ]; then
     # Actionable — break and report to team-lead
     break
   fi
@@ -221,8 +222,8 @@ pr_monitor_findings:
   review_changes_requested: true|false
   review_comments: [<{author, body}>]     # empty if none
   new_comments: [<{author, body}>]        # empty if none
-  action_required: true|false             # true if ci_fail OR review_changes_requested
-  recommended_action: fix_ci|address_review|none
+  action_required: true|false             # true if ci_fail OR review_changes_requested OR merge_conflict
+  recommended_action: fix_ci|address_review|rebase|none
 ```
 
 If `action_required: true`, team-lead **must**:
