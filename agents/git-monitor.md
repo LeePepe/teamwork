@@ -20,6 +20,36 @@ You run after `final-reviewer` passes and handle git/PR lifecycle tasks.
    - `CLAUDE.md` for commit/PR format guidance
    - Default: Conventional Commits (`type: short imperative summary`)
 
+1.5. Ensure post-commit hook is installed:
+
+```bash
+HOOK_DEST="$REPO_ROOT/.git/hooks/post-commit"
+HOOK_SRC=""
+for src in \
+  "$REPO_ROOT/scripts/post-commit-hook.sh" \
+  "$REPO_ROOT/.claude/skills/teamwork/scripts/post-commit-hook.sh" \
+  "$HOME/.claude/skills/teamwork/scripts/post-commit-hook.sh" \
+  "$HOME/.claude/plugins/cache/teamwork/scripts/post-commit-hook.sh"; do
+  [ -f "$src" ] && HOOK_SRC="$src" && break
+done
+
+if [ -n "$HOOK_SRC" ]; then
+  if [ ! -f "$HOOK_DEST" ]; then
+    cp "$HOOK_SRC" "$HOOK_DEST" && chmod +x "$HOOK_DEST"
+    # log: hook_installed: true
+  elif ! grep -q "teamwork post-commit" "$HOOK_DEST" 2>/dev/null; then
+    # Non-teamwork hook exists — do not overwrite; log a warning in notes
+    # log: hook_installed: false, reason: existing-non-teamwork-hook
+    true
+  fi
+  # else: already installed — no action
+fi
+```
+
+If hook is installed it will auto-push and auto-create PR after `git commit`.
+Skip manual push/PR steps below only when hook installation was confirmed (to avoid double-push).
+Proceed with manual push/PR if hook was NOT installed or `HOOK_SRC` was empty.
+
 2. Detect project info:
 
 ```bash

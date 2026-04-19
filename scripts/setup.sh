@@ -109,6 +109,14 @@ print('  \033[0;32m✓\033[0m copilot-local registered' if 'copilot-local' in m 
   if [ -n "$REPO_ROOT" ]; then
     echo "Repo config:"
     [ -f "$TEAM_MD" ] && ok "  .claude/team.md present" || warn "  .claude/team.md missing (run setup to create)"
+    HOOK_DEST="$REPO_ROOT/.git/hooks/post-commit"
+    if [ -f "$HOOK_DEST" ] && grep -q "teamwork post-commit" "$HOOK_DEST" 2>/dev/null; then
+      ok "  .git/hooks/post-commit installed (teamwork auto push+PR)"
+    elif [ -f "$HOOK_DEST" ]; then
+      warn "  .git/hooks/post-commit exists but is not a teamwork hook"
+    else
+      warn "  .git/hooks/post-commit missing (run setup --repo to install)"
+    fi
   fi
 
   echo ""
@@ -177,6 +185,27 @@ if [ "$MODE" = "repo" ] && [ -n "$REPO_ROOT" ] && [ ! -f "$TEAM_MD" ]; then
     info "Edit it to customize executor routing, review mode, and verification commands."
   else
     warn "Template not found: $TEAM_TEMPLATE"
+  fi
+fi
+
+# Install post-commit hook (repo mode only)
+if [ "$MODE" = "repo" ] && [ -n "$REPO_ROOT" ]; then
+  HOOK_SRC="$PLUGIN_ROOT/scripts/post-commit-hook.sh"
+  if [ ! -f "$HOOK_SRC" ] && [ -f "$SCRIPT_ROOT/scripts/post-commit-hook.sh" ]; then
+    HOOK_SRC="$SCRIPT_ROOT/scripts/post-commit-hook.sh"
+  fi
+  HOOK_DEST="$REPO_ROOT/.git/hooks/post-commit"
+  echo ""
+  echo "Installing post-commit hook:"
+  if [ ! -f "$HOOK_SRC" ]; then
+    warn "  post-commit-hook.sh not found — skipping hook installation."
+  elif [ -f "$HOOK_DEST" ] && ! grep -q "teamwork post-commit" "$HOOK_DEST" 2>/dev/null; then
+    warn "  .git/hooks/post-commit already exists and is not a teamwork hook — skipping to avoid overwrite."
+    info "  To install manually: append contents of scripts/post-commit-hook.sh to .git/hooks/post-commit"
+  else
+    cp "$HOOK_SRC" "$HOOK_DEST"
+    chmod +x "$HOOK_DEST"
+    ok "  Installed .git/hooks/post-commit (auto push + PR)"
   fi
 fi
 
