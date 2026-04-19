@@ -10,6 +10,15 @@
 
 set -euo pipefail
 
+# Skip during rebase, merge, cherry-pick — hook fires on each replayed commit
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+if [ -d "${REPO_ROOT}/.git/rebase-merge" ] || \
+   [ -d "${REPO_ROOT}/.git/rebase-apply" ] || \
+   [ -f "${REPO_ROOT}/.git/MERGE_HEAD" ]   || \
+   [ -f "${REPO_ROOT}/.git/CHERRY_PICK_HEAD" ]; then
+  exit 0
+fi
+
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null \
   | sed 's|refs/remotes/origin/||' || echo "main")
@@ -30,7 +39,7 @@ if [ -z "$HAS_REMOTE" ]; then
 fi
 
 # Push
-git push origin "$CURRENT_BRANCH" || {
+git push origin "$CURRENT_BRANCH:refs/heads/$CURRENT_BRANCH" || {
   echo "[teamwork post-commit] WARNING: push failed — skipping PR creation." >&2
   exit 0
 }
