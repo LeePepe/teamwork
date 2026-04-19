@@ -105,3 +105,4 @@ When a requested change is complete and verification passes:
 - Bump version using the policy in `docs/extending.md` (`SKILL.md` + `.claude-plugin/plugin.json`).
 - Commit the changes with a Conventional Commit message.
 - Push to the current remote branch.
+- Create a PR targeting the base branch (use `gh pr create`).
