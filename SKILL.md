@@ -116,3 +116,4 @@ Gate policy:
 - `a11y-reviewer.md`
 - `perf-reviewer.md`
 - `user-perspective.md`
+- `docs-auditor.md`

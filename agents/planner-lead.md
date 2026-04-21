@@ -71,6 +71,11 @@ Before creating the plan, check for acceptance criteria:
    - Record unresolved assumptions explicitly
    - Keep only planning-relevant evidence
 
+5.5. Optional docs-audit dispatch:
+   - If `docs_audit: true` is set in task input or `.claude/team.md`, dispatch `docs-auditor` to scan for documentation-code drift.
+   - Incorporate critical and high findings from the drift report as `type: docs` tasks in the plan.
+   - This step is skipped by default unless explicitly enabled.
+
 6. If `mode=probe`, do not write a plan file. Return:
    - `readiness: ready|needs_more_research`
    - `missing_scopes[]` with `scope_title`, `research_kind`, `question`, optional `key_paths`

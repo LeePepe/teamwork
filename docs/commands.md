@@ -233,3 +233,39 @@ Jumps to a specific node in the current flow graph.
 6. Reports the new current position with flow visualization
 
 Jumping backward is allowed but resets completed status of intermediate nodes. Use with caution — skipping stages may produce incomplete results.
+
+---
+
+## /teamwork:docs-audit
+
+**File**: `commands/docs-audit.md`  
+**Argument**: `[--fix] [--category <category>]` (optional)
+
+Scans the repository for documentation-code drift and produces a structured report. Optionally fixes critical and high findings via team-lead delegation.
+
+### Usage
+
+```
+/teamwork:docs-audit                              # full scan, report only
+/teamwork:docs-audit --fix                         # scan + auto-fix critical/high findings
+/teamwork:docs-audit --category agent_inventory    # scan only agent inventory drift
+/teamwork:docs-audit --category cross_file --fix   # scan cross-file consistency + fix
+```
+
+### Available Categories
+
+| Category | What It Checks |
+|----------|---------------|
+| `agent_inventory` | AGENTS.md table vs actual agent files |
+| `skill_pipeline` | SKILL.md pipeline diagram vs team-lead workflow |
+| `docs_content` | docs/*.md references vs actual codebase paths |
+| `readme` | README.md and CLAUDE.md vs current features/architecture |
+| `command_docs` | commands/*.md vs docs/commands.md entries |
+| `template_config` | templates/team.md and model-tiers.md vs agent inventory |
+| `cross_file` | Pipeline/gate consistency across SKILL.md, team-lead.md, CLAUDE.md, docs/pipeline.md |
+
+### Steps
+
+1. **Spawn docs-auditor** — runs the drift scan and returns a structured YAML report with findings by severity.
+2. **Report** (default) — returns the drift report to the user.
+3. **Fix mode** (`--fix`) — if critical or high findings exist, spawns `team-lead` to create and execute doc-fix tasks. All fix tasks use type `docs` (exempt from unit-test requirement). Code behavior is never changed — only documentation is updated.

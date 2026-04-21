@@ -22,6 +22,7 @@ Agent definitions live in `agents/<name>.md`. For repo conventions, style rules,
 | `a11y-reviewer` | Quality | No | `agents/a11y-reviewer.md` | Accessibility review; WCAG compliance checks |
 | `perf-reviewer` | Quality | No | `agents/perf-reviewer.md` | Performance review; identifies bottlenecks and scalability risks |
 | `user-perspective` | Advisory | No | `agents/user-perspective.md` | End-user advocate; evaluates UX quality |
+| `docs-auditor` | Quality | No | `agents/docs-auditor.md` | Documentation-code drift auditor; scans for inconsistencies |
 
 ## Validation
 
