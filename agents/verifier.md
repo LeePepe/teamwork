@@ -56,6 +56,12 @@ You are the verification gate for the teamwork pipeline. You do not implement fe
    - For each completed task whose `type` is NOT in `{docs, chore, config}`:
      - If that task's `code_files` set is non-empty AND `test_files` set is empty, return `🔴 FAIL` with `ut_missing=true` and list the offending task ids.
    - Record `tests_added_count` and `tests_modified_count` in the output for final-reviewer to aggregate.
+10.6. **Documentation Policy diff check**:
+   - For each completed task whose `type` is `feat`:
+     - If the diff contains no doc files (`docs/*.md`, `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`), return `🔴 FAIL` with `docs_missing=true` and list the offending task ids.
+   - For each completed task whose `type` is `fix` or `refactor`:
+     - If the diff contains no doc files, record `docs_missing_warn=true` (non-blocking).
+   - Record `docs_updated_count` in the output for final-reviewer to aggregate.
 11. Persist run result and evidence into cache for this key (`cache_hit=false`).
 
 ## Output Contract

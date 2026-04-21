@@ -94,8 +94,9 @@ Before creating the plan, check for acceptance criteria:
    - dependencies
    - verification (explicit runnable command whenever possible)
    - `type: feat|fix|refactor|perf|docs|chore|config` — used by downstream agents to apply the Unit-test Policy exemption list
-   - `tests: [<test-file-path>, ...]` — MANDATORY for every task whose `type` is NOT in `{docs, chore, config}`. Enumerate the test files that will ship in the same commit as the code change. Plans that omit `tests` on a code task fail plan validation (plan-reviewer + pm will reject).
-   - `executor: codex|copilot` — route by task weight/rigor:
+  - `tests: [<test-file-path>, ...]` — MANDATORY for every task whose `type` is NOT in `{docs, chore, config}`. Enumerate the test files that will ship in the same commit as the code change. Plans that omit `tests` on a code task fail plan validation (plan-reviewer + pm will reject).
+  - `docs: [<doc-file-path>, ...]` — MANDATORY for every task whose `type` is `feat`. Enumerate the doc files (`docs/*.md`, `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`) to be created or updated in the same commit. Plans that omit `docs` on a `feat` task fail plan validation. For `fix`/`refactor` tasks, include `docs` when behavior changes are user-visible (omission is a warning, not a block).
+  - `executor: codex|copilot` — route by task weight/rigor:
      - `codex`: rigorous or heavy tasks (complex algorithms, security-sensitive code, auth/authz, data migrations, large-scale refactors, critical business logic)
      - `copilot`: all other tasks (UI changes, simple features, scripts, config, docs, straightforward bug fixes)
    - `parallel_group` for parallel-safe tasks

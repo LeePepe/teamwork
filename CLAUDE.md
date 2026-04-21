@@ -67,6 +67,7 @@ SKILL.md -> team-lead -> planner-lead -> (plan-reviewer + pm) -> fullstack-engin
 - `verifier` evidence + `pm` delivery supervision gate execution readiness.
 - Lint check is mandatory in verifier and CI gate.
 - `final-reviewer` owns final consolidated verdict.
+- Documentation Policy: `feat` tasks must ship doc updates in the same commit (hard block); `fix`/`refactor` get a warning if docs are missing.
 - Layered dependency baseline: `Types -> Config -> Repo -> Service -> Runtime -> UI`; lower layers cannot reverse-depend on upper layers.
 - Any code-changing repair invalidates prior gate evidence.
 - Automatic repair budget is bounded (single cycle unless user overrides).

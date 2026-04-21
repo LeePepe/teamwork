@@ -27,6 +27,25 @@ Use teamwork to implement <feature>
 - Claude slash command: `/teamwork:setup`
 - CLI/Codex fallback: `bash scripts/setup.sh --repo` / `bash scripts/setup.sh --check`
 
+## Documentation Policy (hard rule for `feat`, warn for `fix|refactor`)
+
+Code changes that introduce new user-visible behavior, agents, commands, or configuration MUST ship documentation updates in the SAME commit. This ensures docs never drift behind the implementation.
+
+Scope:
+- `feat` tasks: HARD — missing docs blocks the pipeline.
+- `fix` and `refactor` tasks: WARN — final-reviewer flags but does not block.
+- `perf`, `docs`, `chore`, `config` tasks: exempt.
+
+"Docs" means repository-level markdown: `docs/*.md`, `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`, command/skill descriptions. Inline code comments and JSDoc do not count.
+
+Agent contracts:
+
+- **`planner-lead`**: every `feat` task MUST carry a `docs: [...]` field. Plans that omit `docs` on a `feat` task FAIL plan validation.
+- **`fullstack-engineer`**: for `feat` tasks, MUST update doc files in the same commit. Output includes `docs_updated: [paths]`.
+- **`verifier`**: for `feat` tasks, missing doc files in the diff → `🔴 FAIL`. For `fix`/`refactor` → `docs_missing_warn=true` (non-blocking).
+- **`final-reviewer`**: records `docs_updated: N`. Flags `fix`/`refactor` without doc updates as findings.
+- **`git-monitor`**: for `feat` tasks, no doc files in staged diff → HARD FAIL.
+
 ## Pipeline
 
 ```text
