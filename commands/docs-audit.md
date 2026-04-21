@@ -1,30 +1,35 @@
 ---
-description: Scan the repository for documentation-code drift and produce a structured report with actionable fix suggestions.
-argument-hint: "[--fix] [--category agent_inventory|skill_pipeline|docs_content|readme|command_docs|template_config|cross_file]"
+description: Scan the repository for documentation-code drift and auto-fix findings via team-lead delegation.
+argument-hint: "[--category agent_inventory|skill_pipeline|docs_content|readme|command_docs|template_config|cross_file] [--dry-run]"
 allowed-tools: Bash, Agent
 ---
 
 If `${ARGUMENTS}` contains `--help`, return:
-> `/teamwork:docs-audit` — scan for doc-code drift
+> `/teamwork:docs-audit` — scan for doc-code drift and auto-fix
 > Options:
->   `--fix` — after audit, spawn team-lead to fix critical+high findings
+>   `--dry-run` — report only, do not fix
 >   `--category <cat>` — limit scan to one drift category
->   (no args) — full scan, report only
+>   (no args) — full scan + auto-fix critical/high findings
 
 ## Step 1 — Parse Arguments
 
 ```bash
-FIX_MODE=false
+DRY_RUN=false
 CATEGORY=""
+PREV=""
 for arg in ${ARGUMENTS}; do
   case "$arg" in
-    --fix) FIX_MODE=true ;;
-    --category) : ;; # next arg is the value
-    agent_inventory|skill_pipeline|docs_content|readme|command_docs|template_config|cross_file)
-      CATEGORY="$arg" ;;
+    --dry-run) DRY_RUN=true ;;
+    --category) PREV="category" ;;
+    *)
+      if [ "$PREV" = "category" ]; then
+        CATEGORY="$arg"
+        PREV=""
+      fi
+      ;;
   esac
 done
-echo "fix=$FIX_MODE category=${CATEGORY:-all}"
+echo "dry_run=$DRY_RUN category=${CATEGORY:-all}"
 ```
 
 ## Step 2 — Ensure docs-auditor Agent Exists
@@ -69,15 +74,9 @@ Return a structured drift report per your output contract.
 
 Wait for completion. Capture the drift report.
 
-## Step 4 — Report or Fix
+## Step 4 — Auto-fix or Report
 
-If `FIX_MODE=false`:
-- Return the drift report directly to the user.
-- **Persist the report** for tracking: write it to `.claude/docs-audit-latest.yaml` (overwrite previous).
-- Include a summary line: `Run /teamwork:docs-audit --fix to auto-fix critical and high findings.`
-- Medium/low findings remain in the persisted report for future reference. Subsequent scans overwrite the file, so deferred items that are still unresolved will reappear.
-
-If `FIX_MODE=true` AND the report has critical or high findings:
+If the report has critical or high findings AND `DRY_RUN=false`:
 - Ensure `team-lead` exists (same as task.md Step 2.5).
 - Spawn `team-lead` with:
 
@@ -91,14 +90,18 @@ Instructions:
 - Create plan tasks ONLY for critical and high severity findings.
 - Each task type is `docs` (exempt from unit-test requirement).
 - Do not change code behavior — only update documentation to match current code.
-- Skip medium and low findings (report them as deferred).
+- Medium and low findings: list in plan as deferred follow-ups.
+- Commit message prefix: `docs: fix drift —`
 ```
 
 - Wait for `team-lead` completion.
-- Return the combined audit + fix report.
+- Return combined summary: N findings fixed, M deferred.
 
-If `FIX_MODE=true` AND no critical/high findings:
-- Return: `No critical or high drift findings. N medium/low items deferred.`
+If the report has NO critical/high findings:
+- Return: `No critical or high drift findings. N medium/low items noted.`
+
+If `DRY_RUN=true`:
+- Return the drift report directly without fixing.
 
 ## Step 5 — Cleanup
 
