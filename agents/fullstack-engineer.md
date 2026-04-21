@@ -69,7 +69,12 @@ CODEX_BIN=$(which codex 2>/dev/null)
    - For every task whose type is not in `{docs, chore, config}`, produce at least one test file (new or modified) that exercises the code change.
    - If you cannot write a viable test, return `status: fail, reason: ut-required` and stop — do NOT hand the task off to verifier to catch the gap.
 
-6. Report (HARD output contract):
+6. Documentation enforcement:
+   - For `feat` tasks: docs ship with code in the SAME commit. Update the doc files listed in the plan's `docs` field.
+   - If docs cannot be written, return `status: fail, reason: docs-required` and stop.
+   - For `fix`/`refactor` tasks: update docs when behavior changes are user-visible (best-effort, not blocking).
+
+7. Report (HARD output contract):
    - Backend used (`copilot|claude-native|codex`)
    - `worktree_path`: absolute path to the worktree
    - `worktree_branch`: new branch created for this task
@@ -77,6 +82,7 @@ CODEX_BIN=$(which codex 2>/dev/null)
    - Files changed (relative paths from repo root)
    - `tests_added: [paths]`  — test files added this task (may be empty ONLY for `docs|chore|config`)
    - `tests_run: {passed: N, failed: N, skipped: N}`  — the unit-test command results; `{0,0,0}` only when genuinely not runnable, with an explanation note
+   - `docs_updated: [paths]`  — doc files updated this task (may be empty ONLY for exempt types: `fix|refactor|perf|docs|chore|config`)
    - Verification commands run and outcomes
    - Unresolved risks or TODOs
 

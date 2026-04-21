@@ -110,6 +110,8 @@ HAS_REMOTE=$(git remote 2>/dev/null | head -1)
 
 **Code-without-tests block (hard fail):** if the staged diff contains new/modified non-test source files AND contains no test files (no path under `tests/`, no `*_test.*`, no `*.test.*`, no `test_*`), AND the task type is not in `{docs, chore, config}`, HARD FAIL with `result: fail, reason: ut-missing-for-code-change`. Reference the Unit-test Policy hard rule in `notes`.
 
+**Docs-without-feat block (hard fail):** if the task type is `feat` AND the staged diff contains no doc files (no path under `docs/`, no `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`), HARD FAIL with `result: fail, reason: docs-missing-for-feat`. Reference the Documentation Policy hard rule in `notes`.
+
 If `PR_REQUIRED=false` and `$HAS_REMOTE` is empty, skip PR creation, set `pr_url: null`, and add note `no remote configured; PR not required`.
 
 Otherwise create PR using `gh` CLI targeting the detected base branch:

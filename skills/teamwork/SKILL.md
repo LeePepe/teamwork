@@ -45,6 +45,25 @@ Agent contracts:
 
 Rationale: moving the UT check left (planner and executor) means failures surface in minutes, not at the final gate. Moving it right (verifier, final-reviewer, git-monitor) means defense-in-depth for the cases where earlier layers are bypassed.
 
+## Documentation Policy (hard rule for `feat`, warn for `fix|refactor`)
+
+Code changes that introduce new user-visible behavior, agents, commands, or configuration MUST ship documentation updates in the SAME commit. This ensures docs never drift behind the implementation.
+
+Scope:
+- `feat` tasks: HARD — missing docs blocks the pipeline.
+- `fix` and `refactor` tasks: WARN — final-reviewer flags but does not block.
+- `perf`, `docs`, `chore`, `config` tasks: exempt.
+
+"Docs" means repository-level markdown: `docs/*.md`, `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`, command/skill descriptions. Inline code comments and JSDoc do not count.
+
+Agent contracts:
+
+- **`planner-lead`**: every `feat` task in the plan MUST carry a `docs: [<doc-file-path>, ...]` field listing the documentation files to be created or updated. Plans that omit `docs` on a `feat` task FAIL plan validation. `fix`/`refactor` tasks SHOULD include `docs` when behavior changes are user-visible, but omission is a warning, not a block.
+- **`fullstack-engineer`**: for `feat` tasks, MUST update the listed doc files in the same commit as the code. If docs cannot be written, return `status: fail, reason: docs-required`. Output contract MUST include `docs_updated: [paths]` (may be empty ONLY for exempt types).
+- **`verifier`**: for completed `feat` tasks, check that at least one doc file (`docs/*.md`, `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`) is in the diff. If missing, return `🔴 FAIL` with `docs_missing=true`. For `fix`/`refactor` tasks with no doc changes, emit `docs_missing_warn=true` (non-blocking).
+- **`final-reviewer`**: record `docs_updated: N` in the consolidated summary. Flag `fix`/`refactor` tasks that changed user-visible behavior without doc updates as review findings.
+- **`git-monitor`**: for `feat` tasks, if staged diff contains no doc files, HARD FAIL with `result: fail, reason: docs-missing-for-feat`. Reference the Documentation Policy in `notes`.
+
 ## Pipeline
 
 ```text

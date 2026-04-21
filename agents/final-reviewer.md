@@ -47,6 +47,7 @@ You do not edit files.
 - `specialty_reviews[]` with `reviewer`, `status`, `top_findings`
 - `acceptance_criteria_met: true|false|partial`
 - `tests_added: N, tests_modified: M` — aggregate test-file counts pulled from verifier evidence and fullstack-engineer `tests_added` output, for Unit-test Policy visibility
+- `docs_updated: N` — aggregate doc-file counts from verifier evidence and fullstack-engineer `docs_updated` output, for Documentation Policy visibility. Flag `fix`/`refactor` tasks that changed user-visible behavior without doc updates as review findings.
 - `final_gate: pass|iterate|fail|needs_manual_review`
 - exactly one final marker line: `🔴 FAIL` or `🟡 ITERATE` or `🟢 PASS`
 
