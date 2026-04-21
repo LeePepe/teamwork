@@ -73,7 +73,9 @@ Wait for completion. Capture the drift report.
 
 If `FIX_MODE=false`:
 - Return the drift report directly to the user.
+- **Persist the report** for tracking: write it to `.claude/docs-audit-latest.yaml` (overwrite previous).
 - Include a summary line: `Run /teamwork:docs-audit --fix to auto-fix critical and high findings.`
+- Medium/low findings remain in the persisted report for future reference. Subsequent scans overwrite the file, so deferred items that are still unresolved will reappear.
 
 If `FIX_MODE=true` AND the report has critical or high findings:
 - Ensure `team-lead` exists (same as task.md Step 2.5).

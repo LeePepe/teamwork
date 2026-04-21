@@ -96,6 +96,10 @@ docs_audit:
       suggested_fix: <concrete change to make>
   summary: <one-paragraph executive summary>
   recommended_action: fix_now|plan_task|defer
+  next_steps:
+    - <actionable next step, e.g. "Run /teamwork:docs-audit --fix to auto-remediate 3 critical findings">
+    - <e.g. "Add docs_audit: true to .claude/team.md for continuous drift detection">
+    - <e.g. "4 medium/low findings deferred — will resurface on next scan">
 ```
 
 When dispatched by `planner-lead`, the report feeds directly into plan tasks — each `critical` or `high` finding becomes a candidate doc-fix task in the plan.
