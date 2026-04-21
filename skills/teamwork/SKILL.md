@@ -61,9 +61,9 @@ team-lead
   │     ├── security-reviewer
   │     ├── devil-advocate
   │     ├── a11y-reviewer
-  │     ├── perf-reviewer
-  │     └── user-perspective
-  └── git-monitor    → optional commit/PR/CI monitoring
+  │     └── perf-reviewer
+  ├── user-perspective → mandatory real UX testing gate (Playwright/XCUITest)
+  └── git-monitor    → commit/PR/CI monitoring (only after user-perspective passes)
 ```
 
 ## Stage Model
@@ -71,13 +71,14 @@ team-lead
 Default (`standard`):
 
 ```
-plan -> plan-review -> execute -> verify -> pm-review -> final-review -> ship
+plan -> plan-review -> execute -> verify -> pm-review -> final-review -> user-perspective -> ship
 ```
 
 Gate policy:
 - Plan gate passes only when `plan-reviewer` and `pm(plan-gate)` are both pass.
 - Delivery gate uses `verifier` evidence plus `pm(delivery-gate)` supervision.
 - Final gate is owned by `final-reviewer` consolidated verdict.
+- **User-perspective gate** (mandatory — non-skippable): real automated UX testing via Playwright (web) or XCUITest/apple-ui-tester (iOS/macOS). `git-monitor` is blocked until this gate passes. If 🟡 ITERATE, `fullstack-engineer` repairs and the gate re-runs. If 🔴 FAIL, pipeline halts.
 
 ## Preflight Guardrails (Mandatory)
 
@@ -158,7 +159,7 @@ fi
 - Skill entry must not edit files.
 - Always delegate to `team-lead` for real work.
 - Do not run independent post-delegation verification in the entry handler.
-- Require plan gate, verification, PM delivery gate, and final-review gate unless user explicitly overrides.
+- Require plan gate, verification, PM delivery gate, final-review gate, and user-perspective gate unless user explicitly overrides.
 - Enforce bounded repair loops (single automatic repair budget).
 - Re-run gates after any code-changing repair.
 - Require `team-lead` final output to include stage-level execution ledger with `role/model/tools/skills/status/evidence`.
