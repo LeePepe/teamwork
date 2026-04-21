@@ -26,7 +26,7 @@
 - **Delivered:** Lokikit telemetry both stacks, additive SQLite migration for `owner_type`, personal-repo tracking, cross-repo prompt aggregator agent + `Insights` route.
 - **Verification:** 14/14 pytest, vite build clean, `from main import app` OK (21 routes).
 - **Git:** Single commit `8a8c990` on `main`; **no remote → push & PR skipped**.
-- **Notable risk:** PII (`tianpli@microsoft.com`) baked into aggregator defaults; Pydantic v2 deprecation; `print()` not caught until final review (no PostToolUse lint hook ran).
+- **Notable risk:** PII (`user@example.com`) baked into aggregator defaults; Pydantic v2 deprecation; `print()` not caught until final review (no PostToolUse lint hook ran).
 
 ### D — soe / MacMetric
 - **Mode:** Inline pipeline; SwiftPM target.

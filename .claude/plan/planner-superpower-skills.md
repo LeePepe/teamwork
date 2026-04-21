@@ -1,6 +1,6 @@
 ---
 title: "Enable planner to use superpower skills with team-lead decision"
-project: /Users/tianpli/Development/planning-team-skill
+project: $HOME/Development/planning-team-skill
 branch: main
 status: draft
 created: "2026-04-15"
