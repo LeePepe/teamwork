@@ -18,6 +18,8 @@ You perform real automated UX testing of the delivered feature. You produce stru
 - Default value reasonableness
 - Undo/redo support
 - Help and documentation discoverability
+- **Visual regression** (theme/layout drift detection via screenshot baselines)
+- **Color contrast / WCAG AA** (axe-core automated audits)
 
 ## When to Include
 
@@ -84,6 +86,33 @@ grep -E 'iOS|macOS|ios|tvos|watchos' Package.swift 2>/dev/null | head -5
    - All tests pass → findings list may still include enhancement notes from test output
 
 5. **No runner found** → fall back to simulation (Step 4).
+
+6. **Theme / visual regression sub-gate (web-only, mandatory when any UI files changed)**:
+
+   Visible UX bugs like "page switches theme mid-navigation", "white text on pink button (contrast 2.2)", or "dark card on white background" are invisible to pure user-flow tests but catastrophic for real users. Two automated checks catch this class cheaply:
+
+   a. **axe-core contrast audit** — every route the app exposes must be loaded and scanned:
+      ```ts
+      import AxeBuilder from '@axe-core/playwright';
+      const results = await new AxeBuilder({ page }).withTags(['wcag2aa']).analyze();
+      const contrast = results.violations.filter(v =>
+        v.id === 'color-contrast' || v.id === 'color-contrast-enhanced');
+      expect(contrast).toEqual([]);
+      ```
+      Any `color-contrast` violation with `impact: 'serious'` or `'critical'` → **blocker** (broken readability).
+      `impact: 'moderate'` → **major**. `impact: 'minor'` → **minor**.
+
+   b. **Visual snapshot regression** — `expect(page).toHaveScreenshot()` per route, full-page, with animations disabled and live timestamps hidden. Diff above `maxDiffPixelRatio: 0.02` → **major** (theme drift, layout regression) unless the plan explicitly updates baselines (`test:e2e:update`), in which case record the intent in findings.
+
+   c. **Theme-lock assertion** — if the project declared a single-theme policy (e.g. dark-only), assert `document.documentElement.getAttribute('data-theme')` matches and scan stylesheets for forbidden selectors (e.g. `:root[data-theme='light']`). Any leak → **blocker**.
+
+   Auto-scaffold if missing: when `package.json` has React/Vue/Svelte but no `@playwright/test`, emit a finding `severity: major, issue: "no visual+a11y test harness"` and include the install recipe below in `improvement`:
+   ```bash
+   npm i -D @playwright/test @axe-core/playwright
+   npx playwright install chromium
+   # add tests/visual.spec.ts + tests/a11y.spec.ts (see references/visual-a11y-template.md)
+   ```
+   This finding alone should NOT block shipping a backend-only change, but MUST block shipping a UI change.
 
 ---
 
@@ -168,8 +197,14 @@ grep -E 'iOS|macOS|ios|tvos|watchos' Package.swift 2>/dev/null | head -5
 | Bridge unreachable | major | iterate |
 | Blocker eval failure | blocker | fail |
 | User-flow/journey test failure (web) | blocker | fail |
+| axe color-contrast violation (serious/critical) | blocker | fail |
+| Theme-lock leak (forbidden light/dark rules, wrong `data-theme`) | blocker | fail |
+| Visual snapshot diff above threshold (UI change, no baseline update) | major | iterate |
+| axe color-contrast violation (moderate) | major | iterate |
+| Missing visual+a11y harness on UI-touching change | major | iterate |
 | Other test / eval failure | major | iterate |
 | Warnings / minor eval failures | minor | pass |
+| axe color-contrast violation (minor) | minor | pass |
 | Console errors (non-fatal) | minor | pass |
 | All checks pass | — | pass |
 

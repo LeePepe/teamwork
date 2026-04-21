@@ -1,7 +1,7 @@
 {
   "name": "teamwork",
   "description": "Use for explicit teamwork orchestration requests (/teamwork:task, /teamwork:mapping-repo, or \"use teamwork\"). Delegates to team-lead for plan-led execution with gated review and verification.",
-  "version": "0.17.5",
+  "version": "0.18.0",
   "author": {
     "name": "LeePepe"
   },
