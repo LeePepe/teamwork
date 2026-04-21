@@ -1,6 +1,6 @@
 ---
 title: "Delete plan file after successful git commit"
-project: /Users/tianpli/Development/planning-team-skill
+project: $HOME/Development/planning-team-skill
 branch: main
 status: approved
 created: 2026-04-13
@@ -42,7 +42,7 @@ After `git-monitor` successfully commits code and confirms all plan tasks have `
 
 ### T1 — Add plan-file deletion step to git-monitor.md
 
-File: `/Users/tianpli/Development/planning-team-skill/agents/git-monitor.md`
+File: `$HOME/Development/planning-team-skill/agents/git-monitor.md`
 
 After step 3 (commit + push) and before step 5 (CI check), insert a new step 4:
 
@@ -66,7 +66,7 @@ Add constraint: if plan deletion fails, log a warning but do not fail the overal
 
 ### T2 — Update team-lead.md step 19
 
-File: `/Users/tianpli/Development/planning-team-skill/agents/team-lead.md`
+File: `$HOME/Development/planning-team-skill/agents/team-lead.md`
 
 In step 19, update the git-monitor bullet:
 - Before: "`git-monitor` stages changes, commits, creates PR to base branch, and monitors CI/comments"
@@ -75,14 +75,14 @@ In step 19, update the git-monitor bullet:
 ### T3 — Bump version to 0.5.5
 
 Files:
-- `/Users/tianpli/Development/planning-team-skill/skills/teamwork/SKILL.md`: change `version: "0.5.4"` → `version: "0.5.5"`
-- `/Users/tianpli/Development/planning-team-skill/.claude-plugin/plugin.json`: change `"version": "0.5.4"` → `"version": "0.5.5"`
+- `$HOME/Development/planning-team-skill/skills/teamwork/SKILL.md`: change `version: "0.5.4"` → `version: "0.5.5"`
+- `$HOME/Development/planning-team-skill/.claude-plugin/plugin.json`: change `"version": "0.5.4"` → `"version": "0.5.5"`
 
 ### T4 — Sync installed agent copies (depends on T1, T2)
 
 Run:
 ```bash
-bash /Users/tianpli/Development/planning-team-skill/scripts/setup.sh --repo
+bash $HOME/Development/planning-team-skill/scripts/setup.sh --repo
 ```
 
 This propagates the edited `agents/git-monitor.md` and `agents/team-lead.md` to `.claude/agents/`.
@@ -90,9 +90,9 @@ This propagates the edited `agents/git-monitor.md` and `agents/team-lead.md` to 
 ## Verification
 
 ```bash
-bash -n /Users/tianpli/Development/planning-team-skill/scripts/setup.sh
-grep -q 'plan_deleted' /Users/tianpli/Development/planning-team-skill/agents/git-monitor.md
-grep -q '0.5.5' /Users/tianpli/Development/planning-team-skill/skills/teamwork/SKILL.md
-grep -q '0.5.5' /Users/tianpli/Development/planning-team-skill/.claude-plugin/plugin.json
-diff /Users/tianpli/Development/planning-team-skill/agents/git-monitor.md /Users/tianpli/Development/planning-team-skill/.claude/agents/git-monitor.md
+bash -n $HOME/Development/planning-team-skill/scripts/setup.sh
+grep -q 'plan_deleted' $HOME/Development/planning-team-skill/agents/git-monitor.md
+grep -q '0.5.5' $HOME/Development/planning-team-skill/skills/teamwork/SKILL.md
+grep -q '0.5.5' $HOME/Development/planning-team-skill/.claude-plugin/plugin.json
+diff $HOME/Development/planning-team-skill/agents/git-monitor.md $HOME/Development/planning-team-skill/.claude/agents/git-monitor.md
 ```
