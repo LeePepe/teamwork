@@ -51,3 +51,4 @@ When this file is updated, regenerate the `## Model Config` section in `template
 | devil-advocate | 4 | claude | openai |
 | verifier | 4 | openai | claude |
 | git-monitor | 4 | openai | claude |
+| docs-auditor | 3 | openai | claude |

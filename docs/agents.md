@@ -114,3 +114,14 @@ Runs code review and orchestrates specialty reviewers:
 **Role**: Commit/PR/CI lifecycle
 
 Runs after final gate pass when code changed.
+
+## Documentation Quality
+
+### docs-auditor
+
+**Source**: `agents/docs-auditor.md`  
+**Role**: Documentation-code drift auditor
+
+Scans the repository for inconsistencies between documentation and implementation. Produces a structured drift report with actionable fix suggestions. Can be dispatched by `planner-lead` during planning or run standalone via `/teamwork:docs-audit`.
+
+Drift categories: agent inventory, SKILL.md pipeline, docs content, README/CLAUDE.md, command docs, template/config, cross-file consistency. Each finding is classified by severity (critical/high/medium/low) with specific fix suggestions.
