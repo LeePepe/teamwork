@@ -125,3 +125,12 @@ Runs after final gate pass when code changed.
 Scans the repository for inconsistencies between documentation and implementation. Produces a structured drift report with actionable fix suggestions. Can be dispatched by `planner-lead` during planning or run standalone via `/teamwork:docs-audit`.
 
 Drift categories: agent inventory, SKILL.md pipeline, docs content, README/CLAUDE.md, command docs, template/config, cross-file consistency. Each finding is classified by severity (critical/high/medium/low) with specific fix suggestions.
+
+## Optimization
+
+### retro-optimizer
+
+**Source**: `agents/retro-optimizer.md`
+**Role**: Retrospective analysis and pipeline optimization
+
+Collects retro files from all projects (`~/Development/*/docs/retro/*.md`), analyzes patterns, and generates optimization suggestions. Focuses on improving accuracy, reducing unnecessary content, and enforcing core principles. Requires user confirmation via WeChat (`weixin:o9cq800VL1anWwX_mjwnvFkFOkLo@im.wechat`) before applying any changes.
