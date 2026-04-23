@@ -3,3 +3,4 @@
 .claude/skills/teamwork/agents/
 .claude/agents/*.md
 .claude/pipeline-state.json
+firebase-debug.log

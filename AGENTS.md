@@ -23,6 +23,7 @@ Agent definitions live in `agents/<name>.md`. For repo conventions, style rules,
 | `perf-reviewer` | Quality | No | `agents/perf-reviewer.md` | Performance review; identifies bottlenecks and scalability risks |
 | `user-perspective` | Advisory | No | `agents/user-perspective.md` | End-user advocate; evaluates UX quality |
 | `docs-auditor` | Quality | No | `agents/docs-auditor.md` | Documentation-code drift auditor; scans for inconsistencies |
+| `retro-optimizer` | Optimization | No | `agents/retro-optimizer.md` | Collects and analyzes retros from all projects; suggests pipeline optimizations (requires WeChat confirmation) |
 
 ## Validation
 
