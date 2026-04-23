@@ -37,6 +37,18 @@ bash scripts/pipeline-lib.sh notify "weixin:o9cq800VL1anWwX_mjwnvFkFOkLo@im.wech
 
 Wait for explicit user confirmation before proceeding.
 
+## Agent OKR Scorecard Collection
+
+When generating retro files, populate the **Agent OKR Scorecard** section in the retro template:
+
+- **Planning agents** (planner-lead): count tasks planned, completed, dropped; compute completion rate
+- **Execution agents** (fullstack-engineer): count tasks assigned, code tasks done, tests written, tests passing; compute task completion rate
+- **Review agents** (all *-reviewer, plan-reviewer, final-reviewer, pm, docs-auditor): classify each finding as Good / Suggestion / Warning; list dimensions covered (correctness, security, performance, a11y, style, docs, test-coverage, architecture, UX); tally total findings
+- **Advisory agents** (devil-advocate, user-perspective, researcher): count contributions and note impact
+- **Delivery agents** (git-monitor): count commits, PRs, CI pass/fail
+
+Data sources: pipeline logs, agent outputs, git history, test results from the run.
+
 ## Optimization Focus Areas
 
 | Area | What to Look For |
