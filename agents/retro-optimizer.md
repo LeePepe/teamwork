@@ -37,6 +37,35 @@ bash scripts/pipeline-lib.sh notify "weixin:o9cq800VL1anWwX_mjwnvFkFOkLo@im.wech
 
 Wait for explicit user confirmation before proceeding.
 
+## Agent OKR Report (output section)
+
+After analyzing a pipeline run, the retro findings MUST include an **Agent OKR** section that summarizes each participating agent's execution performance. This is an output of the retro analysis, NOT a template to fill.
+
+Collect metrics from pipeline logs, agent outputs, git history, and test results, then generate:
+
+### Reviewer agents (plan-reviewer, final-reviewer, security-reviewer, a11y-reviewer, perf-reviewer, docs-auditor, pm)
+- Count findings by severity: **Good** (positive affirmation), **Suggestion** (improvement idea), **Warning** (must-fix issue)
+- List **dimensions** each reviewer covered (e.g. correctness, security, performance, a11y, style, docs, test-coverage, architecture, UX)
+- Total findings per reviewer
+
+### Planning agents (planner-lead, designer, researcher)
+- Total **tasks planned** in the plan
+- How many tasks were **completed**, **dropped**, or **modified** during execution
+- Plan accuracy rate
+
+### Execution agents (fullstack-engineer)
+- **Tasks assigned** vs **tasks completed**
+- **Lines of code** changed (added/deleted)
+- **Tests written** and **tests passing/failing**
+- Task completion rate
+
+### Advisory agents (devil-advocate, user-perspective)
+- Number of **concerns raised**
+- How many were **addressed** vs **dismissed**
+
+### Delivery agents (git-monitor)
+- Commits, PRs created, CI pass/fail counts
+
 ## Optimization Focus Areas
 
 | Area | What to Look For |
