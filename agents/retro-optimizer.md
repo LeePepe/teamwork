@@ -37,17 +37,34 @@ bash scripts/pipeline-lib.sh notify "weixin:o9cq800VL1anWwX_mjwnvFkFOkLo@im.wech
 
 Wait for explicit user confirmation before proceeding.
 
-## Agent OKR Scorecard Collection
+## Agent OKR Report (output section)
 
-When generating retro files, populate the **Agent OKR Scorecard** section in the retro template:
+After analyzing a pipeline run, the retro findings MUST include an **Agent OKR** section that summarizes each participating agent's execution performance. This is an output of the retro analysis, NOT a template to fill.
 
-- **Planning agents** (planner-lead): count tasks planned, completed, dropped; compute completion rate
-- **Execution agents** (fullstack-engineer): count tasks assigned, code tasks done, tests written, tests passing; compute task completion rate
-- **Review agents** (all *-reviewer, plan-reviewer, final-reviewer, pm, docs-auditor): classify each finding as Good / Suggestion / Warning; list dimensions covered (correctness, security, performance, a11y, style, docs, test-coverage, architecture, UX); tally total findings
-- **Advisory agents** (devil-advocate, user-perspective, researcher): count contributions and note impact
-- **Delivery agents** (git-monitor): count commits, PRs, CI pass/fail
+Collect metrics from pipeline logs, agent outputs, git history, and test results, then generate:
 
-Data sources: pipeline logs, agent outputs, git history, test results from the run.
+### Reviewer agents (plan-reviewer, final-reviewer, security-reviewer, a11y-reviewer, perf-reviewer, docs-auditor, pm)
+- Count findings by severity: **Good** (positive affirmation), **Suggestion** (improvement idea), **Warning** (must-fix issue)
+- List **dimensions** each reviewer covered (e.g. correctness, security, performance, a11y, style, docs, test-coverage, architecture, UX)
+- Total findings per reviewer
+
+### Planning agents (planner-lead, designer, researcher)
+- Total **tasks planned** in the plan
+- How many tasks were **completed**, **dropped**, or **modified** during execution
+- Plan accuracy rate
+
+### Execution agents (fullstack-engineer)
+- **Tasks assigned** vs **tasks completed**
+- **Lines of code** changed (added/deleted)
+- **Tests written** and **tests passing/failing**
+- Task completion rate
+
+### Advisory agents (devil-advocate, user-perspective)
+- Number of **concerns raised**
+- How many were **addressed** vs **dismissed**
+
+### Delivery agents (git-monitor)
+- Commits, PRs created, CI pass/fail counts
 
 ## Optimization Focus Areas
 
