@@ -1,16 +1,35 @@
 #!/usr/bin/env python3
-"""analyze-retros.py — Analyze collected retrospective files and generate optimization suggestions.
+"""analyze-retros.py — Unified retro analysis: qualitative (hand-written) + quantitative (run logs).
 
-Usage: python3 scripts/analyze-retros.py [retros_dir] [output_file]
+Usage:
+    python3 scripts/analyze-retros.py [--output docs/retro-findings/analysis-report.md]
+
+Data sources (all under ~/Development/teamwork/data/):
+    - data/retros/collected/*.md  — hand-written project retros
+    - data/runs.jsonl             — structured execution run logs
 """
+from __future__ import annotations
 
+import argparse
+import json
 import os
 import re
 import sys
-import json
-from pathlib import Path
 from collections import Counter, defaultdict
+from pathlib import Path
+from typing import Any, Dict, List
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+DATA_DIR = REPO_ROOT / "data"
+
+sys.path.insert(0, str(SCRIPT_DIR))
+from eval_runs import evaluate_runs, generate_report as generate_eval_report  # type: ignore  # noqa: E402
+
+
+# ============================================================
+# Part 1: Qualitative analysis (hand-written retros)
+# ============================================================
 
 def parse_retro(content: str) -> dict:
     """Parse a retro markdown file into structured data."""
@@ -33,7 +52,6 @@ def parse_retro(content: str) -> dict:
     for line in lines:
         stripped = line.strip()
 
-        # Header detection
         if stripped.startswith("## "):
             header = stripped[3:].strip().lower()
             if "worked" in header and "didn" not in header:
@@ -54,7 +72,6 @@ def parse_retro(content: str) -> dict:
                 current_section = None
             continue
 
-        # Metadata
         if stripped.startswith("- **Date**:"):
             retro["date"] = stripped.split(":", 1)[1].strip().strip("*")
         elif stripped.startswith("- **Project**:"):
@@ -62,7 +79,6 @@ def parse_retro(content: str) -> dict:
         elif stripped.startswith("- **Pipeline stages run**:"):
             retro["stages_run"] = stripped.split(":", 1)[1].strip().strip("*")
 
-        # List items
         if stripped.startswith("- ") and current_section:
             item = stripped[2:].strip()
             if item.startswith("[") and current_section == "principles":
@@ -82,10 +98,10 @@ def parse_retro(content: str) -> dict:
     return retro
 
 
-def analyze_retros(retros: list[dict]) -> dict:
-    """Analyze parsed retros and generate optimization suggestions."""
+def analyze_qualitative(retros: List[dict]) -> dict:
+    """Analyze hand-written retros for patterns."""
     if not retros:
-        return {"suggestions": [], "summary": "No retros to analyze."}
+        return {"suggestions": [], "summary": "No hand-written retros found.", "total": 0}
 
     suggestions = []
     accuracy_issues = []
@@ -109,27 +125,24 @@ def analyze_retros(retros: list[dict]) -> dict:
 
     total = len(retros)
 
-    # Accuracy suggestions
     if accuracy_issues:
         suggestions.append({
             "area": "accuracy",
             "priority": "high",
-            "finding": f"{len(accuracy_issues)} accuracy issues found across {total} retros",
+            "finding": f"{len(accuracy_issues)} accuracy issues across {total} retros",
             "details": accuracy_issues[:5],
-            "recommendation": "Review and strengthen verification stage; add targeted checks for recurring issue types.",
+            "recommendation": "Review and strengthen verification stage.",
         })
 
-    # Unnecessary steps
     if unnecessary_steps:
         suggestions.append({
             "area": "unnecessary_steps",
             "priority": "medium",
             "finding": f"{len(unnecessary_steps)} unnecessary steps reported",
             "details": unnecessary_steps[:5],
-            "recommendation": "Consider making reported stages conditional or skippable for matching task types.",
+            "recommendation": "Make reported stages conditional or skippable.",
         })
 
-    # Principle violations
     for principle, count in principle_violations.items():
         if count > 0:
             label = {
@@ -141,10 +154,9 @@ def analyze_retros(retros: list[dict]) -> dict:
                 "area": "principles",
                 "priority": "high" if count > total // 2 else "medium",
                 "finding": f"'{label}' not met in {count}/{total} retros",
-                "recommendation": f"Reinforce '{label}' principle in agent definitions and pipeline checks.",
+                "recommendation": f"Reinforce '{label}' in agent definitions.",
             })
 
-    # Recurring failures
     if what_didnt_all:
         word_freq = Counter()
         for item in what_didnt_all:
@@ -155,79 +167,171 @@ def analyze_retros(retros: list[dict]) -> dict:
             suggestions.append({
                 "area": "recurring_failures",
                 "priority": "medium",
-                "finding": f"Common themes in failures: {', '.join(w for w, _ in common)}",
-                "recommendation": "Investigate root causes for recurring failure themes.",
+                "finding": f"Common failure themes: {', '.join(w for w, _ in common)}",
+                "recommendation": "Investigate root causes for recurring failures.",
             })
 
-    summary = (
-        f"Analyzed {total} retros. "
-        f"Found {len(accuracy_issues)} accuracy issues, "
-        f"{len(unnecessary_steps)} unnecessary steps, "
-        f"{len(suggestions)} optimization suggestions generated."
-    )
-
-    return {"suggestions": suggestions, "summary": summary, "total_retros": total}
+    return {
+        "suggestions": suggestions,
+        "total": total,
+        "summary": f"{total} retros, {len(accuracy_issues)} accuracy issues, "
+                   f"{len(unnecessary_steps)} unnecessary steps",
+    }
 
 
-def generate_report(analysis: dict) -> str:
-    """Generate a markdown report from analysis results."""
-    lines = ["# Retro Analysis Report\n"]
-    lines.append(f"**Summary**: {analysis['summary']}\n")
+# ============================================================
+# Part 2: Unified report
+# ============================================================
 
-    if not analysis["suggestions"]:
-        lines.append("No optimization suggestions at this time.\n")
-        return "\n".join(lines)
+def generate_unified_report(qual: dict, eval_data: dict) -> str:
+    """Generate a unified markdown report combining qualitative + quantitative."""
+    lines = []
+    lines.append("# Teamwork Retro Analysis Report")
+    lines.append("")
+    lines.append("综合分析：定性（手写 retro）+ 定量（执行日志）")
+    lines.append("")
 
-    lines.append("## Suggestions\n")
-    for i, s in enumerate(analysis["suggestions"], 1):
-        lines.append(f"### {i}. [{s['priority'].upper()}] {s['area'].replace('_', ' ').title()}\n")
-        lines.append(f"**Finding**: {s['finding']}\n")
-        if "details" in s:
-            lines.append("**Details**:")
-            for d in s["details"]:
-                lines.append(f"- {d}")
+    # --- Quantitative section ---
+    if eval_data.get("runs_total", 0) > 0:
+        lines.append("---")
+        lines.append("")
+        lines.append(generate_eval_report(eval_data))
+    else:
+        lines.append("## Quantitative Analysis")
+        lines.append("")
+        lines.append("No execution run logs found in `data/runs.jsonl`.")
+        lines.append("Run `bash scripts/collect-retros.sh` to collect.")
+        lines.append("")
+
+    # --- Qualitative section ---
+    lines.append("---")
+    lines.append("")
+    lines.append("# Qualitative Analysis (Hand-written Retros)")
+    lines.append("")
+
+    if qual["total"] == 0:
+        lines.append("No hand-written retros found in `data/retros/collected/`.")
+        lines.append("Projects should place retros in `docs/retro/*.md`.")
+        lines.append("")
+    else:
+        lines.append(f"**{qual['summary']}**")
+        lines.append("")
+
+        if qual["suggestions"]:
+            lines.append("## Qualitative Suggestions")
             lines.append("")
-        lines.append(f"**Recommendation**: {s['recommendation']}\n")
+            for i, s in enumerate(qual["suggestions"], 1):
+                lines.append(f"### {i}. [{s['priority'].upper()}] {s['area'].replace('_', ' ').title()}")
+                lines.append("")
+                lines.append(f"**Finding**: {s['finding']}")
+                lines.append("")
+                if "details" in s:
+                    for d in s["details"]:
+                        lines.append(f"- {d}")
+                    lines.append("")
+                lines.append(f"**Recommendation**: {s['recommendation']}")
+                lines.append("")
+
+    # --- Cross-analysis ---
+    lines.append("---")
+    lines.append("")
+    lines.append("## Cross-Analysis: Qualitative × Quantitative")
+    lines.append("")
+
+    cross = _cross_analyze(qual, eval_data)
+    if cross:
+        for i, insight in enumerate(cross, 1):
+            lines.append(f"{i}. {insight}")
+        lines.append("")
+    else:
+        lines.append("数据不足，无法交叉分析。积累更多 retro 和 run log 后再评估。")
+        lines.append("")
 
     return "\n".join(lines)
 
 
+def _cross_analyze(qual: dict, eval_data: dict) -> List[str]:
+    """Find insights by crossing qualitative and quantitative data."""
+    insights = []
+
+    if eval_data.get("runs_total", 0) == 0 or qual["total"] == 0:
+        return insights
+
+    # Compare qualitative failure themes with quantitative bottlenecks
+    bottlenecks = eval_data.get("bottlenecks", [])
+    if bottlenecks:
+        top_role = bottlenecks[0]["role"]
+        qual_failures = [s for s in qual["suggestions"] if s["area"] == "recurring_failures"]
+        if qual_failures:
+            insights.append(
+                f"定量瓶颈 **{top_role}** 与定性反馈中的失败主题可能相关，"
+                "建议结合具体案例分析根因"
+            )
+
+    # Success rate vs principle compliance
+    success_rate = eval_data.get("success_rate", 0)
+    principle_issues = [s for s in qual["suggestions"] if s["area"] == "principles"]
+    if success_rate < 50 and principle_issues:
+        insights.append(
+            f"成功率 {success_rate}% 偏低，且核心原则未充分遵守 — "
+            "这两者可能互为因果"
+        )
+
+    # Iterate rate on reviewers vs accuracy issues
+    accuracy_issues = [s for s in qual["suggestions"] if s["area"] == "accuracy"]
+    role_summary = eval_data.get("role_summary", {})
+    for role in ["plan-reviewer", "final-reviewer"]:
+        stats = role_summary.get(role, {})
+        if stats.get("iterate_rate", 0) > 30 and accuracy_issues:
+            insights.append(
+                f"**{role}** 迭代率 {stats['iterate_rate']}% + 定性报告中的准确性问题 → "
+                "建议提升上游产出质量"
+            )
+
+    return insights
+
+
 def main():
-    retros_dir = sys.argv[1] if len(sys.argv) > 1 else "docs/retro-findings/collected"
-    output_file = sys.argv[2] if len(sys.argv) > 2 else "docs/retro-findings/analysis-report.md"
+    parser = argparse.ArgumentParser(description="Unified retro analysis")
+    parser.add_argument("--output", default="docs/retro-findings/analysis-report.md",
+                        help="Output report path")
+    parser.add_argument("--json-output", help="Output structured JSON")
+    args = parser.parse_args()
 
-    retros_path = Path(retros_dir)
-    if not retros_path.exists():
-        print(f"Retros directory not found: {retros_dir}")
-        print("Run scripts/collect-retros.sh first.")
-        sys.exit(1)
-
-    retro_files = list(retros_path.glob("*.md"))
-    if not retro_files:
-        print(f"No retro files found in {retros_dir}")
-        sys.exit(1)
-
-    print(f"Parsing {len(retro_files)} retro files...")
+    # 1. Qualitative: hand-written retros
+    retro_dir = DATA_DIR / "retros" / "collected"
     retros = []
-    for f in retro_files:
-        content = f.read_text()
-        retros.append(parse_retro(content))
+    if retro_dir.exists():
+        for f in sorted(retro_dir.glob("*.md")):
+            retros.append(parse_retro(f.read_text()))
+    qual = analyze_qualitative(retros)
+    print(f"Qualitative: {qual['summary']}")
 
-    print("Analyzing...")
-    analysis = analyze_retros(retros)
+    # 2. Quantitative: run logs
+    runs_file = DATA_DIR / "runs.jsonl"
+    runs = []
+    if runs_file.exists():
+        for line in runs_file.read_text().splitlines():
+            line = line.strip()
+            if line:
+                runs.append(json.loads(line))
+    eval_data = evaluate_runs(runs, days=90)
+    print(f"Quantitative: {eval_data['runs_total']} runs, {eval_data.get('success_rate', 0)}% success")
 
-    report = generate_report(analysis)
-    output_path = Path(output_file)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(report)
+    # 3. Unified report
+    report = generate_unified_report(qual, eval_data)
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(report, encoding="utf-8")
+    print(f"\nReport → {output}")
 
-    print(f"Report written to {output_file}")
-    print(analysis["summary"])
-
-    # Also write JSON for programmatic use
-    json_path = output_path.with_suffix(".json")
-    json_path.write_text(json.dumps(analysis, indent=2))
-    print(f"JSON data written to {json_path}")
+    # 4. JSON
+    if args.json_output:
+        combined = {"qualitative": qual, "quantitative": eval_data}
+        Path(args.json_output).write_text(
+            json.dumps(combined, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        print(f"JSON → {args.json_output}")
 
 
 if __name__ == "__main__":

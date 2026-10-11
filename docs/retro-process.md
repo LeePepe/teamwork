@@ -1,62 +1,97 @@
-# Retro Collection and Optimization Process
+# Retro Process
 
 ## Overview
 
-The retro optimizer is a feedback loop that collects retrospective data from all projects using the teamwork pipeline, analyzes patterns, and generates optimization suggestions.
+Teamwork retro 系统整合了两种分析维度：
 
-## Process
+- **定性分析**：基于项目团队手写的 retro markdown 文件
+- **定量分析**：基于 `.claude/last-run-*.md` 执行日志的自动化指标
 
-### 1. Write Retros
+所有数据集中存储在 `~/Development/teamwork/data/`。
 
-After each teamwork pipeline run, create a retro file in your project:
+## Data Directory
 
 ```
-your-project/docs/retro/YYYY-MM-DD-description.md
+data/
+├── runs.jsonl              ← 结构化执行日志（自动采集，增量去重）
+└── retros/
+    └── collected/          ← 手写 retro 汇总（从各项目复制）
+        ├── epichain-mac--2026-04-15-xxx.md
+        └── MonitorSelf--2026-04-20-xxx.md
 ```
 
-Use the template at `templates/retro-template.md`.
+## Data Flow
 
-### 2. Collect Retros
+```
+各项目/.claude/last-run-*.md  ─┐
+                                ├──  collect-retros.sh  →  data/
+各项目/docs/retro/*.md        ─┘        (一键收集)
 
-Run the collection script to gather retros from all projects:
+data/runs.jsonl  ──┐
+                    ├──  analyze-retros.py  →  docs/retro-findings/analysis-report.md
+data/retros/       ──┘     (统一分析)                    ↓
+                                              定量 + 定性 + 交叉分析
+```
+
+## Running
+
+### 1. 收集数据
 
 ```bash
+cd ~/Development/teamwork
 bash scripts/collect-retros.sh
 ```
 
-This scans `~/Development/*/docs/retro/*.md` and copies files to `docs/retro-findings/collected/`.
+这会同时收集：
+- 手写 retro：`~/Development/*/docs/retro/*.md` → `data/retros/collected/`
+- 执行日志：`~/Development/*/.claude/last-run-*.md` → `data/runs.jsonl`
 
-### 3. Analyze
-
-Run the analysis script:
+### 2. 分析
 
 ```bash
 python3 scripts/analyze-retros.py
 ```
 
-Outputs:
-- `docs/retro-findings/analysis-report.md` — human-readable report
-- `docs/retro-findings/analysis-report.json` — machine-readable data
+输出统一报告到 `docs/retro-findings/analysis-report.md`，包含：
+- **定量**：成功率、agent 效率、瓶颈排名、效率评分
+- **定性**：准确性问题、不必要步骤、原则遵守情况
+- **交叉分析**：定量瓶颈 × 定性反馈关联
 
-### 4. Review and Apply
+### 3. 单独运行定量 eval
 
-The retro-optimizer agent sends a WeChat notification (`weixin:o9cq800VL1anWwX_mjwnvFkFOkLo@im.wechat`) before applying any changes. Changes are only applied after explicit user confirmation.
+```bash
+python3 scripts/eval_runs.py
+```
 
-## Optimization Focus
+### 4. 单独收集 run logs
 
-| Principle | How It's Enforced |
-|-----------|-------------------|
-| Content needs review | Retro tracks whether outputs were reviewed before acceptance |
-| Plan+docs as source of truth | Retro tracks whether plan/docs drove execution |
-| Layered plan/docs to reduce context | Retro tracks context usage and identifies bloat |
+```bash
+python3 scripts/collect_runs.py
+```
 
-## File Locations
+## Cron Job
 
-| File | Purpose |
-|------|---------|
-| `agents/retro-optimizer.md` | Agent definition |
-| `templates/retro-template.md` | Template for project retros |
-| `scripts/collect-retros.sh` | Collection script |
-| `scripts/analyze-retros.py` | Analysis script |
-| `docs/retro-findings/` | Analysis output directory |
-| `test/test_analyze_retros.py` | Unit tests |
+`teamwork-eval` cron job（每周一 08:00）自动执行 collect + eval，
+结果同步到 agent-ops dashboard。
+
+## Hand-Written Retro Template
+
+各项目在 `docs/retro/YYYY-MM-DD-<slug>.md` 按模板写 retro。
+模板见 `templates/retro-template.md`。
+
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `collect-retros.sh` | 一键收集所有数据源 |
+| `collect_runs.py` | 增量采集 last-run → runs.jsonl |
+| `parse_runs.py` | 解析 last-run-*.md 为 JSON |
+| `eval_runs.py` | 定量分析 + 报告 |
+| `analyze-retros.py` | 统一分析（定量+定性+交叉） |
+
+## Core Principles
+
+1. **Content needs review** — never auto-apply without human gate
+2. **Plan+docs as source of truth** — optimize plan accuracy
+3. **Layered plan/docs** — reduce context window usage
+4. **WeChat confirmation** before applying changes to skills/agents
